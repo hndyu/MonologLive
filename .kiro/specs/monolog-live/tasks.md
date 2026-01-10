@@ -36,24 +36,24 @@ The implementation uses TypeScript for type safety and modern web technologies i
     - **Property 2: Real-time Transcription Display**
     - **Validates: Requirements 1.2, 9.4**
 
-- [ ] 3. Implement basic comment generation system
-  - [ ] 3.1 Create comment role definitions and patterns
+- [x] 3. Implement basic comment generation system
+  - [x] 3.1 Create comment role definitions and patterns
     - Define all 8 comment role types with pattern libraries
     - Implement role weighting and selection algorithms
     - Create context-aware comment filtering
     - _Requirements: 2.1, 2.2, 3.1-3.8_
 
-  - [ ] 3.2 Build rule-based comment generator
+  - [x] 3.2 Build rule-based comment generator
     - Implement pattern matching and template generation
     - Add conversation context analysis
     - Create comment timing and frequency controls
     - _Requirements: 2.3, 4.1, 4.2, 4.3, 4.5_
 
-  - [ ] 3.3 Write property test for comment role diversity
+  - [x] 3.3 Write property test for comment role diversity
     - **Property 3: Hybrid Comment Generation**
     - **Validates: Requirements 2.1, 2.2, 2.4, 2.5, 2.6, 3.1-3.8**
 
-  - [ ] 3.4 Create comment display UI
+  - [x] 3.4 Create comment display UI
     - Build streaming chat-like interface for comments
     - Implement comment interaction (click, thumbs up/down)
     - Add visual feedback for user interactions

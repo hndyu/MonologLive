@@ -1,6 +1,6 @@
 // Comment generation interfaces for hybrid rule-based and LLM processing
 
-import { Comment, CommentRoleType, ConversationContext, UserFeedback } from '../types/core.js';
+import { Comment, CommentRoleType, ConversationContext, UserFeedback } from '../types/core';
 
 export interface CommentRole {
   type: CommentRoleType;
