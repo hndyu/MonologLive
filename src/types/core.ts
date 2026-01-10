@@ -32,6 +32,13 @@ export interface ConversationContext {
   speechVolume: number;
   speechRate: number;
   silenceDuration: number;
+  // New properties for adaptive frequency
+  userEngagement?: 'low' | 'medium' | 'high';
+  conversationPace?: 'slow' | 'normal' | 'fast';
+  silenceState?: {
+    isInSilence: boolean;
+    silenceDuration: number;
+  };
 }
 
 export interface UserInteraction {

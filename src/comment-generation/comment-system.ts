@@ -7,6 +7,8 @@ import { HybridCommentGenerator } from './hybrid-generator';
 import { CommentDisplay, CommentInteractionHandlers } from '../ui/comment-display';
 import { MainLearningModule } from '../learning/learning-module';
 import { IndexedDBWrapper } from '../storage/indexeddb-wrapper';
+import { AdaptiveFrequencyManager, FrequencyAdaptationConfig, DEFAULT_FREQUENCY_CONFIG } from './adaptive-frequency-manager.js';
+import { AudioAnalysisData } from '../audio/audio-analyzer.js';
 
 /**
  * Configuration for the integrated comment system
@@ -14,6 +16,8 @@ import { IndexedDBWrapper } from '../storage/indexeddb-wrapper';
 export interface CommentSystemConfig {
   enableRuleBasedGeneration: boolean;
   enableLocalLLM: boolean;
+  enableAdaptiveFrequency: boolean;
+  frequencyConfig?: FrequencyAdaptationConfig;
   displayConfig?: {
     maxVisibleComments: number;
     autoScroll: boolean;
@@ -29,6 +33,8 @@ export interface CommentSystemConfig {
 export const DEFAULT_COMMENT_SYSTEM_CONFIG: CommentSystemConfig = {
   enableRuleBasedGeneration: true,
   enableLocalLLM: false, // Will be implemented in future tasks
+  enableAdaptiveFrequency: true,
+  frequencyConfig: DEFAULT_FREQUENCY_CONFIG,
   displayConfig: {
     maxVisibleComments: 20,
     autoScroll: true,
@@ -42,6 +48,7 @@ export const DEFAULT_COMMENT_SYSTEM_CONFIG: CommentSystemConfig = {
  * Integrated comment system combining generation and display
  * Implements hybrid comment generation as specified in Requirements 2.4, 2.5, 2.6
  * Includes learning and personalization as per Requirements 7.1-7.5
+ * Includes adaptive frequency management as per Requirements 4.1, 4.2, 4.5
  */
 export class CommentSystem implements CommentGenerator {
   private ruleBasedGenerator: RuleBasedCommentGenerator;
@@ -53,6 +60,7 @@ export class CommentSystem implements CommentGenerator {
   private storage: IndexedDBWrapper | null = null;
   private currentUserId: string | null = null;
   private currentSessionId: string | null = null;
+  private adaptiveFrequencyManager: AdaptiveFrequencyManager | null = null;
   
   constructor(config: CommentSystemConfig = DEFAULT_COMMENT_SYSTEM_CONFIG) {
     this.config = config;
@@ -62,6 +70,12 @@ export class CommentSystem implements CommentGenerator {
     if (config.enableLocalLLM) {
       this.hybridGenerator = new HybridCommentGenerator();
       console.log('Hybrid comment generation enabled');
+    }
+    
+    // Initialize adaptive frequency manager if enabled
+    if (config.enableAdaptiveFrequency) {
+      this.adaptiveFrequencyManager = new AdaptiveFrequencyManager(config.frequencyConfig);
+      console.log('Adaptive frequency management enabled');
     }
     
     // Set up interaction handlers
@@ -110,17 +124,28 @@ export class CommentSystem implements CommentGenerator {
   /**
    * Generates and displays a comment based on conversation context
    * Implements hybrid generation strategy (Requirements 2.4, 2.5, 2.6)
+   * Includes adaptive frequency control (Requirements 4.1, 4.2, 4.5)
    */
   generateComment(context: ConversationContext): Comment {
+    // Check if adaptive frequency allows comment generation
+    if (this.adaptiveFrequencyManager && !this.adaptiveFrequencyManager.shouldGenerateComment()) {
+      // Return null or empty comment to indicate no comment should be generated
+      return null as any; // This will be handled by the caller
+    }
+
+    // Get adaptive context if available
+    const adaptiveContext = this.adaptiveFrequencyManager ? 
+      this.adaptiveFrequencyManager.getAdaptiveContext(context) : context;
+
     let comment: Comment | null = null;
     
     // Use hybrid generation if available and enabled
     if (this.config.enableLocalLLM && this.hybridGenerator) {
-      comment = this.hybridGenerator.generateComment(context);
+      comment = this.hybridGenerator.generateComment(adaptiveContext);
     }
     // Fallback to rule-based generation
     else if (this.config.enableRuleBasedGeneration) {
-      comment = this.ruleBasedGenerator.generateComment(context);
+      comment = this.ruleBasedGenerator.generateComment(adaptiveContext);
     }
     
     // If no comment generated, create a default one
@@ -130,8 +155,13 @@ export class CommentSystem implements CommentGenerator {
         role: 'reaction',
         content: '...',
         timestamp: new Date(),
-        context: { ...context }
+        context: { ...adaptiveContext }
       };
+    }
+
+    // Record comment generation for frequency tracking
+    if (this.adaptiveFrequencyManager) {
+      this.adaptiveFrequencyManager.recordCommentGenerated();
     }
     
     // Display the comment if display is available
@@ -369,6 +399,23 @@ export class CommentSystem implements CommentGenerator {
         console.log('Hybrid comment generation disabled');
       }
     }
+
+    // Initialize or destroy adaptive frequency manager based on config change
+    if (newConfig.enableAdaptiveFrequency !== undefined) {
+      if (newConfig.enableAdaptiveFrequency && !this.adaptiveFrequencyManager) {
+        this.adaptiveFrequencyManager = new AdaptiveFrequencyManager(this.config.frequencyConfig);
+        console.log('Adaptive frequency management enabled');
+      } else if (!newConfig.enableAdaptiveFrequency && this.adaptiveFrequencyManager) {
+        this.adaptiveFrequencyManager.destroy();
+        this.adaptiveFrequencyManager = null;
+        console.log('Adaptive frequency management disabled');
+      }
+    }
+
+    // Update frequency config if provided
+    if (newConfig.frequencyConfig && this.adaptiveFrequencyManager) {
+      this.adaptiveFrequencyManager.updateConfig(newConfig.frequencyConfig);
+    }
     
     if (this.display && newConfig.displayConfig) {
       this.display.updateConfig(newConfig.displayConfig);
@@ -400,6 +447,59 @@ export class CommentSystem implements CommentGenerator {
   }
   
   /**
+   * Update adaptive frequency based on audio analysis
+   * Implements Requirements 4.1, 4.2, 4.3
+   */
+  updateFromAudioAnalysis(analysisData: AudioAnalysisData): void {
+    if (this.adaptiveFrequencyManager) {
+      this.adaptiveFrequencyManager.updateFromAudioAnalysis(analysisData);
+    }
+  }
+
+  /**
+   * Check if it's time to generate a comment based on adaptive frequency
+   */
+  shouldGenerateComment(): boolean {
+    return this.adaptiveFrequencyManager ? 
+      this.adaptiveFrequencyManager.shouldGenerateComment() : true;
+  }
+
+  /**
+   * Get adaptive frequency statistics
+   */
+  getFrequencyStats() {
+    return this.adaptiveFrequencyManager ? 
+      this.adaptiveFrequencyManager.getStats() : null;
+  }
+
+  /**
+   * Get time until next comment should be generated
+   */
+  getTimeUntilNextComment(): number {
+    return this.adaptiveFrequencyManager ? 
+      this.adaptiveFrequencyManager.getTimeUntilNextComment() : 0;
+  }
+
+  /**
+   * Force generate a comment (override frequency limits)
+   */
+  forceComment(context: ConversationContext): Comment {
+    if (this.adaptiveFrequencyManager) {
+      this.adaptiveFrequencyManager.forceComment();
+    }
+    return this.generateComment(context);
+  }
+
+  /**
+   * Update adaptive frequency configuration
+   */
+  updateFrequencyConfig(config: Partial<FrequencyAdaptationConfig>): void {
+    if (this.adaptiveFrequencyManager) {
+      this.adaptiveFrequencyManager.updateConfig(config);
+    }
+  }
+
+  /**
    * Destroys the comment system and cleans up resources
    */
   async destroy(): Promise<void> {
@@ -413,6 +513,11 @@ export class CommentSystem implements CommentGenerator {
     if (this.hybridGenerator) {
       await this.hybridGenerator.destroy();
       this.hybridGenerator = null;
+    }
+
+    if (this.adaptiveFrequencyManager) {
+      this.adaptiveFrequencyManager.destroy();
+      this.adaptiveFrequencyManager = null;
     }
   }
 }
