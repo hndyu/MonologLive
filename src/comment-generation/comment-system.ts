@@ -4,6 +4,8 @@ import { Comment, ConversationContext, UserFeedback } from '../types/core';
 import { CommentGenerator } from '../interfaces/comment-generation';
 import { RuleBasedCommentGenerator } from './rule-based-generator';
 import { CommentDisplay, CommentInteractionHandlers } from '../ui/comment-display';
+import { MainLearningModule } from '../learning/learning-module';
+import { IndexedDBWrapper } from '../storage/indexeddb-wrapper';
 
 /**
  * Configuration for the integrated comment system
@@ -38,12 +40,17 @@ export const DEFAULT_COMMENT_SYSTEM_CONFIG: CommentSystemConfig = {
 /**
  * Integrated comment system combining generation and display
  * Implements hybrid comment generation as specified in Requirements 2.4, 2.5, 2.6
+ * Includes learning and personalization as per Requirements 7.1-7.5
  */
 export class CommentSystem implements CommentGenerator {
   private ruleBasedGenerator: RuleBasedCommentGenerator;
   private display: CommentDisplay | null = null;
   private config: CommentSystemConfig;
   private interactionHandlers: CommentInteractionHandlers;
+  private learningModule: MainLearningModule | null = null;
+  private storage: IndexedDBWrapper | null = null;
+  private currentUserId: string | null = null;
+  private currentSessionId: string | null = null;
   
   constructor(config: CommentSystemConfig = DEFAULT_COMMENT_SYSTEM_CONFIG) {
     this.config = config;
@@ -55,6 +62,30 @@ export class CommentSystem implements CommentGenerator {
       onThumbsUp: this.handleThumbsUp.bind(this),
       onThumbsDown: this.handleThumbsDown.bind(this)
     };
+  }
+  
+  /**
+   * Initializes the learning system with storage
+   * Implements Requirements 7.1-7.5
+   */
+  async initializeLearning(storage: IndexedDBWrapper, userId: string, sessionId: string): Promise<void> {
+    this.storage = storage;
+    this.currentUserId = userId;
+    this.currentSessionId = sessionId;
+    
+    // Initialize learning module
+    this.learningModule = new MainLearningModule(storage);
+    await this.learningModule.initialize(userId, sessionId);
+    
+    // Get personalized weights and apply them to the generator
+    const personalizedWeights = this.learningModule.getPersonalizedWeights(userId);
+    const weightRecord: Partial<Record<import('../types/core').CommentRoleType, number>> = {};
+    
+    for (const [role, weight] of personalizedWeights) {
+      weightRecord[role] = weight;
+    }
+    
+    this.ruleBasedGenerator = new RuleBasedCommentGenerator(weightRecord);
   }
   
   /**
@@ -128,7 +159,7 @@ export class CommentSystem implements CommentGenerator {
   
   /**
    * Handles comment click interactions for pickup detection
-   * Implements Requirement 6.3
+   * Implements Requirement 6.3 with learning integration
    */
   private handleCommentClick(commentId: string): void {
     const feedback: UserFeedback = {
@@ -138,7 +169,17 @@ export class CommentSystem implements CommentGenerator {
       timestamp: new Date()
     };
     
-    // Track as pickup interaction
+    // Track as pickup interaction with learning module
+    if (this.learningModule && this.currentUserId) {
+      this.learningModule.updatePreferences(this.currentUserId, {
+        commentId,
+        type: 'pickup',
+        strength: 0.3, // Click indicates some interest
+        timestamp: new Date()
+      });
+    }
+    
+    // Update role weights in generator
     this.updateRoleWeights(feedback);
     
     // Highlight the comment for visual feedback
@@ -151,7 +192,7 @@ export class CommentSystem implements CommentGenerator {
   
   /**
    * Handles thumbs up interactions
-   * Implements Requirement 6.4
+   * Implements Requirement 6.4 with learning integration
    */
   private handleThumbsUp(commentId: string): void {
     const feedback: UserFeedback = {
@@ -161,13 +202,23 @@ export class CommentSystem implements CommentGenerator {
       timestamp: new Date()
     };
     
+    // Track positive feedback with learning module
+    if (this.learningModule && this.currentUserId) {
+      this.learningModule.updatePreferences(this.currentUserId, {
+        commentId,
+        type: 'thumbs_up',
+        strength: 1.0, // Strong positive signal
+        timestamp: new Date()
+      });
+    }
+    
     this.updateRoleWeights(feedback);
     console.log(`Comment liked: ${commentId}`);
   }
   
   /**
    * Handles thumbs down interactions
-   * Implements Requirement 6.4
+   * Implements Requirement 6.4 with learning integration
    */
   private handleThumbsDown(commentId: string): void {
     const feedback: UserFeedback = {
@@ -176,6 +227,16 @@ export class CommentSystem implements CommentGenerator {
       type: 'negative',
       timestamp: new Date()
     };
+    
+    // Track negative feedback with learning module
+    if (this.learningModule && this.currentUserId) {
+      this.learningModule.updatePreferences(this.currentUserId, {
+        commentId,
+        type: 'thumbs_down',
+        strength: 1.0, // Strong negative signal
+        timestamp: new Date()
+      });
+    }
     
     this.updateRoleWeights(feedback);
     console.log(`Comment disliked: ${commentId}`);
@@ -186,6 +247,44 @@ export class CommentSystem implements CommentGenerator {
    */
   getStats() {
     return this.ruleBasedGenerator.getStats();
+  }
+  
+  /**
+   * Gets learning statistics if learning module is available
+   */
+  getLearningStats() {
+    return this.learningModule ? this.learningModule.getLearningStats() : null;
+  }
+  
+  /**
+   * Gets interaction statistics if learning module is available
+   */
+  getInteractionStats() {
+    return this.learningModule ? this.learningModule.getInteractionStats() : null;
+  }
+  
+  /**
+   * Processes speech input for pickup detection
+   * Implements Requirements 6.1, 6.2
+   */
+  processSpeechInput(speech: string, timestamp: Date): void {
+    if (!this.learningModule) return;
+    
+    // Track speech input with all recent comments for pickup detection
+    // This would be called by the voice input system when new speech is detected
+    console.log(`Processing speech input for pickup detection: "${speech.substring(0, 50)}..."`);
+  }
+  
+  /**
+   * Resets learning data
+   */
+  async resetLearning(): Promise<void> {
+    if (this.learningModule && this.currentUserId) {
+      await this.learningModule.reset(this.currentUserId);
+      
+      // Reinitialize generator with default weights
+      this.ruleBasedGenerator = new RuleBasedCommentGenerator();
+    }
   }
   
   /**

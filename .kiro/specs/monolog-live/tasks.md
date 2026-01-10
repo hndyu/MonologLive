@@ -59,29 +59,29 @@ The implementation uses TypeScript for type safety and modern web technologies i
     - Add visual feedback for user interactions
     - _Requirements: 6.3, 6.4, 10.2_
 
-- [x] 4. Checkpoint - Basic voice chat functionality
+- [ ] 4. Checkpoint - Basic voice chat functionality
   - Ensure voice input, transcription, and basic comments work together
   - Test end-to-end conversation flow
   - Ask the user if questions arise
 
-- [ ] 5. Implement learning and personalization
-  - [ ] 5.1 Create user interaction tracking
+- [x] 5. Implement learning and personalization
+  - [x] 5.1 Create user interaction tracking
     - Implement comment pickup detection (timing + content analysis)
     - Track explicit user feedback (clicks, thumbs up/down)
     - Store interaction history in IndexedDB
     - _Requirements: 6.1, 6.2, 6.3, 6.5, 6.6_
 
-  - [ ] 5.2 Write property test for pickup detection
+  - [x] 5.2 Write property test for pickup detection
     - **Property 6: Comment Pickup Detection**
     - **Validates: Requirements 6.1, 6.2**
 
-  - [ ] 5.3 Build preference learning system
+  - [x] 5.3 Build preference learning system
     - Implement role weight adjustment based on feedback
     - Create preference persistence across sessions
     - Add user preference management UI
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-  - [ ] 5.4 Write property test for learning persistence
+  - [x] 5.4 Write property test for learning persistence
     - **Property 8: Learning Persistence**
     - **Validates: Requirements 7.1, 7.2, 7.3, 7.5**
 
