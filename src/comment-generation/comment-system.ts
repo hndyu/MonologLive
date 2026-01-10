@@ -3,6 +3,7 @@
 import { Comment, ConversationContext, UserFeedback } from '../types/core';
 import { CommentGenerator } from '../interfaces/comment-generation';
 import { RuleBasedCommentGenerator } from './rule-based-generator';
+import { HybridCommentGenerator } from './hybrid-generator';
 import { CommentDisplay, CommentInteractionHandlers } from '../ui/comment-display';
 import { MainLearningModule } from '../learning/learning-module';
 import { IndexedDBWrapper } from '../storage/indexeddb-wrapper';
@@ -44,6 +45,7 @@ export const DEFAULT_COMMENT_SYSTEM_CONFIG: CommentSystemConfig = {
  */
 export class CommentSystem implements CommentGenerator {
   private ruleBasedGenerator: RuleBasedCommentGenerator;
+  private hybridGenerator: HybridCommentGenerator | null = null;
   private display: CommentDisplay | null = null;
   private config: CommentSystemConfig;
   private interactionHandlers: CommentInteractionHandlers;
@@ -55,6 +57,12 @@ export class CommentSystem implements CommentGenerator {
   constructor(config: CommentSystemConfig = DEFAULT_COMMENT_SYSTEM_CONFIG) {
     this.config = config;
     this.ruleBasedGenerator = new RuleBasedCommentGenerator();
+    
+    // Initialize hybrid generator if local LLM is enabled
+    if (config.enableLocalLLM) {
+      this.hybridGenerator = new HybridCommentGenerator();
+      console.log('Hybrid comment generation enabled');
+    }
     
     // Set up interaction handlers
     this.interactionHandlers = {
@@ -106,15 +114,14 @@ export class CommentSystem implements CommentGenerator {
   generateComment(context: ConversationContext): Comment {
     let comment: Comment | null = null;
     
-    // Use rule-based generation (primary method for now)
-    if (this.config.enableRuleBasedGeneration) {
+    // Use hybrid generation if available and enabled
+    if (this.config.enableLocalLLM && this.hybridGenerator) {
+      comment = this.hybridGenerator.generateComment(context);
+    }
+    // Fallback to rule-based generation
+    else if (this.config.enableRuleBasedGeneration) {
       comment = this.ruleBasedGenerator.generateComment(context);
     }
-    
-    // TODO: Add local LLM generation in future tasks
-    // if (this.config.enableLocalLLM && !comment) {
-    //   comment = await this.localLLMGenerator.generateComment(context);
-    // }
     
     // If no comment generated, create a default one
     if (!comment) {
@@ -139,22 +146,33 @@ export class CommentSystem implements CommentGenerator {
    * Updates role weights based on user feedback
    */
   updateRoleWeights(feedback: UserFeedback): void {
+    // Update both generators if available
     this.ruleBasedGenerator.updateRoleWeights(feedback);
+    
+    if (this.hybridGenerator) {
+      this.hybridGenerator.updateRoleWeights(feedback);
+    }
   }
   
   /**
    * Gets active comment roles
    */
   getActiveRoles() {
+    if (this.hybridGenerator) {
+      return this.hybridGenerator.getActiveRoles();
+    }
     return this.ruleBasedGenerator.getActiveRoles();
   }
   
   /**
-   * Sets mixing ratio for hybrid generation (placeholder for future LLM integration)
+   * Sets mixing ratio for hybrid generation
    */
   setMixingRatio(ruleBasedRatio: number, llmRatio: number): void {
-    // TODO: Implement when local LLM is added
-    console.log(`Mixing ratio set: Rule-based ${ruleBasedRatio}, LLM ${llmRatio}`);
+    if (this.hybridGenerator) {
+      this.hybridGenerator.setMixingRatio(ruleBasedRatio, llmRatio);
+    } else {
+      console.log(`Mixing ratio set: Rule-based ${ruleBasedRatio}, LLM ${llmRatio} (LLM not available)`);
+    }
   }
   
   /**
@@ -246,7 +264,19 @@ export class CommentSystem implements CommentGenerator {
    * Gets generation statistics
    */
   getStats() {
-    return this.ruleBasedGenerator.getStats();
+    const ruleBasedStats = this.ruleBasedGenerator.getStats();
+    
+    if (this.hybridGenerator) {
+      return {
+        ruleBasedStats,
+        hybridStats: this.hybridGenerator.getRuleBasedStats(),
+        performanceMetrics: this.hybridGenerator.getPerformanceMetrics(),
+        llmModelInfo: this.hybridGenerator.getLLMModelInfo(),
+        isLLMReady: this.hybridGenerator.isLLMReady()
+      };
+    }
+    
+    return { ruleBasedStats };
   }
   
   /**
@@ -291,14 +321,54 @@ export class CommentSystem implements CommentGenerator {
    * Gets current role weights
    */
   getRoleWeights() {
+    if (this.hybridGenerator) {
+      return this.hybridGenerator.getActiveRoles().reduce((weights, role) => {
+        weights[role.type] = role.weight;
+        return weights;
+      }, {} as Record<import('../types/core').CommentRoleType, number>);
+    }
     return this.ruleBasedGenerator.getRoleWeights();
+  }
+  
+  /**
+   * Gets hybrid generation performance metrics
+   */
+  getHybridMetrics() {
+    return this.hybridGenerator ? this.hybridGenerator.getPerformanceMetrics() : null;
+  }
+  
+  /**
+   * Gets LLM runtime statistics
+   */
+  getLLMStats(): string | null {
+    return this.hybridGenerator ? this.hybridGenerator.getLLMStats() : null;
+  }
+  
+  /**
+   * Checks if hybrid generation is available and ready
+   */
+  isHybridReady(): boolean {
+    return this.hybridGenerator ? this.hybridGenerator.isLLMReady() : false;
   }
   
   /**
    * Updates system configuration
    */
   updateConfig(newConfig: Partial<CommentSystemConfig>): void {
+    const oldConfig = { ...this.config };
     this.config = { ...this.config, ...newConfig };
+    
+    // Initialize or destroy hybrid generator based on config change
+    if (newConfig.enableLocalLLM !== undefined) {
+      if (newConfig.enableLocalLLM && !this.hybridGenerator) {
+        this.hybridGenerator = new HybridCommentGenerator();
+        console.log('Hybrid comment generation enabled');
+      } else if (!newConfig.enableLocalLLM && this.hybridGenerator) {
+        this.hybridGenerator.destroy();
+        this.hybridGenerator = null;
+        console.log('Hybrid comment generation disabled');
+      }
+    }
     
     if (this.display && newConfig.displayConfig) {
       this.display.updateConfig(newConfig.displayConfig);
@@ -332,11 +402,17 @@ export class CommentSystem implements CommentGenerator {
   /**
    * Destroys the comment system and cleans up resources
    */
-  destroy(): void {
+  async destroy(): Promise<void> {
     if (this.display) {
       this.display.destroy();
       this.display = null;
     }
+    
     this.ruleBasedGenerator.reset();
+    
+    if (this.hybridGenerator) {
+      await this.hybridGenerator.destroy();
+      this.hybridGenerator = null;
+    }
   }
 }
