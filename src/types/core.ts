@@ -114,6 +114,10 @@ export interface AudioFile {
   size: number;
   createdAt: Date;
   quality: AudioQualitySettings;
+  // Additional properties for enhanced transcription
+  blob?: Blob;
+  buffer?: ArrayBuffer;
+  url?: string;
 }
 
 export interface AudioQualitySettings {

@@ -180,20 +180,20 @@ The implementation uses TypeScript for type safety and modern web technologies i
     - **Property 5: Silence Handling**
     - **Validates: Requirements 4.3, 4.5**
 
-- [ ] 12. Optional: Enhanced transcription with local Whisper
-  - [ ] 12.1 Set up local Whisper integration
+- [x] 12. Optional: Enhanced transcription with local Whisper
+  - [x] 12.1 Set up local Whisper integration
     - Research and implement whisper.cpp WebAssembly build
     - Create model loading and initialization system
     - Add device capability detection
     - _Requirements: 12.1, 12.2, 12.4_
 
-  - [ ] 12.2 Integrate enhanced transcription with summaries
+  - [x] 12.2 Integrate enhanced transcription with summaries
     - Connect Whisper transcription to summary generation
     - Implement fallback to Web Speech API when unavailable
     - Add transcription quality comparison
     - _Requirements: 12.3, 12.5_
 
-  - [ ] 12.3 Write property test for enhanced transcription
+  - [x] 12.3 Write property test for enhanced transcription
     - **Property 12: Enhanced Transcription Round-trip (Optional)**
     - **Validates: Requirements 12.1, 12.3, 8.4**
 

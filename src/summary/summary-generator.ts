@@ -1,4 +1,4 @@
-// Basic summary generation implementation
+// Basic summary generation implementation with enhanced transcription support
 
 import { 
   SummaryGenerator, 
@@ -13,6 +13,7 @@ import {
   AudioFile,
   TranscriptSegment 
 } from '../types/core.js';
+import { transcriptionIntegration } from '../transcription/transcription-integration';
 
 export class SummaryGeneratorImpl implements SummaryGenerator {
   private topicExtractor: TopicExtractor;
@@ -21,17 +22,47 @@ export class SummaryGeneratorImpl implements SummaryGenerator {
   constructor(topicExtractor: TopicExtractor, insightGenerator: InsightGenerator) {
     this.topicExtractor = topicExtractor;
     this.insightGenerator = insightGenerator;
+    
+    // Initialize enhanced transcription
+    this.initializeEnhancedTranscription();
+  }
+
+  private async initializeEnhancedTranscription(): Promise<void> {
+    try {
+      await transcriptionIntegration.initialize();
+      if (transcriptionIntegration.isAvailable()) {
+        console.log('Enhanced transcription ready for summary generation');
+      }
+    } catch (error) {
+      console.warn('Enhanced transcription initialization failed:', error);
+    }
   }
 
   async enhanceTranscript(rawTranscript: string, audioFile?: AudioFile): Promise<string> {
-    // For basic implementation, return the raw transcript
-    // Enhanced transcription with Whisper would be implemented here in the future
-    if (audioFile) {
-      // TODO: Implement Whisper-based transcription enhancement
-      console.log('Enhanced transcription with audio file not yet implemented');
+    // If we have enhanced transcription available and an audio file, use it
+    if (transcriptionIntegration.isAvailable() && audioFile) {
+      try {
+        console.log('Using enhanced transcription for improved accuracy');
+        
+        const comparison = await transcriptionIntegration.compareTranscriptionQuality(
+          rawTranscript, 
+          audioFile
+        );
+        
+        console.log(`Transcription quality comparison - Original: ${comparison.originalQuality.toFixed(2)}, Enhanced: ${comparison.enhancedQuality.toFixed(2)}`);
+        
+        if (comparison.useEnhanced && comparison.enhancedResult) {
+          console.log('Using enhanced transcription (better quality detected)');
+          return this.cleanTranscript(comparison.enhancedResult.text);
+        } else {
+          console.log('Using original transcription (quality difference not significant)');
+        }
+      } catch (error) {
+        console.warn('Enhanced transcription failed, falling back to original:', error);
+      }
     }
     
-    // Basic text cleaning and formatting
+    // Fallback to basic text cleaning and formatting
     return this.cleanTranscript(rawTranscript);
   }
 
@@ -61,8 +92,11 @@ export class SummaryGeneratorImpl implements SummaryGenerator {
     // Combine all transcript segments into full text
     const fullTranscript = this.combineTranscriptSegments(session.transcript);
     
+    // Try to get audio file for enhanced transcription
+    const audioFile = await this.getSessionAudioFile(session.id);
+    
     // Enhance transcript if needed
-    const enhancedTranscript = await this.enhanceTranscript(fullTranscript);
+    const enhancedTranscript = await this.enhanceTranscript(fullTranscript, audioFile);
     
     // Extract topics from transcript
     const topics = await this.extractTopics(enhancedTranscript);
@@ -95,6 +129,20 @@ export class SummaryGeneratorImpl implements SummaryGenerator {
       .replace(/\s+/g, ' ')
       .replace(/[^\w\s.,!?]/g, '')
       .trim();
+  }
+
+  private async getSessionAudioFile(sessionId: string): Promise<AudioFile | undefined> {
+    // This would typically fetch from the audio storage system
+    // For now, we'll return undefined as a placeholder
+    // In a real implementation, this would integrate with the AudioManager
+    try {
+      // TODO: Integrate with AudioManager to get session audio file
+      console.log(`Looking for audio file for session: ${sessionId}`);
+      return undefined;
+    } catch (error) {
+      console.warn('Failed to retrieve session audio file:', error);
+      return undefined;
+    }
   }
 
   private generateOverallSummary(session: Session, topics: Topic[], insights: Insight[]): string {
