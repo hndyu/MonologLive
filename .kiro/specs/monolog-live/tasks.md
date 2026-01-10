@@ -59,7 +59,7 @@ The implementation uses TypeScript for type safety and modern web technologies i
     - Add visual feedback for user interactions
     - _Requirements: 6.3, 6.4, 10.2_
 
-- [ ] 4. Checkpoint - Basic voice chat functionality
+- [x] 4. Checkpoint - Basic voice chat functionality
   - Ensure voice input, transcription, and basic comments work together
   - Test end-to-end conversation flow
   - Ask the user if questions arise
