@@ -119,20 +119,20 @@ The implementation uses TypeScript for type safety and modern web technologies i
     - **Property 10: Session Summary Generation**
     - **Validates: Requirements 8.1, 8.2, 8.3, 8.5**
 
-- [ ] 8. Add audio recording and storage
-  - [ ] 8.1 Implement audio recording functionality
+- [x] 8. Add audio recording and storage
+  - [x] 8.1 Implement audio recording functionality
     - Create AudioRecorder with MediaRecorder API
     - Add configurable quality settings
     - Implement continuous recording during sessions
     - _Requirements: 11.1, 11.3_
 
-  - [ ] 8.2 Build local audio storage system
+  - [x] 8.2 Build local audio storage system
     - Implement audio file storage in IndexedDB
     - Create file management and cleanup utilities
     - Add storage quota monitoring
     - _Requirements: 11.2, 11.4, 11.5_
 
-  - [ ] 8.3 Write property test for audio recording
+  - [x] 8.3 Write property test for audio recording
     - **Property 11: Audio Recording and Storage**
     - **Validates: Requirements 11.1, 11.2, 11.4**
 

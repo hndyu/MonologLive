@@ -15,7 +15,7 @@ interface MonologDB extends DBSchema {
   };
   audioFiles: {
     key: string;
-    value: AudioFile;
+    value: AudioFile & { blob?: Blob };
     indexes: { 'by-session': string; 'by-date': Date };
   };
   summaries: {
@@ -87,17 +87,17 @@ export class IndexedDBWrapper {
   }
 
   // Audio file operations
-  async saveAudioFile(audioFile: AudioFile): Promise<void> {
+  async saveAudioFile(audioFile: AudioFile & { blob?: Blob }): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
     await this.db.put('audioFiles', audioFile);
   }
 
-  async getAudioFile(fileId: string): Promise<AudioFile | undefined> {
+  async getAudioFile(fileId: string): Promise<(AudioFile & { blob?: Blob }) | undefined> {
     if (!this.db) throw new Error('Database not initialized');
     return await this.db.get('audioFiles', fileId);
   }
 
-  async getAudioFilesBySession(sessionId: string): Promise<AudioFile[]> {
+  async getAudioFilesBySession(sessionId: string): Promise<(AudioFile & { blob?: Blob })[]> {
     if (!this.db) throw new Error('Database not initialized');
     return await this.db.getAllFromIndex('audioFiles', 'by-session', sessionId);
   }
