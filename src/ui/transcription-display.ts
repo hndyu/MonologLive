@@ -210,6 +210,7 @@ export class TranscriptionDisplay {
 
 	setConfig(newConfig: Partial<TranscriptionDisplayConfig>): void {
 		this.config = { ...this.config, ...newConfig };
+		this.trimSegments(); // Trim segments if maxLines was reduced
 		this.render();
 	}
 }

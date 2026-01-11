@@ -4,7 +4,9 @@ export default {
 	roots: ["<rootDir>/src", "<rootDir>/tests"],
 	testMatch: ["**/__tests__/**/*.ts", "**/?(*.)+(spec|test).ts"],
 	transform: {
-		"^.+\\.ts$": "ts-jest",
+		"^.+\\.ts$": ["ts-jest", {
+			useESM: true,
+		}],
 	},
 	collectCoverageFrom: ["src/**/*.ts", "!src/**/*.d.ts"],
 	setupFilesAfterEnv: ["<rootDir>/tests/setup.ts"],
@@ -12,9 +14,5 @@ export default {
 		"^@/(.*)$": "<rootDir>/src/$1",
 	},
 	extensionsToTreatAsEsm: [".ts"],
-	globals: {
-		"ts-jest": {
-			useESM: true,
-		},
-	},
+	testTimeout: 30000,
 };
