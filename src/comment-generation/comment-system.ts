@@ -320,7 +320,9 @@ export class CommentSystem implements CommentGenerator {
 				hybridStats: this.hybridGenerator.getRuleBasedStats(),
 				performanceMetrics: this.hybridGenerator.getPerformanceMetrics(),
 				llmModelInfo: this.hybridGenerator.getLLMModelInfo(),
-				isLLMReady: this.hybridGenerator ? this.hybridGenerator.isLLMAvailable() : false,
+				isLLMReady: this.hybridGenerator
+					? this.hybridGenerator.isLLMAvailable()
+					: false,
 			};
 		}
 

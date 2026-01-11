@@ -80,7 +80,7 @@ Object.defineProperty(global, "indexedDB", {
 			setTimeout(() => {
 				request.result = new MockIDBDatabase();
 				if (request.onsuccess) {
-					request.onsuccess({ target: request } as any);
+					request.onsuccess({ target: request } as Event);
 				}
 			}, 0);
 			return request;

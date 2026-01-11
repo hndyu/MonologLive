@@ -58,7 +58,7 @@ export class ErrorHandler {
 		if (!this.errorCallbacks.has(type)) {
 			this.errorCallbacks.set(type, []);
 		}
-		this.errorCallbacks.get(type)!.push(callback);
+		this.errorCallbacks.get(type)?.push(callback);
 	}
 
 	// Handle error with recovery strategy

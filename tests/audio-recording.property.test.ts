@@ -89,7 +89,7 @@ describe("Audio Recording and Storage Properties", () => {
 		// Setup mocks
 		(
 			global as typeof globalThis & { MediaRecorder: typeof MediaRecorder }
-		).MediaRecorder = MockMediaRecorder as any;
+		).MediaRecorder = MockMediaRecorder as typeof MediaRecorder;
 		(navigator.mediaDevices.getUserMedia as jest.Mock).mockResolvedValue(
 			new MockMediaStream(),
 		);
@@ -110,7 +110,9 @@ describe("Audio Recording and Storage Properties", () => {
 			saveSummary: jest.fn().mockResolvedValue(undefined),
 			getSummary: jest.fn().mockResolvedValue(undefined),
 			clearAllData: jest.fn().mockResolvedValue(undefined),
-			getStorageEstimate: jest.fn().mockResolvedValue({ usage: 0, quota: 1000000 }),
+			getStorageEstimate: jest
+				.fn()
+				.mockResolvedValue({ usage: 0, quota: 1000000 }),
 			close: jest.fn().mockResolvedValue(undefined),
 			saveUserPreferences: jest.fn().mockResolvedValue(undefined),
 			getUserPreferences: jest.fn().mockResolvedValue(undefined),
@@ -134,7 +136,10 @@ describe("Audio Recording and Storage Properties", () => {
 				}),
 				// Generate session ID
 				fc.string({ minLength: 5, maxLength: 20 }),
-				async (qualitySettings: AudioQualitySettings, sessionId: string): Promise<boolean> => {
+				async (
+					qualitySettings: AudioQualitySettings,
+					sessionId: string,
+				): Promise<boolean> => {
 					const recorder = new WebAudioRecorder();
 					const audioManager = new LocalAudioManager(mockDbWrapper);
 
@@ -342,33 +347,37 @@ describe("Audio Recording and Storage Properties", () => {
 						format: "webm" as AudioFormat,
 						duration: 60,
 						size: 1000000,
-						createdAt: new Date(Date.now() - (maxAgeInDays + 1) * 24 * 60 * 60 * 1000),
+						createdAt: new Date(
+							Date.now() - (maxAgeInDays + 1) * 24 * 60 * 60 * 1000,
+						),
 						quality: { bitrate: 128000, sampleRate: 44100, channels: 1 },
 					}));
 
 					// Mock the getAudioFiles method to return old files
 					mockDbWrapper.getSessionsByUser.mockResolvedValue(
-						oldFiles.map(file => ({
+						oldFiles.map((file) => ({
 							id: file.sessionId,
-							userId: 'test-user',
+							userId: "test-user",
 							startTime: file.createdAt,
 							transcript: [],
 							comments: [],
 							interactions: [],
-							metrics: { 
-								totalDuration: 0, 
-								commentCount: 0, 
-								interactionCount: 0, 
+							metrics: {
+								totalDuration: 0,
+								commentCount: 0,
+								interactionCount: 0,
 								averageEngagement: 0,
-								duration: 0, 
-								wordCount: 0, 
-								avgConfidence: 0 
-							}
-						}))
+								duration: 0,
+								wordCount: 0,
+								avgConfidence: 0,
+							},
+						})),
 					);
-					mockDbWrapper.getAudioFilesBySession.mockImplementation(async (sessionId: string) => {
-						return oldFiles.filter(file => file.sessionId === sessionId);
-					});
+					mockDbWrapper.getAudioFilesBySession.mockImplementation(
+						async (sessionId: string) => {
+							return oldFiles.filter((file) => file.sessionId === sessionId);
+						},
+					);
 					mockDbWrapper.deleteAudioFile.mockResolvedValue(undefined);
 
 					const cleanedCount = await audioManager.cleanupOldFiles(maxAgeInDays);

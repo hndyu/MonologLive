@@ -282,12 +282,12 @@ describe("Volume Adaptation Properties", () => {
 
 					manager.updateFromAudioAnalysis(steadyAnalysis);
 
-					let generationAttempts = 0;
+					let _generationAttempts = 0;
 					let actualGenerations = 0;
 
 					// Simulate checking for comment generation over time
 					for (let i = 0; i < numChecks; i++) {
-						generationAttempts++;
+						_generationAttempts++;
 
 						if (manager.shouldGenerateComment()) {
 							manager.recordCommentGenerated();

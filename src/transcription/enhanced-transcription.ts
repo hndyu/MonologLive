@@ -26,9 +26,10 @@ interface WhisperResult {
 	}>;
 }
 
-interface WhisperTranscriber {
-	(audioData: Float32Array, options?: any): Promise<WhisperResult>;
-}
+type WhisperTranscriber = (
+	audioData: Float32Array,
+	options?: Record<string, unknown>,
+) => Promise<WhisperResult>;
 
 export class WhisperTranscription implements EnhancedTranscription {
 	private transcriber: WhisperTranscriber | null = null;
@@ -223,9 +224,7 @@ export class WhisperTranscription implements EnhancedTranscription {
 		return memoryEstimates[this.settings.modelSize] || memoryEstimates.tiny;
 	}
 
-	private async prepareAudioData(
-		audioFile: AudioFile,
-	): Promise<Float32Array> {
+	private async prepareAudioData(audioFile: AudioFile): Promise<Float32Array> {
 		// For now, we'll assume the audioFile has a way to get the raw data
 		// In a real implementation, this would convert the AudioFile to the appropriate format
 
@@ -234,7 +233,10 @@ export class WhisperTranscription implements EnhancedTranscription {
 		// If audioFile has a blob or buffer property, use that
 		if ("blob" in audioFile && audioFile.blob instanceof Blob) {
 			arrayBuffer = await audioFile.blob.arrayBuffer();
-		} else if ("buffer" in audioFile && audioFile.buffer instanceof ArrayBuffer) {
+		} else if (
+			"buffer" in audioFile &&
+			audioFile.buffer instanceof ArrayBuffer
+		) {
 			arrayBuffer = audioFile.buffer;
 		} else {
 			// Fallback: create a dummy audio buffer for testing

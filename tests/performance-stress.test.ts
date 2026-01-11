@@ -8,7 +8,10 @@ import {
 	performanceMonitor,
 } from "../src/performance/performance-monitor";
 import { IndexedDBWrapper } from "../src/storage/indexeddb-wrapper";
-import { createTestConversationContext, createTestUserPreferences } from "./test-utils";
+import {
+	createTestConversationContext,
+	createTestUserPreferences,
+} from "./test-utils";
 
 describe("Performance Stress Tests", () => {
 	let storage: IndexedDBWrapper;
@@ -71,7 +74,7 @@ describe("Performance Stress Tests", () => {
 					| "medium"
 					| "high",
 				sessionDuration: i + 1,
-				commentHistory: comments.filter(c => c).slice(-5), // Keep last 5 comments for context
+				commentHistory: comments.filter((c) => c).slice(-5), // Keep last 5 comments for context
 			});
 
 			const comment = await commentSystem.generateComment(context);
@@ -120,7 +123,7 @@ describe("Performance Stress Tests", () => {
 		expect(maxTime).toBeLessThan(500); // No single comment should take more than 500ms
 
 		// Verify comment quality is maintained under stress
-		const roles = new Set(comments.filter(c => c).map((c) => c!.role));
+		const roles = new Set(comments.filter((c) => c).map((c) => c?.role));
 		expect(roles.size).toBeGreaterThan(3); // Should have diverse roles
 
 		// Verify all comments have required properties
@@ -143,34 +146,39 @@ describe("Performance Stress Tests", () => {
 
 		for (let i = 0; i < iterations; i++) {
 			// Generate comment
-			const comment = await commentSystem.generateComment(createTestConversationContext({
-				recentTranscript: `Memory test ${i} with additional content to increase memory usage`,
-				currentTopic: "memory_test",
-				userEngagement: "medium",
-				sessionDuration: i + 1,
-				commentHistory: [],
-			}));
+			const comment = await commentSystem.generateComment(
+				createTestConversationContext({
+					recentTranscript: `Memory test ${i} with additional content to increase memory usage`,
+					currentTopic: "memory_test",
+					userEngagement: "medium",
+					sessionDuration: i + 1,
+					commentHistory: [],
+				}),
+			);
 
 			// Store some data in storage
 			if (comment) {
-				await storage.saveUserPreferences(`user_${i % 10}`, createTestUserPreferences({
-					userId: `user_${i % 10}`,
-					roleWeights: new Map([
-						["reaction", 1.2],
-						["agreement", 0.8],
-					]),
-					topicPreferences: [`topic_${i % 5}`],
-					interactionHistory: [
-						{
-							commentId: comment.id,
-							type: "pickup",
-							timestamp: new Date(),
-							sessionId: "test_session",
-							context: createTestConversationContext({}),
-						},
-					],
-					sessionCount: i + 1,
-				}));
+				await storage.saveUserPreferences(
+					`user_${i % 10}`,
+					createTestUserPreferences({
+						userId: `user_${i % 10}`,
+						roleWeights: new Map([
+							["reaction", 1.2],
+							["agreement", 0.8],
+						]),
+						topicPreferences: [`topic_${i % 5}`],
+						interactionHistory: [
+							{
+								commentId: comment.id,
+								type: "pickup",
+								timestamp: new Date(),
+								sessionId: "test_session",
+								context: createTestConversationContext({}),
+							},
+						],
+						sessionCount: i + 1,
+					}),
+				);
 			}
 
 			// Take memory snapshot every 50 iterations
@@ -213,13 +221,15 @@ describe("Performance Stress Tests", () => {
 		expect(memoryGrowth).toBeLessThan(30); // Less than 30% growth
 
 		// Verify system is still functional after stress test
-		const finalComment = await commentSystem.generateComment(createTestConversationContext({
-			recentTranscript: "Final test after memory stress",
-			currentTopic: "cleanup",
-			userEngagement: "medium",
-			sessionDuration: iterations + 1,
-			commentHistory: [],
-		}));
+		const finalComment = await commentSystem.generateComment(
+			createTestConversationContext({
+				recentTranscript: "Final test after memory stress",
+				currentTopic: "cleanup",
+				userEngagement: "medium",
+				sessionDuration: iterations + 1,
+				commentHistory: [],
+			}),
+		);
 
 		expect(finalComment).toBeDefined();
 		expect(finalComment?.content).toBeDefined();
@@ -243,26 +253,31 @@ describe("Performance Stress Tests", () => {
 				// Comment generation operation
 				batchPromises.push(
 					new Promise((resolve) => {
-						const comment = commentSystem.generateComment(createTestConversationContext({
-							recentTranscript: `Concurrent test ${operationId}`,
-							currentTopic: "concurrency",
-							userEngagement: "medium",
-							sessionDuration: operationId + 1,
-							commentHistory: [],
-						}));
+						const comment = commentSystem.generateComment(
+							createTestConversationContext({
+								recentTranscript: `Concurrent test ${operationId}`,
+								currentTopic: "concurrency",
+								userEngagement: "medium",
+								sessionDuration: operationId + 1,
+								commentHistory: [],
+							}),
+						);
 						resolve(comment);
 					}),
 				);
 
 				// Storage operation
 				batchPromises.push(
-					storage.saveUserPreferences(`concurrent_user_${operationId}`, createTestUserPreferences({
-						userId: `concurrent_user_${operationId}`,
-						roleWeights: new Map(),
-						topicPreferences: [],
-						interactionHistory: [],
-						sessionCount: 1,
-					})),
+					storage.saveUserPreferences(
+						`concurrent_user_${operationId}`,
+						createTestUserPreferences({
+							userId: `concurrent_user_${operationId}`,
+							roleWeights: new Map(),
+							topicPreferences: [],
+							interactionHistory: [],
+							sessionCount: 1,
+						}),
+					),
 				);
 
 				// Performance monitoring operation
@@ -295,13 +310,15 @@ describe("Performance Stress Tests", () => {
 		timer.end();
 
 		// Verify system state is consistent after concurrent operations
-		const finalComment = await commentSystem.generateComment(createTestConversationContext({
-			recentTranscript: "Final concurrent test",
-			currentTopic: "final",
-			userEngagement: "medium",
-			sessionDuration: 1,
-			commentHistory: [],
-		}));
+		const finalComment = await commentSystem.generateComment(
+			createTestConversationContext({
+				recentTranscript: "Final concurrent test",
+				currentTopic: "final",
+				userEngagement: "medium",
+				sessionDuration: 1,
+				commentHistory: [],
+			}),
+		);
 
 		expect(finalComment).toBeDefined();
 		expect(finalComment?.content).toBeDefined();
@@ -362,13 +379,15 @@ describe("Performance Stress Tests", () => {
 			// Test system functionality under stress
 			const comments = [];
 			for (let i = 0; i < 10; i++) {
-				const comment = await commentSystem.generateComment(createTestConversationContext({
-					recentTranscript: `Stress condition test ${i}`,
-					currentTopic: "stress",
-					userEngagement: "medium",
-					sessionDuration: i + 1,
-					commentHistory: comments.filter(c => c).slice(),
-				}));
+				const comment = await commentSystem.generateComment(
+					createTestConversationContext({
+						recentTranscript: `Stress condition test ${i}`,
+						currentTopic: "stress",
+						userEngagement: "medium",
+						sessionDuration: i + 1,
+						commentHistory: comments.filter((c) => c).slice(),
+					}),
+				);
 				if (comment) comments.push(comment);
 			}
 
@@ -511,26 +530,31 @@ describe("Performance Stress Tests", () => {
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 
 		// Verify system recovery
-		const recoveryComment = await commentSystem.generateComment(createTestConversationContext({
-			recentTranscript: "Recovery test after resource exhaustion",
-			currentTopic: "recovery",
-			userEngagement: "medium",
-			sessionDuration: 1,
-			commentHistory: [],
-		}));
+		const recoveryComment = await commentSystem.generateComment(
+			createTestConversationContext({
+				recentTranscript: "Recovery test after resource exhaustion",
+				currentTopic: "recovery",
+				userEngagement: "medium",
+				sessionDuration: 1,
+				commentHistory: [],
+			}),
+		);
 
 		expect(recoveryComment).toBeDefined();
 		expect(recoveryComment?.content).toBeDefined();
 		expect(recoveryComment?.role).toBeDefined();
 
 		// Verify storage still works
-		await storage.saveUserPreferences("recovery_user", createTestUserPreferences({
-			userId: "recovery_user",
-			roleWeights: new Map(),
-			topicPreferences: [],
-			interactionHistory: [],
-			sessionCount: 1,
-		}));
+		await storage.saveUserPreferences(
+			"recovery_user",
+			createTestUserPreferences({
+				userId: "recovery_user",
+				roleWeights: new Map(),
+				topicPreferences: [],
+				interactionHistory: [],
+				sessionCount: 1,
+			}),
+		);
 
 		const recoveredPreferences =
 			await storage.getUserPreferences("recovery_user");

@@ -86,8 +86,12 @@ describe("Session Summary Generation Properties", () => {
 		id: fc.string({ minLength: 1, maxLength: 50 }),
 		userId: fc.string({ minLength: 1, maxLength: 50 }),
 		startTime: fc.date(),
-		endTime: fc.option(fc.date()).map(val => val === null ? undefined : val),
-		topic: fc.option(fc.string({ minLength: 1, maxLength: 100 })).map(val => val === null ? undefined : val),
+		endTime: fc
+			.option(fc.date())
+			.map((val) => (val === null ? undefined : val)),
+		topic: fc
+			.option(fc.string({ minLength: 1, maxLength: 100 }))
+			.map((val) => (val === null ? undefined : val)),
 		transcript: fc.array(transcriptSegmentArb, { minLength: 0, maxLength: 50 }),
 		comments: fc.array(commentArb, { minLength: 0, maxLength: 100 }),
 		interactions: fc.array(userInteractionArb, { minLength: 0, maxLength: 50 }),

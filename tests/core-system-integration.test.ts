@@ -6,7 +6,10 @@ import { IndexedDBWrapper } from "../src/storage/indexeddb-wrapper";
 import type { Comment, ConversationContext } from "../src/types/core";
 import { TranscriptionDisplay } from "../src/ui/transcription-display";
 import { WebSpeechVoiceInputManager } from "../src/voice/voice-input-manager";
-import { createTestConversationContext, createTestUserPreferences } from "./test-utils";
+import {
+	createTestConversationContext,
+	createTestUserPreferences,
+} from "./test-utils";
 
 describe("Core System Integration - Complete User Journey", () => {
 	let storage: IndexedDBWrapper;
@@ -301,13 +304,15 @@ describe("Core System Integration - Complete User Journey", () => {
 		expect(displayedText).toContain(testPhrase);
 
 		// 3. Comment generation
-		const comment = await commentSystem.generateComment(createTestConversationContext({
-			recentTranscript: testPhrase,
-			currentTopic: "greeting",
-			userEngagement: "high",
-			sessionDuration: 1,
-			commentHistory: [],
-		}));
+		const comment = await commentSystem.generateComment(
+			createTestConversationContext({
+				recentTranscript: testPhrase,
+				currentTopic: "greeting",
+				userEngagement: "high",
+				sessionDuration: 1,
+				commentHistory: [],
+			}),
+		);
 		expect(comment?.content).toBeDefined();
 		expect(comment?.role).toBeDefined();
 
@@ -317,13 +322,16 @@ describe("Core System Integration - Complete User Journey", () => {
 		expect(commentSystem.getRoleWeights()).toBeDefined();
 
 		// 5. Test storage integration
-		await storage.saveUserPreferences("test_user", createTestUserPreferences({
-			userId: "test_user",
-			roleWeights: new Map(),
-			topicPreferences: [],
-			interactionHistory: [],
-			sessionCount: 1,
-		}));
+		await storage.saveUserPreferences(
+			"test_user",
+			createTestUserPreferences({
+				userId: "test_user",
+				roleWeights: new Map(),
+				topicPreferences: [],
+				interactionHistory: [],
+				sessionCount: 1,
+			}),
+		);
 		const preferences = await storage.getUserPreferences("test_user");
 		expect(preferences).toBeDefined();
 	});

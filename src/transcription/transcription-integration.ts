@@ -74,7 +74,8 @@ export class TranscriptionIntegration {
 		}
 
 		try {
-			const result = await this.enhancedTranscription?.transcribeAudio(audioFile);
+			const result =
+				await this.enhancedTranscription?.transcribeAudio(audioFile);
 			return result || null;
 		} catch (error) {
 			console.error("Enhanced transcription failed:", error);

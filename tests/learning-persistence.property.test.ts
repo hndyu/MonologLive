@@ -222,10 +222,7 @@ describe("Learning Persistence Properties", () => {
 					"support" as CommentRoleType,
 					"playful" as CommentRoleType,
 				),
-				fc.constantFrom(
-					"thumbs_up" as const,
-					"thumbs_down" as const,
-				),
+				fc.constantFrom("thumbs_up" as const, "thumbs_down" as const),
 				fc.float({ min: Math.fround(0.5), max: Math.fround(1.0) }),
 				async (
 					userId: string,
@@ -399,10 +396,7 @@ describe("Learning Persistence Properties", () => {
 					"support" as CommentRoleType,
 					"playful" as CommentRoleType,
 				),
-				fc.constantFrom(
-					"thumbs_up" as const,
-					"thumbs_down" as const,
-				),
+				fc.constantFrom("thumbs_up" as const, "thumbs_down" as const),
 				fc.float({ min: Math.fround(0.5), max: Math.fround(1.0) }),
 				async (
 					userId1: string,

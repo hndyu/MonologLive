@@ -2,15 +2,21 @@
 // Tests Requirements: All integration scenarios
 
 import { CommentSystem } from "../src/comment-generation/comment-system";
-import type { CommentRoleType } from "../src/types/core";
 import { PreferenceLearningSystem } from "../src/learning/preference-learning";
 import { SessionManagerImpl } from "../src/session/session-manager";
-import { BasicTopicExtractor, BasicInsightGenerator, SummaryGeneratorImpl } from "../src/summary/summary-generator";
 import { IndexedDBWrapper } from "../src/storage/indexeddb-wrapper";
-import type { ConversationContext } from "../src/types/core";
+import {
+	BasicInsightGenerator,
+	BasicTopicExtractor,
+	SummaryGeneratorImpl,
+} from "../src/summary/summary-generator";
+import type { CommentRoleType, ConversationContext } from "../src/types/core";
 import { TranscriptionDisplay } from "../src/ui/transcription-display";
 import { WebSpeechVoiceInputManager } from "../src/voice/voice-input-manager";
-import { createTestConversationContext, createTestUserPreferences } from "./test-utils";
+import {
+	createTestConversationContext,
+	createTestUserPreferences,
+} from "./test-utils";
 
 describe("Final Integration Tests", () => {
 	let storage: IndexedDBWrapper;
@@ -54,7 +60,10 @@ describe("Final Integration Tests", () => {
 
 		const topicExtractor = new BasicTopicExtractor();
 		const insightGenerator = new BasicInsightGenerator();
-		const summaryGenerator = new SummaryGeneratorImpl(topicExtractor, insightGenerator);
+		const summaryGenerator = new SummaryGeneratorImpl(
+			topicExtractor,
+			insightGenerator,
+		);
 		sessionManager = new SessionManagerImpl(storage, summaryGenerator);
 		preferenceLearning = new PreferenceLearningSystem(storage);
 	});
@@ -143,13 +152,15 @@ describe("Final Integration Tests", () => {
 
 				// Simulate user interaction with some comments
 				if (comment && Math.random() > 0.5) {
-					await preferenceLearning.processFeedbackBatch("test_user", [{
-						sessionId: session.id,
-						commentId: comment.id,
-						type: "pickup",
-						timestamp: new Date(),
-						context: context,
-					}]);
+					await preferenceLearning.processFeedbackBatch("test_user", [
+						{
+							sessionId: session.id,
+							commentId: comment.id,
+							type: "pickup",
+							timestamp: new Date(),
+							context: context,
+						},
+					]);
 				}
 
 				await new Promise((resolve) => setTimeout(resolve, 100));
@@ -226,13 +237,15 @@ describe("Final Integration Tests", () => {
 
 					// Simulate positive feedback for certain roles
 					if (comment && sessionData.positiveRoles.includes(roleType)) {
-						await preferenceLearning.processFeedbackBatch(userId, [{
-							sessionId: session.id,
-							commentId: comment.id,
-							type: "thumbs_up",
-							timestamp: new Date(),
-							context: context,
-						}]);
+						await preferenceLearning.processFeedbackBatch(userId, [
+							{
+								sessionId: session.id,
+								commentId: comment.id,
+								type: "thumbs_up",
+								timestamp: new Date(),
+								context: context,
+							},
+						]);
 					}
 				}
 
@@ -241,7 +254,8 @@ describe("Final Integration Tests", () => {
 			}
 
 			// Verify learning across sessions
-			const finalWeights = preferenceLearning.getPersonalizedWeights("test_user");
+			const finalWeights =
+				preferenceLearning.getPersonalizedWeights("test_user");
 			expect(finalWeights.size).toBeGreaterThan(0);
 			const finalStats = preferenceLearning.getLearningStats();
 			expect(finalStats.totalFeedbackEvents).toBeGreaterThan(0);
@@ -317,7 +331,7 @@ describe("Final Integration Tests", () => {
 
 			// Verify fallback generates valid comments
 			expect(comments.length).toBe(5);
-			const roles = new Set(comments.filter(c => c).map((c) => c!.role));
+			const roles = new Set(comments.filter((c) => c).map((c) => c?.role));
 			expect(roles.size).toBeGreaterThan(0);
 		});
 	});
@@ -335,7 +349,7 @@ describe("Final Integration Tests", () => {
 					currentTopic: "performance",
 					userEngagement: "high",
 					sessionDuration: i + 1,
-					commentHistory: comments.filter(c => c).slice(),
+					commentHistory: comments.filter((c) => c).slice(),
 				});
 
 				const comment = await commentSystem.generateComment(context);
@@ -369,13 +383,15 @@ describe("Final Integration Tests", () => {
 				const text = `Extended conversation message ${i}`;
 				transcriptionDisplay.addTranscript(text, true);
 
-				await commentSystem.generateComment(createTestConversationContext({
-					recentTranscript: text,
-					currentTopic: "extended",
-					userEngagement: "medium",
-					sessionDuration: i + 1,
-					commentHistory: [],
-				}));
+				await commentSystem.generateComment(
+					createTestConversationContext({
+						recentTranscript: text,
+						currentTopic: "extended",
+						userEngagement: "medium",
+						sessionDuration: i + 1,
+						commentHistory: [],
+					}),
+				);
 
 				await sessionManager.trackActivity(session.id, {
 					type: "speech",
@@ -389,13 +405,15 @@ describe("Final Integration Tests", () => {
 			await sessionManager.endSession(session.id);
 
 			// Verify system is still responsive
-			const finalComment = commentSystem.generateComment(createTestConversationContext({
-				recentTranscript: "Final test",
-				currentTopic: "cleanup",
-				userEngagement: "medium",
-				sessionDuration: 101,
-				commentHistory: [],
-			}));
+			const finalComment = commentSystem.generateComment(
+				createTestConversationContext({
+					recentTranscript: "Final test",
+					currentTopic: "cleanup",
+					userEngagement: "medium",
+					sessionDuration: 101,
+					commentHistory: [],
+				}),
+			);
 
 			expect(finalComment).toBeDefined();
 		});
@@ -415,24 +433,29 @@ describe("Final Integration Tests", () => {
 
 					// Concurrent comment generation
 					new Promise((resolve) => {
-						const comment = commentSystem.generateComment(createTestConversationContext({
-							recentTranscript: `Concurrent test ${i}`,
-							currentTopic: "concurrency",
-							userEngagement: "medium",
-							sessionDuration: i + 1,
-							commentHistory: [],
-						}));
+						const comment = commentSystem.generateComment(
+							createTestConversationContext({
+								recentTranscript: `Concurrent test ${i}`,
+								currentTopic: "concurrency",
+								userEngagement: "medium",
+								sessionDuration: i + 1,
+								commentHistory: [],
+							}),
+						);
 						resolve(comment);
 					}),
 
 					// Concurrent storage operation
-					storage.saveUserPreferences(`user_${i}`, createTestUserPreferences({
-						userId: `user_${i}`,
-						roleWeights: new Map(),
-						topicPreferences: [],
-						interactionHistory: [],
-						sessionCount: 1,
-					})),
+					storage.saveUserPreferences(
+						`user_${i}`,
+						createTestUserPreferences({
+							userId: `user_${i}`,
+							roleWeights: new Map(),
+							topicPreferences: [],
+							interactionHistory: [],
+							sessionCount: 1,
+						}),
+					),
 				);
 			}
 
@@ -488,13 +511,15 @@ describe("Final Integration Tests", () => {
 
 				// Add some data
 				transcriptionDisplay.addTranscript(`Session ${i} data`, true);
-				commentSystem.generateComment(createTestConversationContext({
-					recentTranscript: `Session ${i} data`,
-					currentTopic: "cleanup",
-					userEngagement: "medium",
-					sessionDuration: 1,
-					commentHistory: [],
-				}));
+				commentSystem.generateComment(
+					createTestConversationContext({
+						recentTranscript: `Session ${i} data`,
+						currentTopic: "cleanup",
+						userEngagement: "medium",
+						sessionDuration: 1,
+						commentHistory: [],
+					}),
+				);
 
 				await sessionManager.endSession(session.id);
 
@@ -507,13 +532,15 @@ describe("Final Integration Tests", () => {
 			await new Promise((resolve) => setTimeout(resolve, 1000));
 
 			// Verify system is still functional
-			const finalComment = commentSystem.generateComment(createTestConversationContext({
-				recentTranscript: "Cleanup test",
-				currentTopic: "final",
-				userEngagement: "medium",
-				sessionDuration: 1,
-				commentHistory: [],
-			}));
+			const finalComment = commentSystem.generateComment(
+				createTestConversationContext({
+					recentTranscript: "Cleanup test",
+					currentTopic: "final",
+					userEngagement: "medium",
+					sessionDuration: 1,
+					commentHistory: [],
+				}),
+			);
 
 			expect(finalComment).toBeDefined();
 		});
@@ -535,13 +562,15 @@ describe("Final Integration Tests", () => {
 			expect(displayedText).toContain(testPhrase);
 
 			// 3. Comment generation
-			const comment = await commentSystem.generateComment(createTestConversationContext({
-				recentTranscript: testPhrase,
-				currentTopic: "greeting",
-				userEngagement: "high",
-				sessionDuration: 1,
-				commentHistory: [],
-			}));
+			const comment = await commentSystem.generateComment(
+				createTestConversationContext({
+					recentTranscript: testPhrase,
+					currentTopic: "greeting",
+					userEngagement: "high",
+					sessionDuration: 1,
+					commentHistory: [],
+				}),
+			);
 			expect(comment?.content).toBeDefined();
 			expect(comment?.role).toBeDefined();
 
@@ -551,13 +580,16 @@ describe("Final Integration Tests", () => {
 			expect(commentSystem.getRoleWeights()).toBeDefined();
 
 			// 5. Test storage integration
-			await storage.saveUserPreferences("test_user", createTestUserPreferences({
-				userId: "test_user",
-				roleWeights: new Map(),
-				topicPreferences: [],
-				interactionHistory: [],
-				sessionCount: 1,
-			}));
+			await storage.saveUserPreferences(
+				"test_user",
+				createTestUserPreferences({
+					userId: "test_user",
+					roleWeights: new Map(),
+					topicPreferences: [],
+					interactionHistory: [],
+					sessionCount: 1,
+				}),
+			);
 			const preferences = await storage.getUserPreferences("test_user");
 			expect(preferences).toBeDefined();
 		});

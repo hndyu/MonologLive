@@ -1,11 +1,11 @@
 // Integration test for basic voice chat functionality
 // Tests end-to-end conversation flow: voice input -> transcription -> comment generation
 
+import { createTestConversationContext } from "../tests/test-utils.js";
 import { CommentSystem } from "./comment-generation/comment-system.js";
 import type { ConversationContext } from "./types/core.js";
 import { TranscriptionDisplay } from "./ui/transcription-display.js";
 import { WebSpeechVoiceInputManager } from "./voice/voice-input-manager.js";
-import { createTestConversationContext } from "../tests/test-utils.js";
 
 /**
  * Integration test class for basic voice chat functionality

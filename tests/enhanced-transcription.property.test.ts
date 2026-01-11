@@ -24,9 +24,9 @@ jest.mock("@huggingface/transformers", () => ({
 
 // Import after mocking
 import {
-	WhisperTranscription,
 	checkModelCompatibility,
 	detectCapabilities,
+	WhisperTranscription,
 } from "../src/transcription/enhanced-transcription";
 
 // Mock audio data for testing
@@ -128,7 +128,13 @@ describe("Enhanced Transcription Property Tests", () => {
 		test("Model compatibility check should be deterministic", async () => {
 			await fc.assert(
 				fc.asyncProperty(
-					fc.constantFrom("tiny", "base", "small", "medium", "large") as fc.Arbitrary<"tiny" | "base" | "small" | "medium" | "large">,
+					fc.constantFrom(
+						"tiny",
+						"base",
+						"small",
+						"medium",
+						"large",
+					) as fc.Arbitrary<"tiny" | "base" | "small" | "medium" | "large">,
 					async (modelSize: "tiny" | "base" | "small" | "medium" | "large") => {
 						const compatible1 = await checkModelCompatibility(modelSize);
 						const compatible2 = await checkModelCompatibility(modelSize);
@@ -197,7 +203,13 @@ describe("Enhanced Transcription Property Tests", () => {
 		test("Model memory usage estimation should be reasonable", () => {
 			fc.assert(
 				fc.property(
-					fc.constantFrom("tiny", "base", "small", "medium", "large") as fc.Arbitrary<"tiny" | "base" | "small" | "medium" | "large">,
+					fc.constantFrom(
+						"tiny",
+						"base",
+						"small",
+						"medium",
+						"large",
+					) as fc.Arbitrary<"tiny" | "base" | "small" | "medium" | "large">,
 					(modelSize: "tiny" | "base" | "small" | "medium" | "large") => {
 						const transcription = new WhisperTranscription({ modelSize });
 						const modelInfo = transcription.getModelInfo();
@@ -316,44 +328,47 @@ describe("Enhanced Transcription Property Tests", () => {
 
 		test("Transcription result structure should be valid", async () => {
 			await fc.assert(
-				fc.asyncProperty(audioFileGenerator, async (_audioFile: MockAudioFile) => {
-					// Test the structure of transcription results without actually calling the model
-					const mockResult = {
-						text: "This is a mock transcription result",
-						confidence: 0.95,
-						segments: [
-							{
-								start: 0,
-								end: 5,
-								text: "This is a mock transcription result",
-								confidence: 0.95,
-								isFinal: true,
-							},
-						],
-						language: "en",
-						processingTime: 1500,
-					};
+				fc.asyncProperty(
+					audioFileGenerator,
+					async (_audioFile: MockAudioFile) => {
+						// Test the structure of transcription results without actually calling the model
+						const mockResult = {
+							text: "This is a mock transcription result",
+							confidence: 0.95,
+							segments: [
+								{
+									start: 0,
+									end: 5,
+									text: "This is a mock transcription result",
+									confidence: 0.95,
+									isFinal: true,
+								},
+							],
+							language: "en",
+							processingTime: 1500,
+						};
 
-					// Validate result structure
-					expect(typeof mockResult.text).toBe("string");
-					expect(mockResult.confidence).toBeGreaterThanOrEqual(0);
-					expect(mockResult.confidence).toBeLessThanOrEqual(1);
-					expect(Array.isArray(mockResult.segments)).toBe(true);
-					expect(typeof mockResult.language).toBe("string");
-					expect(mockResult.processingTime).toBeGreaterThan(0);
+						// Validate result structure
+						expect(typeof mockResult.text).toBe("string");
+						expect(mockResult.confidence).toBeGreaterThanOrEqual(0);
+						expect(mockResult.confidence).toBeLessThanOrEqual(1);
+						expect(Array.isArray(mockResult.segments)).toBe(true);
+						expect(typeof mockResult.language).toBe("string");
+						expect(mockResult.processingTime).toBeGreaterThan(0);
 
-					// Validate segments structure
-					for (const segment of mockResult.segments) {
-						expect(typeof segment.text).toBe("string");
-						expect(segment.confidence).toBeGreaterThanOrEqual(0);
-						expect(segment.confidence).toBeLessThanOrEqual(1);
-						expect(segment.start).toBeGreaterThanOrEqual(0);
-						expect(segment.end).toBeGreaterThanOrEqual(segment.start);
-						expect(typeof segment.isFinal).toBe("boolean");
-					}
+						// Validate segments structure
+						for (const segment of mockResult.segments) {
+							expect(typeof segment.text).toBe("string");
+							expect(segment.confidence).toBeGreaterThanOrEqual(0);
+							expect(segment.confidence).toBeLessThanOrEqual(1);
+							expect(segment.start).toBeGreaterThanOrEqual(0);
+							expect(segment.end).toBeGreaterThanOrEqual(segment.start);
+							expect(typeof segment.isFinal).toBe("boolean");
+						}
 
-					return true;
-				}),
+						return true;
+					},
+				),
 				{ numRuns: 20 },
 			);
 		});

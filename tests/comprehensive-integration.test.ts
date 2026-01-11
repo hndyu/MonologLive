@@ -15,10 +15,17 @@ import { lazyLoader } from "../src/performance/lazy-loader";
 import { performanceMonitor } from "../src/performance/performance-monitor";
 import { SessionManagerImpl } from "../src/session/session-manager";
 import { IndexedDBWrapper } from "../src/storage/indexeddb-wrapper";
-import { BasicTopicExtractor, BasicInsightGenerator, SummaryGeneratorImpl } from "../src/summary/summary-generator";
+import {
+	BasicInsightGenerator,
+	BasicTopicExtractor,
+	SummaryGeneratorImpl,
+} from "../src/summary/summary-generator";
 import { TranscriptionDisplay } from "../src/ui/transcription-display";
 import { WebSpeechVoiceInputManager } from "../src/voice/voice-input-manager";
-import { createTestConversationContext, createTestUserPreferences } from "./test-utils";
+import {
+	createTestConversationContext,
+	createTestUserPreferences,
+} from "./test-utils";
 
 describe("Comprehensive Integration Tests", () => {
 	let storage: IndexedDBWrapper;
@@ -49,11 +56,16 @@ describe("Comprehensive Integration Tests", () => {
 		}
 		transcriptionDisplay = new TranscriptionDisplay(transcriptionArea);
 		commentSystem = new CommentSystem();
-		commentSystem.initializeDisplay(document.getElementById("comment-area")!);
+		commentSystem.initializeDisplay(
+			document.getElementById("comment-area") as HTMLElement,
+		);
 
 		const topicExtractor = new BasicTopicExtractor();
 		const insightGenerator = new BasicInsightGenerator();
-		const summaryGenerator = new SummaryGeneratorImpl(topicExtractor, insightGenerator);
+		const summaryGenerator = new SummaryGeneratorImpl(
+			topicExtractor,
+			insightGenerator,
+		);
 		sessionManager = new SessionManagerImpl(storage, summaryGenerator);
 		preferenceLearning = new PreferenceLearningSystem(storage);
 
@@ -150,7 +162,7 @@ describe("Comprehensive Integration Tests", () => {
 						"test_user",
 						comment.role,
 						"pickup",
-						0.8
+						0.8,
 					);
 				}
 
@@ -232,7 +244,7 @@ describe("Comprehensive Integration Tests", () => {
 							userId,
 							comment.role,
 							"thumbs_up",
-							1.0
+							1.0,
 						);
 					}
 				}
@@ -242,7 +254,8 @@ describe("Comprehensive Integration Tests", () => {
 			}
 
 			// Verify learning across sessions
-			const finalWeights = preferenceLearning.getPersonalizedWeights("test_user");
+			const finalWeights =
+				preferenceLearning.getPersonalizedWeights("test_user");
 			const finalStats = preferenceLearning.getLearningStats();
 			expect(finalStats.totalFeedbackEvents).toBeGreaterThan(0);
 			expect(finalWeights.size).toBeGreaterThan(0);
@@ -255,7 +268,7 @@ describe("Comprehensive Integration Tests", () => {
 			// At least some positive roles should have higher weights
 			let hasImprovedWeights = false;
 			for (const role of uniquePositiveRoles) {
-				const weight = roleWeights.get(role as any);
+				const weight = roleWeights.get(role as CommentRoleType);
 				if (weight && weight > 1.0) {
 					hasImprovedWeights = true;
 					break;
@@ -348,13 +361,15 @@ describe("Comprehensive Integration Tests", () => {
 
 			// Test basic functionality in offline mode
 			transcriptionDisplay.addTranscript("Offline test", true);
-			const comment = await commentSystem.generateComment(createTestConversationContext({
-				recentTranscript: "Offline test",
-				currentTopic: "offline",
-				userEngagement: "medium",
-				sessionDuration: 1,
-				commentHistory: [],
-			}));
+			const comment = await commentSystem.generateComment(
+				createTestConversationContext({
+					recentTranscript: "Offline test",
+					currentTopic: "offline",
+					userEngagement: "medium",
+					sessionDuration: 1,
+					commentHistory: [],
+				}),
+			);
 
 			expect(comment).toBeDefined();
 
@@ -402,13 +417,15 @@ describe("Comprehensive Integration Tests", () => {
 			expect(optimizationStatus.activeOptimizations.length).toBeGreaterThan(0);
 
 			// Verify system still functions with optimizations
-			const comment = await commentSystem.generateComment(createTestConversationContext({
-				recentTranscript: "Performance test",
-				currentTopic: "optimization",
-				userEngagement: "medium",
-				sessionDuration: 1,
-				commentHistory: [],
-			}));
+			const comment = await commentSystem.generateComment(
+				createTestConversationContext({
+					recentTranscript: "Performance test",
+					currentTopic: "optimization",
+					userEngagement: "medium",
+					sessionDuration: 1,
+					commentHistory: [],
+				}),
+			);
 
 			expect(comment).toBeDefined();
 		});
@@ -469,13 +486,15 @@ describe("Comprehensive Integration Tests", () => {
 				const text = `Extended conversation message ${i}`;
 				transcriptionDisplay.addTranscript(text, true);
 
-				await commentSystem.generateComment(createTestConversationContext({
-					recentTranscript: text,
-					currentTopic: "extended",
-					userEngagement: "medium",
-					sessionDuration: i + 1,
-					commentHistory: [],
-				}));
+				await commentSystem.generateComment(
+					createTestConversationContext({
+						recentTranscript: text,
+						currentTopic: "extended",
+						userEngagement: "medium",
+						sessionDuration: i + 1,
+						commentHistory: [],
+					}),
+				);
 
 				await sessionManager.trackActivity(session.id, {
 					type: "speech",
@@ -500,13 +519,15 @@ describe("Comprehensive Integration Tests", () => {
 			await sessionManager.endSession(session.id);
 
 			// Verify system is still responsive
-			const finalComment = await commentSystem.generateComment(createTestConversationContext({
-				recentTranscript: "Final test",
-				currentTopic: "cleanup",
-				userEngagement: "medium",
-				sessionDuration: 101,
-				commentHistory: [],
-			}));
+			const finalComment = await commentSystem.generateComment(
+				createTestConversationContext({
+					recentTranscript: "Final test",
+					currentTopic: "cleanup",
+					userEngagement: "medium",
+					sessionDuration: 101,
+					commentHistory: [],
+				}),
+			);
 
 			expect(finalComment).toBeDefined();
 		});
@@ -525,25 +546,30 @@ describe("Comprehensive Integration Tests", () => {
 					}),
 
 					// Concurrent comment generation
-					new Promise(async (resolve) => {
-						const comment = await commentSystem.generateComment(createTestConversationContext({
-							recentTranscript: `Concurrent test ${i}`,
-							currentTopic: "concurrency",
-							userEngagement: "medium",
-							sessionDuration: i + 1,
-							commentHistory: [],
-						}));
-						resolve(comment);
-					}),
+					(async () => {
+						const comment = await commentSystem.generateComment(
+							createTestConversationContext({
+								recentTranscript: `Concurrent test ${i}`,
+								currentTopic: "concurrency",
+								userEngagement: "medium",
+								sessionDuration: i + 1,
+								commentHistory: [],
+							}),
+						);
+						return comment;
+					})(),
 
 					// Concurrent storage operation
-					storage.saveUserPreferences(`user_${i}`, createTestUserPreferences({
-						userId: `user_${i}`,
-						roleWeights: new Map(),
-						topicPreferences: [],
-						interactionHistory: [],
-						sessionCount: 1,
-					})),
+					storage.saveUserPreferences(
+						`user_${i}`,
+						createTestUserPreferences({
+							userId: `user_${i}`,
+							roleWeights: new Map(),
+							topicPreferences: [],
+							interactionHistory: [],
+							sessionCount: 1,
+						}),
+					),
 				);
 			}
 
@@ -608,13 +634,15 @@ describe("Comprehensive Integration Tests", () => {
 			expect(recommendations.length).toBeGreaterThan(0);
 
 			// Verify system still functions under stress
-			const comment = await commentSystem.generateComment(createTestConversationContext({
-				recentTranscript: "Stress test",
-				currentTopic: "stress",
-				userEngagement: "medium",
-				sessionDuration: 1,
-				commentHistory: [],
-			}));
+			const comment = await commentSystem.generateComment(
+				createTestConversationContext({
+					recentTranscript: "Stress test",
+					currentTopic: "stress",
+					userEngagement: "medium",
+					sessionDuration: 1,
+					commentHistory: [],
+				}),
+			);
 
 			expect(comment).toBeDefined();
 			expect(comment?.content).toBeDefined();
@@ -656,13 +684,15 @@ describe("Comprehensive Integration Tests", () => {
 			}
 
 			// Verify system is stable after rapid changes
-			const comment = await commentSystem.generateComment(createTestConversationContext({
-				recentTranscript: "Stability test",
-				currentTopic: "stability",
-				userEngagement: "medium",
-				sessionDuration: 1,
-				commentHistory: [],
-			}));
+			const comment = await commentSystem.generateComment(
+				createTestConversationContext({
+					recentTranscript: "Stability test",
+					currentTopic: "stability",
+					userEngagement: "medium",
+					sessionDuration: 1,
+					commentHistory: [],
+				}),
+			);
 
 			expect(comment).toBeDefined();
 		});
@@ -679,13 +709,15 @@ describe("Comprehensive Integration Tests", () => {
 
 				// Add some data
 				transcriptionDisplay.addTranscript(`Session ${i} data`, true);
-				await commentSystem.generateComment(createTestConversationContext({
-					recentTranscript: `Session ${i} data`,
-					currentTopic: "cleanup",
-					userEngagement: "medium",
-					sessionDuration: 1,
-					commentHistory: [],
-				}));
+				await commentSystem.generateComment(
+					createTestConversationContext({
+						recentTranscript: `Session ${i} data`,
+						currentTopic: "cleanup",
+						userEngagement: "medium",
+						sessionDuration: 1,
+						commentHistory: [],
+					}),
+				);
 
 				await sessionManager.endSession(session.id);
 

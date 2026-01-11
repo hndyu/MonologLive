@@ -43,8 +43,8 @@ export class VoiceTranscriptionIntegration {
 			console.error("Voice input error:", error);
 			if (this.errorCallback) {
 				// Convert SpeechRecognitionError to Error
-				const errorObj = new Error(error.message || 'Speech recognition error');
-				errorObj.name = error.error || 'SpeechRecognitionError';
+				const errorObj = new Error(error.message || "Speech recognition error");
+				errorObj.name = error.error || "SpeechRecognitionError";
 				this.errorCallback(errorObj);
 			}
 		});

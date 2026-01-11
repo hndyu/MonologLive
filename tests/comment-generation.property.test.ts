@@ -242,13 +242,18 @@ describe("Comment Generation Properties", () => {
 					}), // Little silence
 				}),
 				fc.integer({ min: 5, max: 15 }),
-				async (highEngagementContext: ConversationContext, attempts: number) => {
+				async (
+					highEngagementContext: ConversationContext,
+					attempts: number,
+				) => {
 					const generator = new RuleBasedCommentGenerator();
 					let commentsGenerated = 0;
 
 					// Try to generate comments multiple times with high engagement context
 					for (let i = 0; i < attempts; i++) {
-						const comment = await generator.generateComment(highEngagementContext);
+						const comment = await generator.generateComment(
+							highEngagementContext,
+						);
 						if (comment) {
 							commentsGenerated++;
 						}
@@ -269,7 +274,8 @@ describe("Comment Generation Properties", () => {
 					let lowEngagementComments = 0;
 
 					for (let i = 0; i < attempts; i++) {
-						const comment = await generator2.generateComment(lowEngagementContext);
+						const comment =
+							await generator2.generateComment(lowEngagementContext);
 						if (comment) {
 							lowEngagementComments++;
 						}

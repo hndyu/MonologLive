@@ -179,17 +179,22 @@ export class SessionManagerImpl implements SessionManager {
 		activity: ActivityEvent,
 	): void {
 		// Add transcript segment if provided
-		const data = activity.data as any;
-		if (data?.transcript) {
+		const data = activity.data;
+		if (data && typeof data === "object" && "transcript" in data) {
+			const speechData = data as {
+				transcript: string;
+				confidence?: number;
+				isFinal?: boolean;
+			};
 			const segment: TranscriptSegment = {
 				start: activity.timestamp.getTime() - session.startTime.getTime(),
 				end:
 					activity.timestamp.getTime() -
 					session.startTime.getTime() +
 					(activity.duration || 0),
-				text: data.transcript,
-				confidence: data.confidence || 1.0,
-				isFinal: data.isFinal || true,
+				text: speechData.transcript,
+				confidence: speechData.confidence || 1.0,
+				isFinal: speechData.isFinal || true,
 			};
 			session.transcript.push(segment);
 		}
@@ -199,9 +204,10 @@ export class SessionManagerImpl implements SessionManager {
 		session: Session,
 		activity: ActivityEvent,
 	): void {
-		const data = activity.data as any;
-		if (data?.comment) {
-			session.comments.push(data.comment);
+		const data = activity.data;
+		if (data && typeof data === "object" && "comment" in data) {
+			const commentData = data as { comment: Comment };
+			session.comments.push(commentData.comment);
 			session.metrics.commentCount++;
 		}
 	}
@@ -210,9 +216,10 @@ export class SessionManagerImpl implements SessionManager {
 		session: Session,
 		activity: ActivityEvent,
 	): void {
-		const data = activity.data as any;
-		if (data?.interaction) {
-			session.interactions.push(data.interaction);
+		const data = activity.data;
+		if (data && typeof data === "object" && "interaction" in data) {
+			const interactionData = data as { interaction: UserInteraction };
+			session.interactions.push(interactionData.interaction);
 			session.metrics.interactionCount++;
 		}
 	}

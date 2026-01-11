@@ -130,7 +130,10 @@ describe("Voice Input Manager Property Tests", () => {
 										],
 										length: 1,
 									};
-									mockRecognition.onresult?.call(mockRecognition as SpeechRecognition, mockEvent as any);
+									mockRecognition.onresult?.call(
+										mockRecognition as SpeechRecognition,
+										mockEvent as SpeechRecognitionEvent,
+									);
 								}
 								break;
 							case "error":
@@ -139,12 +142,18 @@ describe("Voice Input Manager Property Tests", () => {
 										error: event.data,
 										message: `Mock error: ${event.data}`,
 									};
-									mockRecognition.onerror?.call(mockRecognition as SpeechRecognition, mockErrorEvent as any);
+									mockRecognition.onerror?.call(
+										mockRecognition as SpeechRecognition,
+										mockErrorEvent as SpeechRecognitionErrorEvent,
+									);
 								}
 								break;
 							case "end":
 								if (mockRecognition.onend) {
-									mockRecognition.onend?.call(mockRecognition as SpeechRecognition, {} as any);
+									mockRecognition.onend?.call(
+										mockRecognition as SpeechRecognition,
+										{} as Event,
+									);
 								}
 								break;
 						}
@@ -255,10 +264,13 @@ describe("Voice Input Manager Property Tests", () => {
 
 							if (scenario.permissionDenied && mockRecognition.onerror) {
 								// Simulate permission denied
-								mockRecognition.onerror?.call(mockRecognition as SpeechRecognition, {
-									error: "not-allowed",
-									message: "Permission denied",
-								} as any);
+								mockRecognition.onerror?.call(
+									mockRecognition as SpeechRecognition,
+									{
+										error: "not-allowed",
+										message: "Permission denied",
+									} as SpeechRecognitionErrorEvent,
+								);
 
 								// Property: Permission errors should be properly reported
 								const permissionErrors = errors.filter(
@@ -317,10 +329,13 @@ describe("Voice Input Manager Property Tests", () => {
 					// Simulate recoverable errors
 					errorTypes.forEach((errorType) => {
 						if (mockRecognition.onerror) {
-							mockRecognition.onerror?.call(mockRecognition as SpeechRecognition, {
-								error: errorType,
-								message: `Mock ${errorType} error`,
-							} as any);
+							mockRecognition.onerror?.call(
+								mockRecognition as SpeechRecognition,
+								{
+									error: errorType,
+									message: `Mock ${errorType} error`,
+								} as SpeechRecognitionErrorEvent,
+							);
 						}
 					});
 

@@ -177,7 +177,9 @@ export class IndexedDBWrapper {
 		return this.savePreferences(userId, preferences);
 	}
 
-	async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
+	async getUserPreferences(
+		userId: string,
+	): Promise<UserPreferences | undefined> {
 		return this.getPreferences(userId);
 	}
 }

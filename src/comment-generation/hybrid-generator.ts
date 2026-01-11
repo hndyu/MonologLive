@@ -108,7 +108,9 @@ export class HybridCommentGenerator implements CommentGenerator {
 	 * Generates comments using hybrid strategy
 	 * Implements Requirements 2.4, 2.5, 2.6
 	 */
-	async generateCommentAsync(context: ConversationContext): Promise<Comment | null> {
+	async generateCommentAsync(
+		context: ConversationContext,
+	): Promise<Comment | null> {
 		this.metrics.totalRequests++;
 
 		// Determine generation method based on current ratios
@@ -132,7 +134,9 @@ export class HybridCommentGenerator implements CommentGenerator {
 	/**
 	 * Generates comment using rule-based approach
 	 */
-	private async generateRuleBasedComment(context: ConversationContext): Promise<Comment | null> {
+	private async generateRuleBasedComment(
+		context: ConversationContext,
+	): Promise<Comment | null> {
 		this.metrics.ruleBasedCount++;
 
 		const comment = await this.ruleBasedGenerator.generateComment(context);

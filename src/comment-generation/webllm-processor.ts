@@ -8,6 +8,25 @@ import type {
 } from "../interfaces/comment-generation";
 import type { ConversationContext } from "../types/core";
 
+// Type for MLCEngine from @mlc-ai/web-llm
+interface MLCEngine {
+	chat: {
+		completions: {
+			create: (options: {
+				messages: Array<{ role: string; content: string }>;
+				temperature?: number;
+				max_tokens?: number;
+			}) => Promise<{
+				choices: Array<{
+					message?: {
+						content?: string;
+					};
+				}>;
+			}>;
+		};
+	};
+}
+
 // WebLLM types and imports
 interface ChatOptions {
 	temperature?: number;
@@ -39,10 +58,12 @@ interface WebLLMEngine {
 // Dynamic import function for WebLLM
 async function createWebLLMEngine(
 	modelId: string = "Llama-3.2-1B-Instruct-q4f32_1-MLC",
-): Promise<any> {
+): Promise<MLCEngine> {
 	try {
 		const { CreateWebWorkerMLCEngine } = await import("@mlc-ai/web-llm");
-		const worker = new Worker(new URL("@mlc-ai/web-llm/lib/webworker.js", import.meta.url));
+		const worker = new Worker(
+			new URL("@mlc-ai/web-llm/lib/webworker.js", import.meta.url),
+		);
 		return await CreateWebWorkerMLCEngine(worker, modelId);
 	} catch (error) {
 		throw new Error(`Failed to load WebLLM: ${error}`);
@@ -209,7 +230,9 @@ export class WebLLMProcessor implements LocalLLMProcessor {
 			});
 
 			// Clean and validate response
-			const comment = this.cleanResponse(response.choices[0]?.message?.content || "");
+			const comment = this.cleanResponse(
+				response.choices[0]?.message?.content || "",
+			);
 
 			// Fallback to role patterns if response is invalid
 			if (!comment || comment.length > 100) {
