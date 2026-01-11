@@ -44,9 +44,9 @@ describe("Cost-Effective Processing Properties", () => {
 	 * and use only rule-based and local LLM processing for real-time comments
 	 * Validates: Requirements 9.1, 9.2, 9.3
 	 */
-	test("Property 9: Cost-Effective Processing - No Cloud API Calls During Sessions", () => {
-		fc.assert(
-			fc.property(
+	test("Property 9: Cost-Effective Processing - No Cloud API Calls During Sessions", async () => {
+		await fc.assert(
+			fc.asyncProperty(
 				// Generate random conversation contexts for a session
 				fc.array(
 					fc.record({
@@ -176,9 +176,9 @@ describe("Cost-Effective Processing Properties", () => {
 	 * For any performance degradation, the system should adjust ratios to maintain cost efficiency
 	 * Validates adaptive behavior from Requirements 9.1, 9.2
 	 */
-	test("Property: Adaptive Ratio Adjustment Based on Performance", () => {
-		fc.assert(
-			fc.property(
+	test("Property: Adaptive Ratio Adjustment Based on Performance", async () => {
+		await fc.assert(
+			fc.asyncProperty(
 				fc.record({
 					recentTranscript: fc.string({ minLength: 10, maxLength: 100 }),
 					userEngagementLevel: fc.float({
@@ -229,8 +229,7 @@ describe("Cost-Effective Processing Properties", () => {
 					const finalMetrics = generator.getPerformanceMetrics();
 
 					// Property 1: Ratios should adapt based on performance
-					const _ratiosChanged =
-						finalConfig.ruleBasedRatio !== initialRuleBasedRatio;
+					finalConfig.ruleBasedRatio !== initialRuleBasedRatio;
 
 					// Property 2: Poor performance should increase rule-based ratio
 					const poorPerformance =
@@ -259,9 +258,9 @@ describe("Cost-Effective Processing Properties", () => {
 	 * For any LLM failure, the system should gracefully fallback to rule-based generation
 	 * Validates Requirements 9.1, 9.3 for maintaining service availability
 	 */
-	test("Property: Fallback Mechanism Ensures Continuous Service", () => {
-		fc.assert(
-			fc.property(
+	test("Property: Fallback Mechanism Ensures Continuous Service", async () => {
+		await fc.assert(
+			fc.asyncProperty(
 				fc.array(
 					fc.record({
 						recentTranscript: fc.string({ minLength: 5, maxLength: 100 }),
@@ -306,7 +305,7 @@ describe("Cost-Effective Processing Properties", () => {
 					for (const context of contexts) {
 						totalAttempts++;
 						try {
-							const comment = generator.generateComment(context);
+							const comment = await generator.generateComment(context);
 							if (comment?.content && comment.content.length > 0) {
 								successfulGenerations++;
 							}
@@ -346,9 +345,9 @@ describe("Cost-Effective Processing Properties", () => {
 	 * For any session duration, resource usage should remain within reasonable bounds
 	 * Validates Requirements 9.3 for efficient resource usage patterns
 	 */
-	test("Property: Resource Usage Remains Efficient Throughout Sessions", () => {
-		fc.assert(
-			fc.property(
+	test("Property: Resource Usage Remains Efficient Throughout Sessions", async () => {
+		await fc.assert(
+			fc.asyncProperty(
 				fc.integer({ min: 20, max: 100 }), // Session length in comments
 				fc.record({
 					ruleBasedRatio: fc.float({

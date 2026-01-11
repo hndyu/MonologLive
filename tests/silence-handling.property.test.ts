@@ -246,8 +246,7 @@ describe("Silence Handling Properties", () => {
 					};
 
 					manager.updateFromAudioAnalysis(initialAnalysis);
-					const _initialFrequency =
-						manager.getFrequencyState().currentFrequency;
+					manager.getFrequencyState().currentFrequency;
 
 					// Apply extended silence
 					const silenceAnalysis: AudioAnalysisData = {

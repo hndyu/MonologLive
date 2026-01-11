@@ -42,7 +42,10 @@ export class VoiceTranscriptionIntegration {
 		this.voiceManager.onError((error) => {
 			console.error("Voice input error:", error);
 			if (this.errorCallback) {
-				this.errorCallback(error);
+				// Convert SpeechRecognitionError to Error
+				const errorObj = new Error(error.message || 'Speech recognition error');
+				errorObj.name = error.error || 'SpeechRecognitionError';
+				this.errorCallback(errorObj);
 			}
 		});
 	}

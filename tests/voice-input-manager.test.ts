@@ -86,7 +86,7 @@ describe("Voice Input Manager Property Tests", () => {
 
 					// Track transcription results
 					const transcripts: Array<{ text: string; isFinal: boolean }> = [];
-					const errors: Array<Error> = [];
+					const errors: SpeechRecognitionError[] = [];
 
 					manager.onTranscript((text, isFinal) => {
 						transcripts.push({ text, isFinal });
@@ -130,7 +130,7 @@ describe("Voice Input Manager Property Tests", () => {
 										],
 										length: 1,
 									};
-									mockRecognition.onresult(mockEvent);
+									mockRecognition.onresult?.call(mockRecognition as SpeechRecognition, mockEvent as any);
 								}
 								break;
 							case "error":
@@ -139,12 +139,12 @@ describe("Voice Input Manager Property Tests", () => {
 										error: event.data,
 										message: `Mock error: ${event.data}`,
 									};
-									mockRecognition.onerror(mockErrorEvent);
+									mockRecognition.onerror?.call(mockRecognition as SpeechRecognition, mockErrorEvent as any);
 								}
 								break;
 							case "end":
 								if (mockRecognition.onend) {
-									mockRecognition.onend({});
+									mockRecognition.onend?.call(mockRecognition as SpeechRecognition, {} as any);
 								}
 								break;
 						}
@@ -255,10 +255,10 @@ describe("Voice Input Manager Property Tests", () => {
 
 							if (scenario.permissionDenied && mockRecognition.onerror) {
 								// Simulate permission denied
-								mockRecognition.onerror({
+								mockRecognition.onerror?.call(mockRecognition as SpeechRecognition, {
 									error: "not-allowed",
 									message: "Permission denied",
-								});
+								} as any);
 
 								// Property: Permission errors should be properly reported
 								const permissionErrors = errors.filter(
@@ -317,10 +317,10 @@ describe("Voice Input Manager Property Tests", () => {
 					// Simulate recoverable errors
 					errorTypes.forEach((errorType) => {
 						if (mockRecognition.onerror) {
-							mockRecognition.onerror({
+							mockRecognition.onerror?.call(mockRecognition as SpeechRecognition, {
 								error: errorType,
 								message: `Mock ${errorType} error`,
-							});
+							} as any);
 						}
 					});
 

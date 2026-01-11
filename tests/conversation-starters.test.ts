@@ -209,8 +209,10 @@ describe("Conversation Starters", () => {
 
 			const baseContext = {
 				recentTranscript: "test",
-				silenceDuration: 0,
+				userEngagementLevel: 0.5,
 				speechVolume: 0.5,
+				speechRate: 1.0,
+				silenceDuration: 0,
 				detectedEmotion: "neutral",
 			};
 

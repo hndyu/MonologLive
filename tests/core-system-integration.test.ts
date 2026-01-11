@@ -6,13 +6,13 @@ import { IndexedDBWrapper } from "../src/storage/indexeddb-wrapper";
 import type { Comment, ConversationContext } from "../src/types/core";
 import { TranscriptionDisplay } from "../src/ui/transcription-display";
 import { WebSpeechVoiceInputManager } from "../src/voice/voice-input-manager";
+import { createTestConversationContext, createTestUserPreferences } from "./test-utils";
 
 describe("Core System Integration - Complete User Journey", () => {
 	let storage: IndexedDBWrapper;
 	let voiceManager: WebSpeechVoiceInputManager;
 	let transcriptionDisplay: TranscriptionDisplay;
 	let commentSystem: CommentSystem;
-	let _testContainer: HTMLElement;
 
 	beforeEach(async () => {
 		// Set up DOM environment
@@ -27,7 +27,6 @@ describe("Core System Integration - Complete User Journey", () => {
 		if (!testContainer) {
 			throw new Error("Test container not found");
 		}
-		_testContainer = testContainer;
 
 		// Initialize storage
 		storage = new IndexedDBWrapper();
@@ -72,13 +71,13 @@ describe("Core System Integration - Complete User Journey", () => {
 			{ text: "そろそろ寝ます", topic: "departure", engagement: "low" },
 		];
 
-		const context: ConversationContext = {
+		const context = createTestConversationContext({
 			recentTranscript: "",
 			currentTopic: "daily conversation",
 			userEngagement: "medium",
 			sessionDuration: 0,
 			commentHistory: [],
-		};
+		});
 
 		for (let i = 0; i < conversationSteps.length; i++) {
 			const step = conversationSteps[i];
@@ -92,11 +91,15 @@ describe("Core System Integration - Complete User Journey", () => {
 			// Update context and generate comment
 			context.recentTranscript = step.text;
 			context.currentTopic = step.topic;
-			context.userEngagement = step.engagement;
-			context.sessionDuration = i + 1;
+			context.userEngagement = step.engagement as "low" | "medium" | "high";
+			if (context.sessionDuration !== undefined) {
+				context.sessionDuration = i + 1;
+			}
 
-			const comment = commentSystem.generateComment(context);
-			context.commentHistory.push(comment);
+			const comment = await commentSystem.generateComment(context);
+			if (comment && context.commentHistory) {
+				context.commentHistory.push(comment);
+			}
 
 			await new Promise((resolve) => setTimeout(resolve, 100));
 		}
@@ -107,7 +110,7 @@ describe("Core System Integration - Complete User Journey", () => {
 
 		expect(finalTranscript.length).toBeGreaterThan(0);
 		expect(commentCount).toBe(conversationSteps.length);
-		expect(context.commentHistory.length).toBe(conversationSteps.length);
+		expect(context.commentHistory?.length).toBe(conversationSteps.length);
 
 		// Verify transcript contains all conversation steps
 		for (const step of conversationSteps) {
@@ -115,58 +118,60 @@ describe("Core System Integration - Complete User Journey", () => {
 		}
 
 		// Verify comments were generated with different roles
-		const roles = new Set(context.commentHistory.map((c) => c.role));
+		const roles = new Set(context.commentHistory?.map((c) => c.role) || []);
 		expect(roles.size).toBeGreaterThan(1); // Should have multiple different roles
 	});
 
 	test("Comment system generates diverse roles and handles interactions", async () => {
 		// Generate comments with different contexts to test role diversity
-		const testContexts = [
+		const testContexts: Array<Partial<ConversationContext>> = [
 			{
 				recentTranscript: "おはよう",
 				currentTopic: "greeting",
-				userEngagement: "high",
+				userEngagement: "high" as const,
 			},
 			{
 				recentTranscript: "そろそろ寝ます",
 				currentTopic: "departure",
-				userEngagement: "low",
+				userEngagement: "low" as const,
 			},
 			{
 				recentTranscript: "かわいい猫の動画見てる",
 				currentTopic: "entertainment",
-				userEngagement: "medium",
+				userEngagement: "medium" as const,
 			},
 			{
 				recentTranscript: "今日何してた？",
 				currentTopic: "daily_life",
-				userEngagement: "medium",
+				userEngagement: "medium" as const,
 			},
 			{
 				recentTranscript: "たしかにそうですね",
 				currentTopic: "agreement",
-				userEngagement: "medium",
+				userEngagement: "medium" as const,
 			},
 		];
 
 		const generatedComments: Comment[] = [];
 
 		for (let i = 0; i < testContexts.length; i++) {
-			const context: ConversationContext = {
+			const context: ConversationContext = createTestConversationContext({
 				...testContexts[i],
 				sessionDuration: i + 1,
 				commentHistory: generatedComments.slice(),
-			};
+			});
 
-			const comment = commentSystem.generateComment(context);
-			generatedComments.push(comment);
+			const comment = await commentSystem.generateComment(context);
+			if (comment) {
+				generatedComments.push(comment);
 
-			// Verify comment structure
-			expect(comment.id).toBeDefined();
-			expect(comment.content).toBeDefined();
-			expect(comment.role).toBeDefined();
-			expect(comment.timestamp).toBeInstanceOf(Date);
-			expect(comment.context).toBeDefined();
+				// Verify comment structure
+				expect(comment.id).toBeDefined();
+				expect(comment.content).toBeDefined();
+				expect(comment.role).toBeDefined();
+				expect(comment.timestamp).toBeInstanceOf(Date);
+				expect(comment.context).toBeDefined();
+			}
 		}
 
 		// Verify role diversity
@@ -207,12 +212,8 @@ describe("Core System Integration - Complete User Journey", () => {
 	});
 
 	test("Voice input manager integration with transcription display", async () => {
-		let _transcriptReceived = false;
-		let _errorHandled = false;
-
 		// Set up voice input callbacks
 		voiceManager.onTranscript((text, isFinal) => {
-			_transcriptReceived = true;
 			expect(typeof text).toBe("string");
 			expect(typeof isFinal).toBe("boolean");
 
@@ -221,7 +222,6 @@ describe("Core System Integration - Complete User Journey", () => {
 		});
 
 		voiceManager.onError((error) => {
-			_errorHandled = true;
 			expect(error.error).toBeDefined();
 			expect(error.message).toBeDefined();
 			expect(error.timestamp).toBeInstanceOf(Date);
@@ -261,15 +261,15 @@ describe("Core System Integration - Complete User Journey", () => {
 		}).not.toThrow();
 
 		// Test handling of invalid comment generation
-		const invalidContext: ConversationContext = {
+		const invalidContext: ConversationContext = createTestConversationContext({
 			recentTranscript: "",
 			currentTopic: "",
 			userEngagement: "medium",
 			sessionDuration: 0,
 			commentHistory: [],
-		};
+		});
 
-		const comment = commentSystem.generateComment(invalidContext);
+		const comment = await commentSystem.generateComment(invalidContext);
 		expect(comment).toBeDefined(); // Should still generate a comment
 
 		// Test storage operations
@@ -289,10 +289,9 @@ describe("Core System Integration - Complete User Journey", () => {
 		const testPhrase = "こんにちは、今日はいい天気ですね";
 
 		// 1. Voice input simulation
-		let _transcriptReceived = false;
 		voiceManager.onTranscript((text, isFinal) => {
 			if (isFinal && text === testPhrase) {
-				_transcriptReceived = true;
+				// Transcript received successfully
 			}
 		});
 
@@ -302,15 +301,15 @@ describe("Core System Integration - Complete User Journey", () => {
 		expect(displayedText).toContain(testPhrase);
 
 		// 3. Comment generation
-		const comment = commentSystem.generateComment({
+		const comment = await commentSystem.generateComment(createTestConversationContext({
 			recentTranscript: testPhrase,
 			currentTopic: "greeting",
 			userEngagement: "high",
 			sessionDuration: 1,
 			commentHistory: [],
-		});
-		expect(comment.content).toBeDefined();
-		expect(comment.role).toBeDefined();
+		}));
+		expect(comment?.content).toBeDefined();
+		expect(comment?.role).toBeDefined();
 
 		// 4. Verify complete data flow
 		expect(transcriptionDisplay.getSegments().length).toBeGreaterThan(0);
@@ -318,12 +317,13 @@ describe("Core System Integration - Complete User Journey", () => {
 		expect(commentSystem.getRoleWeights()).toBeDefined();
 
 		// 5. Test storage integration
-		await storage.saveUserPreferences("test_user", {
+		await storage.saveUserPreferences("test_user", createTestUserPreferences({
+			userId: "test_user",
 			roleWeights: new Map(),
 			topicPreferences: [],
 			interactionHistory: [],
 			sessionCount: 1,
-		});
+		}));
 		const preferences = await storage.getUserPreferences("test_user");
 		expect(preferences).toBeDefined();
 	});

@@ -20,37 +20,30 @@ interface ChatMessage {
 	content: string;
 }
 
-interface GenerationConfig {
-	temperature?: number;
-	max_tokens?: number;
-	top_p?: number;
-}
-
-interface ProgressInfo {
-	progress: number;
-	timeElapsed: number;
-	text: string;
-}
-
 interface WebLLMEngine {
 	reload(modelId: string, chatOpts?: ChatOptions): Promise<void>;
-	chat(messages: ChatMessage[], genConfig?: GenerationConfig): Promise<string>;
+	chat: {
+		completions: {
+			create: (options: {
+				messages: ChatMessage[];
+				temperature?: number;
+				max_tokens?: number;
+				top_p?: number;
+			}) => Promise<{ choices: Array<{ message: { content: string } }> }>;
+		};
+	};
 	runtimeStatsText(): string;
 	unload(): Promise<void>;
 }
 
-interface CreateWebLLMEngineOptions {
-	initProgressCallback?: (progress: ProgressInfo) => void;
-	logLevel?: string;
-}
-
 // Dynamic import function for WebLLM
 async function createWebLLMEngine(
-	options?: CreateWebLLMEngineOptions,
-): Promise<WebLLMEngine> {
+	modelId: string = "Llama-3.2-1B-Instruct-q4f32_1-MLC",
+): Promise<any> {
 	try {
 		const { CreateWebWorkerMLCEngine } = await import("@mlc-ai/web-llm");
-		return await CreateWebWorkerMLCEngine(options);
+		const worker = new Worker(new URL("@mlc-ai/web-llm/lib/webworker.js", import.meta.url));
+		return await CreateWebWorkerMLCEngine(worker, modelId);
 	} catch (error) {
 		throw new Error(`Failed to load WebLLM: ${error}`);
 	}
@@ -155,15 +148,12 @@ export class WebLLMProcessor implements LocalLLMProcessor {
 			console.log(`Loading WebLLM model: ${selectedModel}`);
 
 			// Create WebLLM engine with progress callback
-			this.engine = await createWebLLMEngine({
-				initProgressCallback: (progress) => {
-					console.log("WebLLM loading progress:", progress);
-				},
-				logLevel: "INFO",
-			});
+			this.engine = await createWebLLMEngine(selectedModel);
 
 			// Load the model
-			await this.engine.reload(selectedModel);
+			if (this.engine) {
+				await this.engine.reload(selectedModel);
+			}
 
 			// Update model info
 			this.modelInfo = {
@@ -211,15 +201,15 @@ export class WebLLMProcessor implements LocalLLMProcessor {
 			];
 
 			// Generate comment with constraints for performance
-			const response = await this.engine.chat(messages, {
+			const response = await this.engine.chat.completions.create({
+				messages,
 				temperature: 0.8,
 				max_tokens: 50,
 				top_p: 0.9,
-				frequency_penalty: 0.1,
 			});
 
 			// Clean and validate response
-			const comment = this.cleanResponse(response);
+			const comment = this.cleanResponse(response.choices[0]?.message?.content || "");
 
 			// Fallback to role patterns if response is invalid
 			if (!comment || comment.length > 100) {
@@ -240,7 +230,7 @@ export class WebLLMProcessor implements LocalLLMProcessor {
 		context: ConversationContext,
 		role: CommentRole,
 	): string {
-		const { recentTranscript, currentTopic, emotionalTone } = context;
+		const { recentTranscript, currentTopic } = context;
 
 		let prompt = `Generate a ${role.type} comment for this live stream context:\n`;
 
@@ -250,10 +240,6 @@ export class WebLLMProcessor implements LocalLLMProcessor {
 
 		if (recentTranscript) {
 			prompt += `Recent speech: "${recentTranscript.slice(-200)}"\n`;
-		}
-
-		if (emotionalTone) {
-			prompt += `Mood: ${emotionalTone}\n`;
 		}
 
 		// Add role-specific guidance

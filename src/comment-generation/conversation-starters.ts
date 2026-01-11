@@ -149,8 +149,10 @@ export class ConversationStarterGenerator {
 			context: {
 				recentTranscript: "",
 				currentTopic: "session_start",
-				silenceDuration: 0,
+				userEngagementLevel: 0.5,
 				speechVolume: 0,
+				speechRate: 1.0,
+				silenceDuration: 0,
 				detectedEmotion: "neutral",
 			},
 		};
@@ -204,8 +206,10 @@ export class ConversationStarterGenerator {
 			context: {
 				recentTranscript: "",
 				currentTopic: topic || "general",
-				silenceDuration: 0,
+				userEngagementLevel: 0.5,
 				speechVolume: 0,
+				speechRate: 1.0,
+				silenceDuration: 0,
 				detectedEmotion: "curiosity",
 			},
 		};
@@ -319,8 +323,10 @@ export class ConversationStarterGenerator {
 			context: {
 				recentTranscript: "",
 				currentTopic: "follow_up",
-				silenceDuration,
+				userEngagementLevel: 0.3,
 				speechVolume: 0,
+				speechRate: 1.0,
+				silenceDuration,
 				detectedEmotion: "concern",
 			},
 		};

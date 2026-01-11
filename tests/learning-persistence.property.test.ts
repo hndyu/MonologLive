@@ -71,9 +71,9 @@ describe("Learning Persistence Properties", () => {
 	 * persist and influence behavior in subsequent sessions
 	 * Validates: Requirements 7.1, 7.2, 7.3, 7.5
 	 */
-	test("Property 8: Learning Persistence - Preferences Persist Across Sessions", () => {
-		fc.assert(
-			fc.property(
+	test("Property 8: Learning Persistence - Preferences Persist Across Sessions", async () => {
+		await fc.assert(
+			fc.asyncProperty(
 				// Generate user ID
 				fc.string({ minLength: 5, maxLength: 20 }),
 				// Generate sequence of role weight updates
@@ -210,7 +210,7 @@ describe("Learning Persistence Properties", () => {
 	 */
 	test("Property: Weight Adjustment Direction Based on Feedback Type", () => {
 		fc.assert(
-			fc.property(
+			fc.asyncProperty(
 				fc.string({ minLength: 5, maxLength: 15 }),
 				fc.constantFrom(
 					"greeting" as CommentRoleType,
@@ -223,8 +223,8 @@ describe("Learning Persistence Properties", () => {
 					"playful" as CommentRoleType,
 				),
 				fc.constantFrom(
-					"thumbs_up" as UserInteractionType,
-					"thumbs_down" as UserInteractionType,
+					"thumbs_up" as const,
+					"thumbs_down" as const,
 				),
 				fc.float({ min: Math.fround(0.5), max: Math.fround(1.0) }),
 				async (
@@ -274,9 +274,9 @@ describe("Learning Persistence Properties", () => {
 	 * For any sequence of feedback events, learning statistics should accurately reflect the changes
 	 * Validates: Requirements 7.3, 7.5
 	 */
-	test("Property: Learning Statistics Reflect Actual Changes", () => {
-		fc.assert(
-			fc.property(
+	test("Property: Learning Statistics Reflect Actual Changes", async () => {
+		await fc.assert(
+			fc.asyncProperty(
 				fc.string({ minLength: 5, maxLength: 15 }),
 				fc.array(
 					fc.record({
@@ -391,7 +391,7 @@ describe("Learning Persistence Properties", () => {
 	 */
 	test("Property: User Preference Independence", () => {
 		fc.assert(
-			fc.property(
+			fc.asyncProperty(
 				fc.string({ minLength: 5, maxLength: 15 }),
 				fc.string({ minLength: 5, maxLength: 15 }),
 				fc.constantFrom(
@@ -400,8 +400,8 @@ describe("Learning Persistence Properties", () => {
 					"playful" as CommentRoleType,
 				),
 				fc.constantFrom(
-					"thumbs_up" as UserInteractionType,
-					"thumbs_down" as UserInteractionType,
+					"thumbs_up" as const,
+					"thumbs_down" as const,
 				),
 				fc.float({ min: Math.fround(0.5), max: Math.fround(1.0) }),
 				async (
@@ -480,7 +480,7 @@ describe("Learning Persistence Properties", () => {
 	 */
 	test("Property: Preference Reset Restores Defaults", () => {
 		fc.assert(
-			fc.property(
+			fc.asyncProperty(
 				fc.string({ minLength: 5, maxLength: 15 }),
 				fc.array(
 					fc.record({
@@ -495,8 +495,8 @@ describe("Learning Persistence Properties", () => {
 							"playful" as CommentRoleType,
 						),
 						interactionType: fc.constantFrom(
-							"thumbs_up" as UserInteractionType,
-							"thumbs_down" as UserInteractionType,
+							"thumbs_up" as const,
+							"thumbs_down" as const,
 						),
 						confidence: fc.float({
 							min: Math.fround(0.5),

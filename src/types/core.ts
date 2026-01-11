@@ -44,6 +44,9 @@ export interface ConversationContext {
 		isInSilence: boolean;
 		silenceDuration: number;
 	};
+	// Properties used in tests and session tracking
+	sessionDuration?: number;
+	commentHistory?: Comment[];
 }
 
 export interface UserInteraction {

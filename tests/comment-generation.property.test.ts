@@ -14,9 +14,9 @@ describe("Comment Generation Properties", () => {
 	 * and local LLM processing to maintain quality while avoiding cloud API calls during sessions
 	 * Validates: Requirements 2.1, 2.2, 2.4, 2.5, 2.6, 3.1-3.8
 	 */
-	test("Property 3: Hybrid Comment Generation - Role Diversity and Pattern Usage", () => {
-		fc.assert(
-			fc.property(
+	test("Property 3: Hybrid Comment Generation - Role Diversity and Pattern Usage", async () => {
+		await fc.assert(
+			fc.asyncProperty(
 				// Generate random conversation contexts
 				fc.record({
 					recentTranscript: fc.string({ minLength: 0, maxLength: 200 }),
@@ -39,13 +39,13 @@ describe("Comment Generation Properties", () => {
 				}),
 				// Generate number of comments to test
 				fc.integer({ min: 10, max: 50 }),
-				(context: ConversationContext, numComments: number) => {
+				async (context: ConversationContext, numComments: number) => {
 					const generator = new RuleBasedCommentGenerator();
 					const generatedComments = [];
 
 					// Generate multiple comments with the same context
 					for (let i = 0; i < numComments; i++) {
-						const comment = generator.generateComment(context);
+						const comment = await generator.generateComment(context);
 						if (comment) {
 							generatedComments.push(comment);
 						}
@@ -122,9 +122,9 @@ describe("Comment Generation Properties", () => {
 	 * For any feedback given to comments, role weights should be adjusted appropriately
 	 * Validates learning behavior from Requirements 2.1, 2.2
 	 */
-	test("Property: Role Weight Adjustment Based on Feedback", () => {
-		fc.assert(
-			fc.property(
+	test("Property: Role Weight Adjustment Based on Feedback", async () => {
+		await fc.assert(
+			fc.asyncProperty(
 				fc.constantFrom(
 					"greeting" as CommentRoleType,
 					"departure" as CommentRoleType,
@@ -141,7 +141,7 @@ describe("Comment Generation Properties", () => {
 					"neutral" as const,
 				),
 				fc.float({ min: Math.fround(0.1), max: Math.fround(0.9) }),
-				(
+				async (
 					roleType: CommentRoleType,
 					feedbackType: "positive" | "negative" | "neutral",
 					initialWeight: number,
@@ -179,10 +179,10 @@ describe("Comment Generation Properties", () => {
 					};
 
 					// Force generation of a comment to populate history
-					generator.generateComment(context);
+					const comment = await generator.generateComment(context);
 
 					const feedback = {
-						commentId: mockComment.id,
+						commentId: comment?.id || mockComment.id,
 						rating:
 							feedbackType === "positive"
 								? 5
@@ -219,9 +219,9 @@ describe("Comment Generation Properties", () => {
 	 * For any context with high engagement, comment frequency should increase appropriately
 	 * Validates Requirements 4.1, 4.2 for volume and speech rate adaptation
 	 */
-	test("Property: Comment Frequency Adapts to User Engagement", () => {
-		fc.assert(
-			fc.property(
+	test("Property: Comment Frequency Adapts to User Engagement", async () => {
+		await fc.assert(
+			fc.asyncProperty(
 				fc.record({
 					recentTranscript: fc.string({ minLength: 10, maxLength: 100 }),
 					userEngagementLevel: fc.float({
@@ -242,18 +242,18 @@ describe("Comment Generation Properties", () => {
 					}), // Little silence
 				}),
 				fc.integer({ min: 5, max: 15 }),
-				(highEngagementContext: ConversationContext, attempts: number) => {
+				async (highEngagementContext: ConversationContext, attempts: number) => {
 					const generator = new RuleBasedCommentGenerator();
 					let commentsGenerated = 0;
 
 					// Try to generate comments multiple times with high engagement context
 					for (let i = 0; i < attempts; i++) {
-						const comment = generator.generateComment(highEngagementContext);
+						const comment = await generator.generateComment(highEngagementContext);
 						if (comment) {
 							commentsGenerated++;
 						}
-						// Add small delay to simulate time passing
-						generator.lastCommentTime = Date.now() - 10000; // Reset timing
+						// Reset timing to allow next generation
+						generator.reset();
 					}
 
 					// Create low engagement context for comparison
@@ -269,11 +269,11 @@ describe("Comment Generation Properties", () => {
 					let lowEngagementComments = 0;
 
 					for (let i = 0; i < attempts; i++) {
-						const comment = generator2.generateComment(lowEngagementContext);
+						const comment = await generator2.generateComment(lowEngagementContext);
 						if (comment) {
 							lowEngagementComments++;
 						}
-						generator2.lastCommentTime = Date.now() - 10000; // Reset timing
+						generator2.reset();
 					}
 
 					// High engagement should generate at least as many comments as low engagement
@@ -290,7 +290,7 @@ describe("Comment Generation Properties", () => {
 	 * For any role type, the system should be able to generate valid comments
 	 * Validates Requirements 3.1-3.8 for complete role implementation
 	 */
-	test("Property: All Eight Role Types Can Generate Valid Comments", () => {
+	test("Property: All Eight Role Types Can Generate Valid Comments", async () => {
 		const allRoleTypes: CommentRoleType[] = [
 			"greeting",
 			"departure",
@@ -302,8 +302,8 @@ describe("Comment Generation Properties", () => {
 			"playful",
 		];
 
-		fc.assert(
-			fc.property(
+		await fc.assert(
+			fc.asyncProperty(
 				fc.constantFrom(...allRoleTypes),
 				fc.record({
 					recentTranscript: fc.string({ minLength: 5, maxLength: 100 }),
@@ -324,10 +324,10 @@ describe("Comment Generation Properties", () => {
 						max: Math.fround(5),
 					}),
 				}),
-				(
+				async (
 					targetRole: CommentRoleType,
 					context: ConversationContext,
-				): boolean => {
+				): Promise<boolean> => {
 					// Create generator with high weight for target role
 					const roleWeights = { [targetRole]: 0.9 } as Partial<
 						Record<CommentRoleType, number>
@@ -340,8 +340,8 @@ describe("Comment Generation Properties", () => {
 					const maxAttempts = 20;
 
 					while (!foundTargetRole && attempts < maxAttempts) {
-						generator.lastCommentTime = 0; // Reset timing to allow generation
-						const comment = generator.generateComment(context);
+						generator.reset(); // Reset timing to allow generation
+						const comment = await generator.generateComment(context);
 
 						if (comment && comment.role === targetRole) {
 							foundTargetRole = true;

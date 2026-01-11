@@ -3,6 +3,8 @@
 // Validates: Requirements 12.1, 12.3, 8.4
 
 import * as fc from "fast-check";
+import type { WhisperSettings } from "../src/interfaces/enhanced-transcription";
+import type { AudioFile, AudioQualitySettings } from "../src/types/core";
 
 // Mock the transformers library since it's not compatible with Jest
 jest.mock("@huggingface/transformers", () => ({
@@ -20,14 +22,12 @@ jest.mock("@huggingface/transformers", () => ({
 	}),
 }));
 
-import type { AudioFile, AudioQualitySettings } from "../src/types/core";
-
 // Import after mocking
-const {
+import {
 	WhisperTranscription,
 	checkModelCompatibility,
 	detectCapabilities,
-} = require("../src/transcription/enhanced-transcription");
+} from "../src/transcription/enhanced-transcription";
 
 // Mock audio data for testing
 class MockAudioFile implements AudioFile {
@@ -99,9 +99,9 @@ describe("Enhanced Transcription Property Tests", () => {
 	});
 
 	describe("Property 12: Enhanced Transcription Round-trip (Optional)", () => {
-		test("Device capability detection should be consistent", () => {
-			fc.assert(
-				fc.property(
+		test("Device capability detection should be consistent", async () => {
+			await fc.assert(
+				fc.asyncProperty(
 					fc.constant(null), // No input needed for capability detection
 					async () => {
 						const capabilities1 = await detectCapabilities();
@@ -125,10 +125,10 @@ describe("Enhanced Transcription Property Tests", () => {
 			);
 		});
 
-		test("Model compatibility check should be deterministic", () => {
-			fc.assert(
-				fc.property(
-					fc.constantFrom("tiny", "base", "small", "medium", "large"),
+		test("Model compatibility check should be deterministic", async () => {
+			await fc.assert(
+				fc.asyncProperty(
+					fc.constantFrom("tiny", "base", "small", "medium", "large") as fc.Arbitrary<"tiny" | "base" | "small" | "medium" | "large">,
 					async (modelSize: "tiny" | "base" | "small" | "medium" | "large") => {
 						const compatible1 = await checkModelCompatibility(modelSize);
 						const compatible2 = await checkModelCompatibility(modelSize);
@@ -163,11 +163,11 @@ describe("Enhanced Transcription Property Tests", () => {
 				fc.property(
 					fc.record({
 						modelSize: fc.constantFrom(
-							"tiny",
-							"base",
-							"small",
-							"medium",
-							"large",
+							"tiny" as const,
+							"base" as const,
+							"small" as const,
+							"medium" as const,
+							"large" as const,
 						),
 						language: fc.constantFrom("en", "ja", "es", "fr"),
 						temperature: fc.float({ min: 0, max: 1 }),
@@ -197,7 +197,7 @@ describe("Enhanced Transcription Property Tests", () => {
 		test("Model memory usage estimation should be reasonable", () => {
 			fc.assert(
 				fc.property(
-					fc.constantFrom("tiny", "base", "small", "medium", "large"),
+					fc.constantFrom("tiny", "base", "small", "medium", "large") as fc.Arbitrary<"tiny" | "base" | "small" | "medium" | "large">,
 					(modelSize: "tiny" | "base" | "small" | "medium" | "large") => {
 						const transcription = new WhisperTranscription({ modelSize });
 						const modelInfo = transcription.getModelInfo();
@@ -314,9 +314,9 @@ describe("Enhanced Transcription Property Tests", () => {
 			);
 		});
 
-		test("Transcription result structure should be valid", () => {
-			fc.assert(
-				fc.property(audioFileGenerator, async (_audioFile: MockAudioFile) => {
+		test("Transcription result structure should be valid", async () => {
+			await fc.assert(
+				fc.asyncProperty(audioFileGenerator, async (_audioFile: MockAudioFile) => {
 					// Test the structure of transcription results without actually calling the model
 					const mockResult = {
 						text: "This is a mock transcription result",
@@ -365,11 +365,11 @@ describe("Enhanced Transcription Property Tests", () => {
 				fc.property(
 					fc.record({
 						modelSize: fc.constantFrom(
-							"tiny",
-							"base",
-							"small",
-							"medium",
-							"large",
+							"tiny" as const,
+							"base" as const,
+							"small" as const,
+							"medium" as const,
+							"large" as const,
 						),
 						language: fc.string({ minLength: 0, maxLength: 10 }),
 						temperature: fc.float({ min: -10, max: 10 }),

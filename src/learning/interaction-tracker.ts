@@ -135,13 +135,6 @@ export class InteractionTracker {
 		context: ConversationContext,
 		sessionId: string,
 	): Promise<void> {
-		const _interaction: UserInteraction = {
-			commentId,
-			type,
-			timestamp: new Date(),
-			confidence: 1.0, // Explicit interactions have full confidence
-		};
-
 		const interactionEvent: InteractionEvent = {
 			sessionId,
 			commentId,

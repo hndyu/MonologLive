@@ -5,6 +5,7 @@ import { CommentSystem } from "./comment-generation/comment-system.js";
 import type { ConversationContext } from "./types/core.js";
 import { TranscriptionDisplay } from "./ui/transcription-display.js";
 import { WebSpeechVoiceInputManager } from "./voice/voice-input-manager.js";
+import { createTestConversationContext } from "../tests/test-utils.js";
 
 /**
  * Integration test class for basic voice chat functionality
@@ -14,19 +15,19 @@ export class VoiceChatIntegrationTest {
 	private voiceManager: WebSpeechVoiceInputManager;
 	private transcriptionDisplay: TranscriptionDisplay;
 	private commentSystem: CommentSystem;
-	private testContainer: HTMLElement;
+	private testContainer!: HTMLElement;
 	private testResults: { [key: string]: boolean } = {};
 	private conversationContext: ConversationContext;
 
 	constructor() {
 		this.voiceManager = new WebSpeechVoiceInputManager();
-		this.conversationContext = {
+		this.conversationContext = createTestConversationContext({
 			recentTranscript: "",
 			currentTopic: "test conversation",
 			userEngagement: "medium",
 			sessionDuration: 0,
 			commentHistory: [],
-		};
+		});
 
 		this.setupTestEnvironment();
 		this.commentSystem = new CommentSystem();
@@ -194,7 +195,6 @@ export class VoiceChatIntegrationTest {
 			);
 
 			this.voiceManager.onTranscript((text, isFinal) => {
-				transcriptReceived = true;
 				this.logResult(
 					"Voice Input Transcript Callback",
 					true,
@@ -203,7 +203,6 @@ export class VoiceChatIntegrationTest {
 			});
 
 			this.voiceManager.onError((error) => {
-				errorHandled = true;
 				this.logResult(
 					"Voice Input Error Handling",
 					true,
@@ -272,10 +271,10 @@ export class VoiceChatIntegrationTest {
 	private async testCommentSystemInitialization(): Promise<void> {
 		try {
 			// Test comment generation
-			const comment = this.commentSystem.generateComment(
+			const comment = await this.commentSystem.generateComment(
 				this.conversationContext,
 			);
-			const hasValidComment = comment?.content && comment.role;
+			const hasValidComment = !!(comment?.content && comment.role);
 			this.logResult(
 				"Comment Generation",
 				hasValidComment,
@@ -333,13 +332,17 @@ export class VoiceChatIntegrationTest {
 				// Update conversation context if final
 				if (step.isFinal) {
 					this.conversationContext.recentTranscript = step.text;
-					this.conversationContext.sessionDuration += 1;
+					if (this.conversationContext.sessionDuration !== undefined) {
+						this.conversationContext.sessionDuration += 1;
+					}
 
 					// Generate comment response
-					const comment = this.commentSystem.generateComment(
+					const comment = await this.commentSystem.generateComment(
 						this.conversationContext,
 					);
-					this.conversationContext.commentHistory.push(comment);
+					if (comment && this.conversationContext.commentHistory) {
+						this.conversationContext.commentHistory.push(comment);
+					}
 
 					// Small delay to simulate real conversation timing
 					await new Promise((resolve) => setTimeout(resolve, 500));
@@ -367,7 +370,7 @@ export class VoiceChatIntegrationTest {
 	private async testCommentInteractionHandling(): Promise<void> {
 		try {
 			// Generate a test comment
-			const testComment = this.commentSystem.generateComment(
+			const testComment = await this.commentSystem.generateComment(
 				this.conversationContext,
 			);
 
@@ -465,10 +468,12 @@ export class VoiceChatIntegrationTest {
 
 			// Update context and generate comment
 			this.conversationContext.recentTranscript = phrase;
-			const comment = this.commentSystem.generateComment(
+			const comment = await this.commentSystem.generateComment(
 				this.conversationContext,
 			);
-			this.conversationContext.commentHistory.push(comment);
+			if (comment && this.conversationContext.commentHistory) {
+				this.conversationContext.commentHistory.push(comment);
+			}
 
 			await new Promise((resolve) => setTimeout(resolve, 1000));
 		}
@@ -488,22 +493,22 @@ export class VoiceChatIntegrationTest {
 			{
 				recentTranscript: "おはよう",
 				currentTopic: "greeting",
-				userEngagement: "high",
+				userEngagement: "high" as const,
 			},
 			{
 				recentTranscript: "そろそろ寝ます",
 				currentTopic: "departure",
-				userEngagement: "low",
+				userEngagement: "low" as const,
 			},
 			{
 				recentTranscript: "かわいい猫の動画見てる",
 				currentTopic: "entertainment",
-				userEngagement: "medium",
+				userEngagement: "medium" as const,
 			},
 			{
 				recentTranscript: "今日何してた？",
 				currentTopic: "daily_life",
-				userEngagement: "medium",
+				userEngagement: "medium" as const,
 			},
 		];
 
@@ -515,8 +520,8 @@ export class VoiceChatIntegrationTest {
 				commentHistory: [],
 			};
 
-			const comment = this.commentSystem.generateComment(fullContext);
-			const isValidComment = comment?.content && comment.role;
+			const comment = await this.commentSystem.generateComment(fullContext);
+			const isValidComment = !!(comment?.content && comment.role);
 
 			this.logResult(
 				`Comment Generation - ${context.currentTopic}`,

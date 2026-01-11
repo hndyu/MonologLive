@@ -63,8 +63,8 @@ export class TopicField {
 	private container: HTMLElement;
 	private config: TopicFieldConfig;
 	private handlers: TopicFieldHandlers;
-	private inputElement: HTMLInputElement;
-	private suggestionsContainer: HTMLElement;
+	private inputElement!: HTMLInputElement;
+	private suggestionsContainer!: HTMLElement;
 	private currentTopic: string = "";
 	private isVisible: boolean = true;
 

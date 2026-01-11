@@ -168,4 +168,16 @@ export class IndexedDBWrapper {
 			this.db = null;
 		}
 	}
+
+	// Backward compatibility methods for tests
+	async saveUserPreferences(
+		userId: string,
+		preferences: UserPreferences,
+	): Promise<void> {
+		return this.savePreferences(userId, preferences);
+	}
+
+	async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
+		return this.getPreferences(userId);
+	}
 }

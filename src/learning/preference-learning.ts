@@ -348,3 +348,6 @@ export class PreferenceLearningSystem {
 		return "reaction";
 	}
 }
+
+// Export the class with the expected name for backward compatibility
+export { PreferenceLearningSystem as PreferenceLearning };

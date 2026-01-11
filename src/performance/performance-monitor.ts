@@ -138,11 +138,13 @@ export class PerformanceMonitor {
 	private updateMemoryUsage(): void {
 		if ("memory" in performance) {
 			const memory = (performance as ExtendedPerformance).memory;
-			this.metrics.memoryUsage = {
-				used: memory.usedJSHeapSize,
-				total: memory.totalJSHeapSize,
-				percentage: (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100,
-			};
+			if (memory) {
+				this.metrics.memoryUsage = {
+					used: memory.usedJSHeapSize,
+					total: memory.totalJSHeapSize,
+					percentage: (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100,
+				};
+			}
 		}
 	}
 

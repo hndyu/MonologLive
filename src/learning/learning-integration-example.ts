@@ -72,8 +72,8 @@ export class LearningIntegrationExample {
 
 		console.log("Generating initial comments...");
 		for (let i = 0; i < 5; i++) {
-			const comment = this.commentSystem.generateComment(context);
-			console.log(`Generated comment: [${comment.role}] ${comment.content}`);
+			const comment = await this.commentSystem.generateComment(context);
+			console.log(`Generated comment: [${comment?.role}] ${comment?.content}`);
 		}
 
 		// Show initial preferences
@@ -150,8 +150,8 @@ export class LearningIntegrationExample {
 		);
 
 		for (let i = 0; i < 5; i++) {
-			const comment = this.commentSystem.generateComment(context);
-			console.log(`Generated comment: [${comment.role}] ${comment.content}`);
+			const comment = await this.commentSystem.generateComment(context);
+			console.log(`Generated comment: [${comment?.role}] ${comment?.content}`);
 		}
 
 		console.log("\n=== Demonstration Complete ===");

@@ -282,13 +282,12 @@ describe("Volume Adaptation Properties", () => {
 
 					manager.updateFromAudioAnalysis(steadyAnalysis);
 
-					let _generationAttempts = 0;
+					let generationAttempts = 0;
 					let actualGenerations = 0;
-					const _startTime = Date.now();
 
 					// Simulate checking for comment generation over time
 					for (let i = 0; i < numChecks; i++) {
-						_generationAttempts++;
+						generationAttempts++;
 
 						if (manager.shouldGenerateComment()) {
 							manager.recordCommentGenerated();
@@ -297,7 +296,15 @@ describe("Volume Adaptation Properties", () => {
 
 						// Simulate time passing (vary the intervals)
 						const timeInterval = 1000 + Math.random() * 2000; // 1-3 seconds
-						manager.state.lastCommentTime = Date.now() - timeInterval;
+						// Use public method instead of accessing private state
+						manager.updateFromAudioAnalysis({
+							volume: 0.5,
+							speechRate: 1.0,
+							silenceDuration: timeInterval,
+							volumeVariance: 10,
+							isSpeaking: false,
+							averageVolume: 0.5,
+						});
 					}
 
 					// Property: Generation rate should be reasonable relative to target frequency

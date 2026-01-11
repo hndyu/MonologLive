@@ -1,5 +1,13 @@
 // Lazy loading system for optional features
 
+interface ExtendedPerformance extends Performance {
+	memory?: {
+		usedJSHeapSize: number;
+		totalJSHeapSize: number;
+		jsHeapSizeLimit: number;
+	};
+}
+
 export interface LazyLoadableFeature {
 	name: string;
 	isLoaded: boolean;
@@ -45,10 +53,10 @@ export class LazyLoader {
 			isLoaded: false,
 			isLoading: false,
 			loader: async () => {
-				const { EnhancedTranscription } = await import(
+				const { WhisperTranscription } = await import(
 					"../transcription/enhanced-transcription.js"
 				);
-				return EnhancedTranscription;
+				return WhisperTranscription;
 			},
 			dependencies: [],
 		});
@@ -59,8 +67,8 @@ export class LazyLoader {
 			isLoaded: false,
 			isLoading: false,
 			loader: async () => {
-				const { AudioRecorder } = await import("../audio/audio-recorder.js");
-				return AudioRecorder;
+				const { WebAudioRecorder } = await import("../audio/audio-recorder.js");
+				return WebAudioRecorder;
 			},
 			dependencies: [],
 		});
@@ -85,10 +93,10 @@ export class LazyLoader {
 			isLoaded: false,
 			isLoading: false,
 			loader: async () => {
-				const { SummaryGenerator } = await import(
+				const { SummaryGeneratorImpl } = await import(
 					"../summary/summary-generator.js"
 				);
-				return SummaryGenerator;
+				return SummaryGeneratorImpl;
 			},
 			dependencies: [],
 		});
@@ -268,9 +276,11 @@ export class LazyLoader {
 	private hasEnoughMemory(): boolean {
 		if ("memory" in performance) {
 			const memory = (performance as ExtendedPerformance).memory;
-			// Require at least 100MB available memory for advanced features
-			const availableMemory = memory.jsHeapSizeLimit - memory.usedJSHeapSize;
-			return availableMemory > 100 * 1024 * 1024; // 100MB
+			if (memory) {
+				// Require at least 100MB available memory for advanced features
+				const availableMemory = memory.jsHeapSizeLimit - memory.usedJSHeapSize;
+				return availableMemory > 100 * 1024 * 1024; // 100MB
+			}
 		}
 
 		// Assume sufficient memory if we can't measure it

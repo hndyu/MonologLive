@@ -179,16 +179,17 @@ export class SessionManagerImpl implements SessionManager {
 		activity: ActivityEvent,
 	): void {
 		// Add transcript segment if provided
-		if (activity.data?.transcript) {
+		const data = activity.data as any;
+		if (data?.transcript) {
 			const segment: TranscriptSegment = {
 				start: activity.timestamp.getTime() - session.startTime.getTime(),
 				end:
 					activity.timestamp.getTime() -
 					session.startTime.getTime() +
 					(activity.duration || 0),
-				text: activity.data.transcript,
-				confidence: activity.data.confidence || 1.0,
-				isFinal: activity.data.isFinal || true,
+				text: data.transcript,
+				confidence: data.confidence || 1.0,
+				isFinal: data.isFinal || true,
 			};
 			session.transcript.push(segment);
 		}
@@ -198,8 +199,9 @@ export class SessionManagerImpl implements SessionManager {
 		session: Session,
 		activity: ActivityEvent,
 	): void {
-		if (activity.data?.comment) {
-			session.comments.push(activity.data.comment);
+		const data = activity.data as any;
+		if (data?.comment) {
+			session.comments.push(data.comment);
 			session.metrics.commentCount++;
 		}
 	}
@@ -208,8 +210,9 @@ export class SessionManagerImpl implements SessionManager {
 		session: Session,
 		activity: ActivityEvent,
 	): void {
-		if (activity.data?.interaction) {
-			session.interactions.push(activity.data.interaction);
+		const data = activity.data as any;
+		if (data?.interaction) {
+			session.interactions.push(data.interaction);
 			session.metrics.interactionCount++;
 		}
 	}
@@ -238,3 +241,6 @@ export class SessionManagerImpl implements SessionManager {
 				: 0;
 	}
 }
+
+// Export both the interface and implementation for convenience
+export type { SessionManager } from "../interfaces/session-management.js";

@@ -66,9 +66,6 @@ export class AdaptiveFrequencyManager {
 	 * Update frequency based on audio analysis data
 	 */
 	updateFromAudioAnalysis(analysisData: AudioAnalysisData): void {
-		const now = Date.now();
-		this.lastAnalysisTime = now;
-
 		// Calculate target frequency based on audio data
 		let targetFrequency = this.config.baseFrequency;
 

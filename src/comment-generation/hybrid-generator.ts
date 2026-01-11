@@ -108,34 +108,34 @@ export class HybridCommentGenerator implements CommentGenerator {
 	 * Generates comments using hybrid strategy
 	 * Implements Requirements 2.4, 2.5, 2.6
 	 */
-	async generateCommentAsync(context: ConversationContext): Promise<Comment> {
+	async generateCommentAsync(context: ConversationContext): Promise<Comment | null> {
 		this.metrics.totalRequests++;
 
 		// Determine generation method based on current ratios
 		const useRuleBased = this.shouldUseRuleBased();
 
 		if (useRuleBased || !this.isLLMReady) {
-			return this.generateRuleBasedComment(context);
+			return await this.generateRuleBasedComment(context);
 		} else {
-			return this.generateLLMComment(context);
+			return await this.generateLLMComment(context);
 		}
 	}
 
 	/**
-	 * Synchronous version for compatibility with existing interface
+	 * Generates comment using hybrid approach
 	 */
-	generateComment(context: ConversationContext): Comment {
+	async generateComment(context: ConversationContext): Promise<Comment | null> {
 		// For synchronous calls, always use rule-based
-		return this.generateRuleBasedComment(context);
+		return await this.generateRuleBasedComment(context);
 	}
 
 	/**
 	 * Generates comment using rule-based approach
 	 */
-	private generateRuleBasedComment(context: ConversationContext): Comment {
+	private async generateRuleBasedComment(context: ConversationContext): Promise<Comment | null> {
 		this.metrics.ruleBasedCount++;
 
-		const comment = this.ruleBasedGenerator.generateComment(context);
+		const comment = await this.ruleBasedGenerator.generateComment(context);
 
 		// If rule-based returns null, create a default comment
 		if (!comment) {
@@ -156,7 +156,7 @@ export class HybridCommentGenerator implements CommentGenerator {
 	 */
 	private async generateLLMComment(
 		context: ConversationContext,
-	): Promise<Comment> {
+	): Promise<Comment | null> {
 		const startTime = Date.now();
 		let retries = 0;
 
@@ -198,7 +198,7 @@ export class HybridCommentGenerator implements CommentGenerator {
 					// Fallback to rule-based if enabled
 					if (this.config.fallbackToRuleBased) {
 						console.log("Falling back to rule-based generation");
-						return this.generateRuleBasedComment(context);
+						return await this.generateRuleBasedComment(context);
 					} else {
 						throw new Error("LLM generation failed and fallback disabled");
 					}
@@ -207,7 +207,7 @@ export class HybridCommentGenerator implements CommentGenerator {
 		}
 
 		// This should never be reached, but provide fallback
-		return this.generateRuleBasedComment(context);
+		return await this.generateRuleBasedComment(context);
 	}
 
 	/**
@@ -291,7 +291,7 @@ export class HybridCommentGenerator implements CommentGenerator {
 		// Simple role selection based on context
 		// This could be enhanced with more sophisticated logic
 
-		const { silenceDuration, emotionalTone } = context;
+		const { silenceDuration } = context;
 
 		// Prefer questions during silence
 		if (silenceDuration > 5) {
@@ -301,11 +301,8 @@ export class HybridCommentGenerator implements CommentGenerator {
 			}
 		}
 
-		// Prefer reactions for emotional content
-		if (
-			emotionalTone &&
-			["excited", "happy", "surprised"].includes(emotionalTone)
-		) {
+		// Prefer reactions for high engagement
+		if (context.userEngagementLevel > 0.7) {
 			const reactionRoles = roles.filter((r) => r.type === "reaction");
 			if (reactionRoles.length > 0) {
 				return reactionRoles[0];

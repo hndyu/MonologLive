@@ -61,7 +61,23 @@ class MockMediaStream {
 				stop: jest.fn(),
 				kind: "audio",
 				enabled: true,
-			},
+				id: "mock-track-id",
+				label: "Mock Audio Track",
+				muted: false,
+				readyState: "live",
+				contentHint: "",
+				onended: null,
+				onmute: null,
+				onunmute: null,
+				addEventListener: jest.fn(),
+				removeEventListener: jest.fn(),
+				dispatchEvent: jest.fn(),
+				clone: jest.fn(),
+				getCapabilities: jest.fn(),
+				getConstraints: jest.fn(),
+				getSettings: jest.fn(),
+				applyConstraints: jest.fn(),
+			} as MediaStreamTrack,
 		];
 	}
 }
@@ -73,7 +89,7 @@ describe("Audio Recording and Storage Properties", () => {
 		// Setup mocks
 		(
 			global as typeof globalThis & { MediaRecorder: typeof MediaRecorder }
-		).MediaRecorder = MockMediaRecorder;
+		).MediaRecorder = MockMediaRecorder as any;
 		(navigator.mediaDevices.getUserMedia as jest.Mock).mockResolvedValue(
 			new MockMediaStream(),
 		);
@@ -81,16 +97,24 @@ describe("Audio Recording and Storage Properties", () => {
 		// Mock IndexedDB wrapper
 		mockDbWrapper = {
 			initialize: jest.fn().mockResolvedValue(undefined),
+			saveSession: jest.fn().mockResolvedValue(undefined),
+			getSession: jest.fn().mockResolvedValue(undefined),
+			getSessionsByUser: jest.fn().mockResolvedValue([]),
+			deleteSession: jest.fn().mockResolvedValue(undefined),
+			savePreferences: jest.fn().mockResolvedValue(undefined),
+			getPreferences: jest.fn().mockResolvedValue(undefined),
 			saveAudioFile: jest.fn().mockResolvedValue(undefined),
 			getAudioFile: jest.fn().mockResolvedValue(undefined),
 			getAudioFilesBySession: jest.fn().mockResolvedValue([]),
 			deleteAudioFile: jest.fn().mockResolvedValue(undefined),
-			getSessionsByUser: jest.fn().mockResolvedValue([]),
-			getStorageEstimate: jest
-				.fn()
-				.mockResolvedValue({ usage: 1000000, quota: 100000000 }),
+			saveSummary: jest.fn().mockResolvedValue(undefined),
+			getSummary: jest.fn().mockResolvedValue(undefined),
+			clearAllData: jest.fn().mockResolvedValue(undefined),
+			getStorageEstimate: jest.fn().mockResolvedValue({ usage: 0, quota: 1000000 }),
 			close: jest.fn().mockResolvedValue(undefined),
-		} as Partial<IDBFactory>;
+			saveUserPreferences: jest.fn().mockResolvedValue(undefined),
+			getUserPreferences: jest.fn().mockResolvedValue(undefined),
+		} as unknown as jest.Mocked<IndexedDBWrapper>;
 	});
 
 	/**
@@ -99,9 +123,9 @@ describe("Audio Recording and Storage Properties", () => {
 	 * on the user's device for later access and optional enhanced processing
 	 * Validates: Requirements 11.1, 11.2, 11.4
 	 */
-	test("Property 11: Audio Recording Lifecycle and Storage", () => {
-		fc.assert(
-			fc.property(
+	test("Property 11: Audio Recording Lifecycle and Storage", async () => {
+		await fc.assert(
+			fc.asyncProperty(
 				// Generate random quality settings
 				fc.record({
 					bitrate: fc.integer({ min: 64000, max: 320000 }),
@@ -110,7 +134,7 @@ describe("Audio Recording and Storage Properties", () => {
 				}),
 				// Generate session ID
 				fc.string({ minLength: 5, maxLength: 20 }),
-				async (qualitySettings: AudioQualitySettings, sessionId: string) => {
+				async (qualitySettings: AudioQualitySettings, sessionId: string): Promise<boolean> => {
 					const recorder = new WebAudioRecorder();
 					const audioManager = new LocalAudioManager(mockDbWrapper);
 
@@ -184,9 +208,9 @@ describe("Audio Recording and Storage Properties", () => {
 	 * deletion, and storage monitoring correctly
 	 * Validates: Requirements 11.2, 11.4
 	 */
-	test("Property: Audio File Management Operations", () => {
-		fc.assert(
-			fc.property(
+	test("Property: Audio File Management Operations", async () => {
+		await fc.assert(
+			fc.asyncProperty(
 				// Generate array of mock audio files
 				fc.array(
 					fc.record({
@@ -212,7 +236,7 @@ describe("Audio Recording and Storage Properties", () => {
 					{ minLength: 1, maxLength: 10 },
 				),
 				fc.string({ minLength: 5, maxLength: 20 }), // userId
-				async (audioFiles: AudioFile[], userId: string) => {
+				async (audioFiles: AudioFile[], userId: string): Promise<boolean> => {
 					const audioManager = new LocalAudioManager(mockDbWrapper);
 
 					// Mock the database responses
@@ -273,9 +297,9 @@ describe("Audio Recording and Storage Properties", () => {
 	 * storage quotas appropriately
 	 * Validates: Requirements 11.4, 11.5
 	 */
-	test("Property: Storage Quota Monitoring and Cleanup", () => {
-		fc.assert(
-			fc.property(
+	test("Property: Storage Quota Monitoring and Cleanup", async () => {
+		await fc.assert(
+			fc.asyncProperty(
 				// Generate storage usage scenarios
 				fc.record({
 					currentUsage: fc.integer({ min: 0, max: 500 * 1024 * 1024 }), // Up to 500MB
@@ -285,7 +309,7 @@ describe("Audio Recording and Storage Properties", () => {
 					}), // 100MB to 1GB
 				}),
 				fc.integer({ min: 1, max: 90 }), // maxAgeInDays
-				async (storageScenario, maxAgeInDays: number) => {
+				async (storageScenario, maxAgeInDays: number): Promise<boolean> => {
 					const audioManager = new LocalAudioManager(mockDbWrapper);
 
 					// Mock storage estimate
@@ -310,24 +334,41 @@ describe("Audio Recording and Storage Properties", () => {
 					const cutoffDate = new Date();
 					cutoffDate.setDate(cutoffDate.getDate() - maxAgeInDays);
 
-					// Mock old files for cleanup
-					const oldFiles = [
-						{
-							id: "old-file-1",
-							sessionId: "session-1",
-							filename: "old.webm",
-							format: "webm" as AudioFormat,
-							duration: 60,
-							size: 1000000,
-							createdAt: new Date(cutoffDate.getTime() - 86400000), // 1 day older
-							quality: { bitrate: 128000, sampleRate: 44100, channels: 1 },
-						},
-					];
-
 					// Mock database to return old files
-					(
-						audioManager as AudioManager & { getAllAudioFiles: jest.Mock }
-					).getAllAudioFiles = jest.fn().mockResolvedValue(oldFiles);
+					const oldFiles = Array.from({ length: 5 }, (_, i) => ({
+						id: `old-file-${i}`,
+						sessionId: `session-${i}`,
+						filename: `old-audio-${i}.webm`,
+						format: "webm" as AudioFormat,
+						duration: 60,
+						size: 1000000,
+						createdAt: new Date(Date.now() - (maxAgeInDays + 1) * 24 * 60 * 60 * 1000),
+						quality: { bitrate: 128000, sampleRate: 44100, channels: 1 },
+					}));
+
+					// Mock the getAudioFiles method to return old files
+					mockDbWrapper.getSessionsByUser.mockResolvedValue(
+						oldFiles.map(file => ({
+							id: file.sessionId,
+							userId: 'test-user',
+							startTime: file.createdAt,
+							transcript: [],
+							comments: [],
+							interactions: [],
+							metrics: { 
+								totalDuration: 0, 
+								commentCount: 0, 
+								interactionCount: 0, 
+								averageEngagement: 0,
+								duration: 0, 
+								wordCount: 0, 
+								avgConfidence: 0 
+							}
+						}))
+					);
+					mockDbWrapper.getAudioFilesBySession.mockImplementation(async (sessionId: string) => {
+						return oldFiles.filter(file => file.sessionId === sessionId);
+					});
 					mockDbWrapper.deleteAudioFile.mockResolvedValue(undefined);
 
 					const cleanedCount = await audioManager.cleanupOldFiles(maxAgeInDays);
@@ -396,11 +437,11 @@ describe("Audio Recording and Storage Properties", () => {
 	 * For any session duration, the recorder should maintain continuous recording
 	 * Validates: Requirements 11.1, 11.3
 	 */
-	test("Property: Continuous Recording Capability", () => {
-		fc.assert(
-			fc.property(
+	test("Property: Continuous Recording Capability", async () => {
+		await fc.assert(
+			fc.asyncProperty(
 				fc.integer({ min: 1, max: 10 }), // Number of start/stop cycles
-				async (cycles: number) => {
+				async (cycles: number): Promise<boolean> => {
 					const recorder = new WebAudioRecorder();
 
 					if (!recorder.isSupported()) {

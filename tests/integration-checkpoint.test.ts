@@ -5,12 +5,12 @@ import { CommentSystem } from "../src/comment-generation/comment-system";
 import type { ConversationContext } from "../src/types/core";
 import { TranscriptionDisplay } from "../src/ui/transcription-display";
 import { WebSpeechVoiceInputManager } from "../src/voice/voice-input-manager";
+import { createTestConversationContext } from "./test-utils";
 
 describe("Integration Checkpoint: Basic Voice Chat Functionality", () => {
 	let voiceManager: WebSpeechVoiceInputManager;
 	let transcriptionDisplay: TranscriptionDisplay;
 	let commentSystem: CommentSystem;
-	let _testContainer: HTMLElement;
 
 	beforeEach(() => {
 		// Set up DOM environment
@@ -25,7 +25,6 @@ describe("Integration Checkpoint: Basic Voice Chat Functionality", () => {
 		if (!testContainer) {
 			throw new Error("Test container not found");
 		}
-		_testContainer = testContainer;
 
 		// Initialize components
 		voiceManager = new WebSpeechVoiceInputManager();
@@ -80,22 +79,22 @@ describe("Integration Checkpoint: Basic Voice Chat Functionality", () => {
 		expect(segments.length).toBeGreaterThan(0);
 	});
 
-	test("Comment system generates valid comments", () => {
-		const context: ConversationContext = {
+	test("Comment system generates valid comments", async () => {
+		const context = createTestConversationContext({
 			recentTranscript: "こんにちは",
 			currentTopic: "greeting",
 			userEngagement: "medium",
 			sessionDuration: 5,
 			commentHistory: [],
-		};
+		});
 
-		const comment = commentSystem.generateComment(context);
+		const comment = await commentSystem.generateComment(context);
 
 		expect(comment).toBeDefined();
-		expect(comment.id).toBeDefined();
-		expect(comment.content).toBeDefined();
-		expect(comment.role).toBeDefined();
-		expect(comment.timestamp).toBeInstanceOf(Date);
+		expect(comment?.id).toBeDefined();
+		expect(comment?.content).toBeDefined();
+		expect(comment?.role).toBeDefined();
+		expect(comment?.timestamp).toBeInstanceOf(Date);
 
 		// Verify comment appears in display
 		expect(commentSystem.getVisibleCommentCount()).toBe(1);
@@ -109,13 +108,13 @@ describe("Integration Checkpoint: Basic Voice Chat Functionality", () => {
 			{ text: "今日はいい天気ですね", isFinal: true },
 		];
 
-		const context: ConversationContext = {
+		const context = createTestConversationContext({
 			recentTranscript: "",
 			currentTopic: "daily_conversation",
 			userEngagement: "medium",
 			sessionDuration: 0,
 			commentHistory: [],
-		};
+		});
 
 		for (const step of conversationSteps) {
 			// Add transcription
@@ -124,10 +123,14 @@ describe("Integration Checkpoint: Basic Voice Chat Functionality", () => {
 			// Generate comment for final transcripts
 			if (step.isFinal) {
 				context.recentTranscript = step.text;
-				context.sessionDuration += 1;
+				if (context.sessionDuration !== undefined) {
+					context.sessionDuration += 1;
+				}
 
-				const comment = commentSystem.generateComment(context);
-				context.commentHistory.push(comment);
+				const comment = await commentSystem.generateComment(context);
+				if (comment && context.commentHistory) {
+					context.commentHistory.push(comment);
+				}
 
 				// Small delay to simulate real timing
 				await new Promise((resolve) => setTimeout(resolve, 100));
@@ -140,24 +143,24 @@ describe("Integration Checkpoint: Basic Voice Chat Functionality", () => {
 
 		expect(finalTranscript.length).toBeGreaterThan(0);
 		expect(commentCount).toBeGreaterThan(0);
-		expect(context.commentHistory.length).toBe(2); // Two final transcripts = two comments
+		expect(context.commentHistory?.length).toBe(2); // Two final transcripts = two comments
 	});
 
-	test("Comment interactions work correctly", () => {
+	test("Comment interactions work correctly", async () => {
 		// Generate a test comment
-		const context: ConversationContext = {
+		const context: ConversationContext = createTestConversationContext({
 			recentTranscript: "テスト",
 			currentTopic: "test",
 			userEngagement: "medium",
 			sessionDuration: 1,
 			commentHistory: [],
-		};
+		});
 
-		const comment = commentSystem.generateComment(context);
+		const comment = await commentSystem.generateComment(context);
 
 		// Find comment element in DOM
 		const commentElement = document.querySelector(
-			`[data-comment-id="${comment.id}"]`,
+			`[data-comment-id="${comment?.id}"]`,
 		) as HTMLElement;
 		expect(commentElement).toBeTruthy();
 
@@ -188,18 +191,13 @@ describe("Integration Checkpoint: Basic Voice Chat Functionality", () => {
 	});
 
 	test("Voice input manager handles callbacks correctly", () => {
-		let _transcriptReceived = false;
-		let _errorHandled = false;
-
 		// Set up callbacks
 		voiceManager.onTranscript((text, isFinal) => {
-			_transcriptReceived = true;
 			expect(typeof text).toBe("string");
 			expect(typeof isFinal).toBe("boolean");
 		});
 
 		voiceManager.onError((error) => {
-			_errorHandled = true;
 			expect(error.error).toBeDefined();
 			expect(error.message).toBeDefined();
 			expect(error.timestamp).toBeInstanceOf(Date);
@@ -226,13 +224,13 @@ describe("Integration Checkpoint: Basic Voice Chat Functionality", () => {
 			{ transcript: "おやすみ", topic: "departure" },
 		];
 
-		const context: ConversationContext = {
+		const context: ConversationContext = createTestConversationContext({
 			recentTranscript: "",
 			currentTopic: "",
 			userEngagement: "medium",
 			sessionDuration: 0,
 			commentHistory: [],
-		};
+		});
 
 		for (const step of scenario) {
 			// Add transcription (simulate interim then final)
@@ -247,10 +245,14 @@ describe("Integration Checkpoint: Basic Voice Chat Functionality", () => {
 			// Update context and generate comment
 			context.recentTranscript = step.transcript;
 			context.currentTopic = step.topic;
-			context.sessionDuration += 1;
+			if (context.sessionDuration !== undefined) {
+				context.sessionDuration += 1;
+			}
 
-			const comment = commentSystem.generateComment(context);
-			context.commentHistory.push(comment);
+			const comment = await commentSystem.generateComment(context);
+			if (comment && context.commentHistory) {
+				context.commentHistory.push(comment);
+			}
 
 			await new Promise((resolve) => setTimeout(resolve, 100));
 		}
@@ -264,6 +266,6 @@ describe("Integration Checkpoint: Basic Voice Chat Functionality", () => {
 		expect(finalTranscript).toContain("おやすみ");
 		expect(commentCount).toBe(scenario.length);
 		expect(Object.keys(roleWeights).length).toBeGreaterThan(0);
-		expect(context.commentHistory.length).toBe(scenario.length);
+		expect(context.commentHistory?.length).toBe(scenario.length);
 	});
 });

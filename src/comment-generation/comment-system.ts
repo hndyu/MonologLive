@@ -102,9 +102,7 @@ export class CommentSystem implements CommentGenerator {
 		userId: string,
 		sessionId: string,
 	): Promise<void> {
-		this.storage = storage;
 		this.currentUserId = userId;
-		this.currentSessionId = sessionId;
 
 		// Initialize learning module
 		this.learningModule = new MainLearningModule(storage);
@@ -140,14 +138,14 @@ export class CommentSystem implements CommentGenerator {
 	 * Implements hybrid generation strategy (Requirements 2.4, 2.5, 2.6)
 	 * Includes adaptive frequency control (Requirements 4.1, 4.2, 4.5)
 	 */
-	generateComment(context: ConversationContext): Comment {
+	async generateComment(context: ConversationContext): Promise<Comment | null> {
 		// Check if adaptive frequency allows comment generation
 		if (
 			this.adaptiveFrequencyManager &&
 			!this.adaptiveFrequencyManager.shouldGenerateComment()
 		) {
-			// Return null or empty comment to indicate no comment should be generated
-			return null; // This will be handled by the caller
+			// Return null to indicate no comment should be generated
+			return null;
 		}
 
 		// Get adaptive context if available
@@ -159,11 +157,11 @@ export class CommentSystem implements CommentGenerator {
 
 		// Use hybrid generation if available and enabled
 		if (this.config.enableLocalLLM && this.hybridGenerator) {
-			comment = this.hybridGenerator.generateComment(adaptiveContext);
+			comment = await this.hybridGenerator.generateComment(adaptiveContext);
 		}
 		// Fallback to rule-based generation
 		else if (this.config.enableRuleBasedGeneration) {
-			comment = this.ruleBasedGenerator.generateComment(adaptiveContext);
+			comment = await this.ruleBasedGenerator.generateComment(adaptiveContext);
 		}
 
 		// If no comment generated, create a default one
@@ -322,7 +320,7 @@ export class CommentSystem implements CommentGenerator {
 				hybridStats: this.hybridGenerator.getRuleBasedStats(),
 				performanceMetrics: this.hybridGenerator.getPerformanceMetrics(),
 				llmModelInfo: this.hybridGenerator.getLLMModelInfo(),
-				isLLMReady: this.hybridGenerator.isLLMReady(),
+				isLLMReady: this.hybridGenerator ? this.hybridGenerator.isLLMAvailable() : false,
 			};
 		}
 
@@ -407,14 +405,13 @@ export class CommentSystem implements CommentGenerator {
 	 * Checks if hybrid generation is available and ready
 	 */
 	isHybridReady(): boolean {
-		return this.hybridGenerator ? this.hybridGenerator.isLLMReady() : false;
+		return this.hybridGenerator ? this.hybridGenerator.isLLMAvailable() : false;
 	}
 
 	/**
 	 * Updates system configuration
 	 */
 	updateConfig(newConfig: Partial<CommentSystemConfig>): void {
-		const _oldConfig = { ...this.config };
 		this.config = { ...this.config, ...newConfig };
 
 		// Initialize or destroy hybrid generator based on config change
@@ -520,11 +517,11 @@ export class CommentSystem implements CommentGenerator {
 	/**
 	 * Force generate a comment (override frequency limits)
 	 */
-	forceComment(context: ConversationContext): Comment {
+	async forceComment(context: ConversationContext): Promise<Comment | null> {
 		if (this.adaptiveFrequencyManager) {
 			this.adaptiveFrequencyManager.forceComment();
 		}
-		return this.generateComment(context);
+		return await this.generateComment(context);
 	}
 
 	/**

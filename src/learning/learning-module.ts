@@ -68,7 +68,6 @@ export class MainLearningModule implements LearningModule {
 		storage: IndexedDBWrapper,
 		config: LearningModuleConfig = DEFAULT_LEARNING_MODULE_CONFIG,
 	) {
-		this.storage = storage;
 		this.config = config;
 		this.interactionTracker = new InteractionTracker(
 			storage,
@@ -123,7 +122,11 @@ export class MainLearningModule implements LearningModule {
 			userResponse.type === "feedback"
 		) {
 			// Handle explicit interactions
-			this.handleExplicitInteraction(comment, userResponse);
+			this.handleExplicitInteraction(comment, {
+				type: userResponse.type,
+				timestamp: userResponse.timestamp,
+				confidence: userResponse.confidence,
+			});
 		}
 	}
 

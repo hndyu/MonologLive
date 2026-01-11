@@ -59,10 +59,9 @@ export class TopicManager {
 	private listeners: ((event: TopicChangeEvent) => void)[] = [];
 
 	constructor(
-		sessionId: string,
+		_sessionId: string,
 		config: TopicInfluenceConfig = DEFAULT_TOPIC_INFLUENCE_CONFIG,
 	) {
-		this.sessionId = sessionId;
 		this.config = config;
 		this.conversationStarter = new ConversationStarterGenerator();
 	}
