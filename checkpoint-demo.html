@@ -196,9 +196,9 @@
     </div>
 
     <script type="module">
-        import { WebSpeechVoiceInputManager } from './src/voice/voice-input-manager.ts';
-        import { TranscriptionDisplay } from './src/ui/transcription-display.ts';
         import { CommentSystem } from './src/comment-generation/comment-system.ts';
+        import { TranscriptionDisplay } from './src/ui/transcription-display.ts';
+        import { WebSpeechVoiceInputManager } from './src/voice/voice-input-manager.ts';
 
         class CheckpointDemo {
             constructor() {
@@ -358,7 +358,7 @@
                     
                     const comment = this.commentSystem.generateComment(testContext);
                     
-                    if (comment && comment.content && comment.role) {
+                    if (comment?.content && comment.role) {
                         this.logTest(`✅ Comment Generation: "${comment.content}" (${comment.role})`);
                         passedTests++;
                     } else {
@@ -376,7 +376,6 @@
                     // Simulate conversation flow
                     this.transcriptionDisplay.addTranscript('統合テスト', true);
                     this.conversationContext.recentTranscript = '統合テスト';
-                    const comment = this.commentSystem.generateComment(this.conversationContext);
                     
                     const finalCommentCount = this.commentSystem.getVisibleCommentCount();
                     

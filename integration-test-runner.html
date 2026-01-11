@@ -200,8 +200,7 @@
     <script type="module">
         // Initialize the integration test when the page loads
         let integrationTest = null;
-        let testResults = {};
-        let currentProgress = 0;
+        const testResults = {};
 
         // Update status display
         function updateStatus(message, type = 'ready') {
@@ -214,7 +213,6 @@
         function updateProgress(percentage) {
             const progressFill = document.getElementById('progress-fill');
             progressFill.style.width = `${percentage}%`;
-            currentProgress = percentage;
         }
 
         // Log test results
@@ -223,8 +221,8 @@
             const output = document.getElementById('test-results');
             const timestamp = new Date().toLocaleTimeString();
             const status = success ? '✅ PASS' : '❌ FAIL';
-            const message = `[${timestamp}] ${status}: ${testName}${details ? ' - ' + details : ''}`;
-            output.innerHTML += message + '\n';
+            const message = `[${timestamp}] ${status}: ${testName}${details ? ` - details` : ''}`;
+            output.innerHTML += `${message}\n`;
             output.scrollTop = output.scrollHeight;
             
             // Update summary

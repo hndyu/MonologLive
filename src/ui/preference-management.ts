@@ -1,26 +1,26 @@
 // User preference management UI component
 
-import { CommentRoleType } from '../types/core.js';
-import { PreferenceLearningSystem } from '../learning/preference-learning.js';
+import type { PreferenceLearningSystem } from "../learning/preference-learning.js";
+import type { CommentRoleType } from "../types/core.js";
 
 /**
  * Configuration for preference management UI
  */
 export interface PreferenceUIConfig {
-  showWeightValues: boolean;
-  enableManualAdjustment: boolean;
-  showLearningStats: boolean;
-  updateInterval: number; // milliseconds
+	showWeightValues: boolean;
+	enableManualAdjustment: boolean;
+	showLearningStats: boolean;
+	updateInterval: number; // milliseconds
 }
 
 /**
  * Default configuration for preference UI
  */
 export const DEFAULT_PREFERENCE_UI_CONFIG: PreferenceUIConfig = {
-  showWeightValues: true,
-  enableManualAdjustment: false, // Keep simple for now
-  showLearningStats: true,
-  updateInterval: 2000
+	showWeightValues: true,
+	enableManualAdjustment: false, // Keep simple for now
+	showLearningStats: true,
+	updateInterval: 2000,
 };
 
 /**
@@ -28,29 +28,29 @@ export const DEFAULT_PREFERENCE_UI_CONFIG: PreferenceUIConfig = {
  * Implements Requirement 7.4 - Add user preference management UI
  */
 export class PreferenceManagementUI {
-  private container: HTMLElement;
-  private preferenceLearning: PreferenceLearningSystem;
-  private config: PreferenceUIConfig;
-  private updateTimer: number | null = null;
-  private currentUserId: string | null = null;
-  
-  constructor(
-    container: HTMLElement,
-    preferenceLearning: PreferenceLearningSystem,
-    config: PreferenceUIConfig = DEFAULT_PREFERENCE_UI_CONFIG
-  ) {
-    this.container = container;
-    this.preferenceLearning = preferenceLearning;
-    this.config = config;
-    this.initialize();
-  }
-  
-  /**
-   * Initializes the preference management UI
-   */
-  private initialize(): void {
-    this.container.className = 'preference-management';
-    this.container.innerHTML = `
+	private container: HTMLElement;
+	private preferenceLearning: PreferenceLearningSystem;
+	private config: PreferenceUIConfig;
+	private updateTimer: number | null = null;
+	private currentUserId: string | null = null;
+
+	constructor(
+		container: HTMLElement,
+		preferenceLearning: PreferenceLearningSystem,
+		config: PreferenceUIConfig = DEFAULT_PREFERENCE_UI_CONFIG,
+	) {
+		this.container = container;
+		this.preferenceLearning = preferenceLearning;
+		this.config = config;
+		this.initialize();
+	}
+
+	/**
+	 * Initializes the preference management UI
+	 */
+	private initialize(): void {
+		this.container.className = "preference-management";
+		this.container.innerHTML = `
       <div class="preference-header">
         <h3>Comment Preferences</h3>
         <p class="preference-description">The system learns your preferences based on your interactions</p>
@@ -68,96 +68,99 @@ export class PreferenceManagementUI {
         <button id="refreshData" class="refresh-btn">Refresh</button>
       </div>
     `;
-    
-    this.attachEventListeners();
-    this.applyStyles();
-  }
-  
-  /**
-   * Sets the current user and starts updating the display
-   */
-  setUser(userId: string): void {
-    this.currentUserId = userId;
-    this.startPeriodicUpdates();
-    this.updateDisplay();
-  }
-  
-  /**
-   * Updates the preference display
-   */
-  private async updateDisplay(): Promise<void> {
-    if (!this.currentUserId) {
-      return;
-    }
-    
-    await this.updateRoleWeights();
-    
-    if (this.config.showLearningStats) {
-      this.updateLearningStats();
-    }
-  }
-  
-  /**
-   * Updates the role weights display
-   */
-  private async updateRoleWeights(): Promise<void> {
-    if (!this.currentUserId) return;
-    
-    const weights = this.preferenceLearning.getPersonalizedWeights(this.currentUserId);
-    const roleWeightsContainer = this.container.querySelector('#roleWeights');
-    
-    if (!roleWeightsContainer) return;
-    
-    const roleDisplayNames: Record<CommentRoleType, string> = {
-      greeting: 'Greetings',
-      departure: 'Farewells',
-      reaction: 'Reactions',
-      agreement: 'Agreement',
-      question: 'Questions',
-      insider: 'Insider Comments',
-      support: 'Support',
-      playful: 'Playful/Teasing'
-    };
-    
-    let html = '<h4>Comment Role Preferences</h4>';
-    
-    // Sort roles by weight (highest first)
-    const sortedRoles = Array.from(weights.entries())
-      .sort(([, a], [, b]) => b - a);
-    
-    for (const [role, weight] of sortedRoles) {
-      const percentage = Math.round((weight / 2.0) * 100); // Assuming max weight is 2.0
-      const barWidth = Math.min(100, percentage);
-      
-      html += `
+
+		this.attachEventListeners();
+		this.applyStyles();
+	}
+
+	/**
+	 * Sets the current user and starts updating the display
+	 */
+	setUser(userId: string): void {
+		this.currentUserId = userId;
+		this.startPeriodicUpdates();
+		this.updateDisplay();
+	}
+
+	/**
+	 * Updates the preference display
+	 */
+	private async updateDisplay(): Promise<void> {
+		if (!this.currentUserId) {
+			return;
+		}
+
+		await this.updateRoleWeights();
+
+		if (this.config.showLearningStats) {
+			this.updateLearningStats();
+		}
+	}
+
+	/**
+	 * Updates the role weights display
+	 */
+	private async updateRoleWeights(): Promise<void> {
+		if (!this.currentUserId) return;
+
+		const weights = this.preferenceLearning.getPersonalizedWeights(
+			this.currentUserId,
+		);
+		const roleWeightsContainer = this.container.querySelector("#roleWeights");
+
+		if (!roleWeightsContainer) return;
+
+		const roleDisplayNames: Record<CommentRoleType, string> = {
+			greeting: "Greetings",
+			departure: "Farewells",
+			reaction: "Reactions",
+			agreement: "Agreement",
+			question: "Questions",
+			insider: "Insider Comments",
+			support: "Support",
+			playful: "Playful/Teasing",
+		};
+
+		let html = "<h4>Comment Role Preferences</h4>";
+
+		// Sort roles by weight (highest first)
+		const sortedRoles = Array.from(weights.entries()).sort(
+			([, a], [, b]) => b - a,
+		);
+
+		for (const [role, weight] of sortedRoles) {
+			const percentage = Math.round((weight / 2.0) * 100); // Assuming max weight is 2.0
+			const barWidth = Math.min(100, percentage);
+
+			html += `
         <div class="role-weight-item">
           <div class="role-info">
             <span class="role-name">${roleDisplayNames[role]}</span>
-            ${this.config.showWeightValues ? `<span class="role-value">${weight.toFixed(2)}</span>` : ''}
+            ${this.config.showWeightValues ? `<span class="role-value">${weight.toFixed(2)}</span>` : ""}
           </div>
           <div class="weight-bar">
             <div class="weight-fill" style="width: ${barWidth}%"></div>
           </div>
         </div>
       `;
-    }
-    
-    roleWeightsContainer.innerHTML = html;
-  }
-  
-  /**
-   * Updates the learning statistics display
-   */
-  private updateLearningStats(): void {
-    const stats = this.preferenceLearning.getLearningStats();
-    const statsContainer = this.container.querySelector('#learningStats');
-    
-    if (!statsContainer) return;
-    
-    const ranking = this.preferenceLearning.getPreferenceRanking();
-    
-    let html = '<h4>Learning Statistics</h4>';
-    html += `
+		}
+
+		roleWeightsContainer.innerHTML = html;
+	}
+
+	/**
+	 * Updates the learning statistics display
+	 */
+	private updateLearningStats(): void {
+		const stats = this.preferenceLearning.getLearningStats();
+		const statsContainer = this.container.querySelector("#learningStats");
+
+		if (!statsContainer) return;
+
+		const ranking = this.preferenceLearning.getPreferenceRanking();
+
+		let html = "<h4>Learning Statistics</h4>";
+		html += `
       <div class="stats-grid">
         <div class="stat-item">
           <span class="stat-label">Total Feedback Events:</span>
@@ -167,7 +170,9 @@ export class PreferenceManagementUI {
           <span class="stat-label">Average Weight:</span>
           <span class="stat-value">${stats.averageWeight.toFixed(2)}</span>
         </div>
-        ${ranking ? `
+        ${
+					ranking
+						? `
           <div class="stat-item">
             <span class="stat-label">Most Preferred:</span>
             <span class="stat-value preferred">${ranking.most}</span>
@@ -176,63 +181,69 @@ export class PreferenceManagementUI {
             <span class="stat-label">Least Preferred:</span>
             <span class="stat-value less-preferred">${ranking.least}</span>
           </div>
-        ` : ''}
+        `
+						: ""
+				}
       </div>
     `;
-    
-    statsContainer.innerHTML = html;
-  }
-  
-  /**
-   * Attaches event listeners to UI elements
-   */
-  private attachEventListeners(): void {
-    const resetBtn = this.container.querySelector('#resetPreferences');
-    const refreshBtn = this.container.querySelector('#refreshData');
-    
-    resetBtn?.addEventListener('click', () => this.handleReset());
-    refreshBtn?.addEventListener('click', () => this.updateDisplay());
-  }
-  
-  /**
-   * Handles preference reset
-   */
-  private async handleReset(): Promise<void> {
-    if (!this.currentUserId) return;
-    
-    if (confirm('Are you sure you want to reset your preferences to defaults? This cannot be undone.')) {
-      await this.preferenceLearning.resetPreferences(this.currentUserId);
-      await this.updateDisplay();
-    }
-  }
-  
-  /**
-   * Starts periodic updates of the display
-   */
-  private startPeriodicUpdates(): void {
-    this.stopPeriodicUpdates();
-    
-    this.updateTimer = window.setInterval(() => {
-      this.updateDisplay();
-    }, this.config.updateInterval);
-  }
-  
-  /**
-   * Stops periodic updates
-   */
-  private stopPeriodicUpdates(): void {
-    if (this.updateTimer) {
-      clearInterval(this.updateTimer);
-      this.updateTimer = null;
-    }
-  }
-  
-  /**
-   * Applies CSS styles to the component
-   */
-  private applyStyles(): void {
-    const style = document.createElement('style');
-    style.textContent = `
+
+		statsContainer.innerHTML = html;
+	}
+
+	/**
+	 * Attaches event listeners to UI elements
+	 */
+	private attachEventListeners(): void {
+		const resetBtn = this.container.querySelector("#resetPreferences");
+		const refreshBtn = this.container.querySelector("#refreshData");
+
+		resetBtn?.addEventListener("click", () => this.handleReset());
+		refreshBtn?.addEventListener("click", () => this.updateDisplay());
+	}
+
+	/**
+	 * Handles preference reset
+	 */
+	private async handleReset(): Promise<void> {
+		if (!this.currentUserId) return;
+
+		if (
+			confirm(
+				"Are you sure you want to reset your preferences to defaults? This cannot be undone.",
+			)
+		) {
+			await this.preferenceLearning.resetPreferences(this.currentUserId);
+			await this.updateDisplay();
+		}
+	}
+
+	/**
+	 * Starts periodic updates of the display
+	 */
+	private startPeriodicUpdates(): void {
+		this.stopPeriodicUpdates();
+
+		this.updateTimer = window.setInterval(() => {
+			this.updateDisplay();
+		}, this.config.updateInterval);
+	}
+
+	/**
+	 * Stops periodic updates
+	 */
+	private stopPeriodicUpdates(): void {
+		if (this.updateTimer) {
+			clearInterval(this.updateTimer);
+			this.updateTimer = null;
+		}
+	}
+
+	/**
+	 * Applies CSS styles to the component
+	 */
+	private applyStyles(): void {
+		const style = document.createElement("style");
+		style.textContent = `
       .preference-management {
         background: #f8f9fa;
         border-radius: 8px;
@@ -360,26 +371,26 @@ export class PreferenceManagementUI {
         background: #0056b3;
       }
     `;
-    
-    document.head.appendChild(style);
-  }
-  
-  /**
-   * Updates configuration
-   */
-  updateConfig(newConfig: Partial<PreferenceUIConfig>): void {
-    this.config = { ...this.config, ...newConfig };
-    
-    if (newConfig.updateInterval && this.updateTimer) {
-      this.startPeriodicUpdates();
-    }
-  }
-  
-  /**
-   * Destroys the component and cleans up resources
-   */
-  destroy(): void {
-    this.stopPeriodicUpdates();
-    this.container.innerHTML = '';
-  }
+
+		document.head.appendChild(style);
+	}
+
+	/**
+	 * Updates configuration
+	 */
+	updateConfig(newConfig: Partial<PreferenceUIConfig>): void {
+		this.config = { ...this.config, ...newConfig };
+
+		if (newConfig.updateInterval && this.updateTimer) {
+			this.startPeriodicUpdates();
+		}
+	}
+
+	/**
+	 * Destroys the component and cleans up resources
+	 */
+	destroy(): void {
+		this.stopPeriodicUpdates();
+		this.container.innerHTML = "";
+	}
 }

@@ -1,92 +1,97 @@
 // Integration component for voice input and transcription display
 
-import { WebSpeechVoiceInputManager } from './voice-input-manager.js';
-import { TranscriptionDisplay } from '../ui/transcription-display.js';
-import { VoiceInputConfig } from '../interfaces/voice-input.js';
+import type { VoiceInputConfig } from "../interfaces/voice-input.js";
+import { TranscriptionDisplay } from "../ui/transcription-display.js";
+import { WebSpeechVoiceInputManager } from "./voice-input-manager.js";
 
 export interface VoiceTranscriptionConfig {
-  voiceConfig?: Partial<VoiceInputConfig>;
-  displayConfig?: {
-    maxLines?: number;
-    autoScroll?: boolean;
-    showTimestamps?: boolean;
-  };
+	voiceConfig?: Partial<VoiceInputConfig>;
+	displayConfig?: {
+		maxLines?: number;
+		autoScroll?: boolean;
+		showTimestamps?: boolean;
+	};
 }
 
 export class VoiceTranscriptionIntegration {
-  private voiceManager: WebSpeechVoiceInputManager;
-  private transcriptionDisplay: TranscriptionDisplay;
-  private isActive = false;
-  private errorCallback?: (error: any) => void;
+	private voiceManager: WebSpeechVoiceInputManager;
+	private transcriptionDisplay: TranscriptionDisplay;
+	private isActive = false;
+	private errorCallback?: (error: Error) => void;
 
-  constructor(
-    displayContainer: HTMLElement,
-    config: VoiceTranscriptionConfig = {}
-  ) {
-    this.voiceManager = new WebSpeechVoiceInputManager(config.voiceConfig);
-    this.transcriptionDisplay = new TranscriptionDisplay(displayContainer, config.displayConfig);
-    
-    this.setupEventHandlers();
-  }
+	constructor(
+		displayContainer: HTMLElement,
+		config: VoiceTranscriptionConfig = {},
+	) {
+		this.voiceManager = new WebSpeechVoiceInputManager(config.voiceConfig);
+		this.transcriptionDisplay = new TranscriptionDisplay(
+			displayContainer,
+			config.displayConfig,
+		);
 
-  private setupEventHandlers(): void {
-    // Handle transcription results
-    this.voiceManager.onTranscript((text: string, isFinal: boolean) => {
-      this.transcriptionDisplay.addTranscript(text, isFinal);
-    });
+		this.setupEventHandlers();
+	}
 
-    // Handle voice input errors
-    this.voiceManager.onError((error) => {
-      console.error('Voice input error:', error);
-      if (this.errorCallback) {
-        this.errorCallback(error);
-      }
-    });
-  }
+	private setupEventHandlers(): void {
+		// Handle transcription results
+		this.voiceManager.onTranscript((text: string, isFinal: boolean) => {
+			this.transcriptionDisplay.addTranscript(text, isFinal);
+		});
 
-  start(): void {
-    if (!this.voiceManager.isSupported()) {
-      const error = new Error('Speech recognition is not supported in this browser');
-      if (this.errorCallback) {
-        this.errorCallback(error);
-      }
-      return;
-    }
+		// Handle voice input errors
+		this.voiceManager.onError((error) => {
+			console.error("Voice input error:", error);
+			if (this.errorCallback) {
+				this.errorCallback(error);
+			}
+		});
+	}
 
-    this.voiceManager.startListening();
-    this.isActive = true;
-  }
+	start(): void {
+		if (!this.voiceManager.isSupported()) {
+			const error = new Error(
+				"Speech recognition is not supported in this browser",
+			);
+			if (this.errorCallback) {
+				this.errorCallback(error);
+			}
+			return;
+		}
 
-  stop(): void {
-    this.voiceManager.stopListening();
-    this.isActive = false;
-  }
+		this.voiceManager.startListening();
+		this.isActive = true;
+	}
 
-  clear(): void {
-    this.transcriptionDisplay.clear();
-  }
+	stop(): void {
+		this.voiceManager.stopListening();
+		this.isActive = false;
+	}
 
-  isListening(): boolean {
-    return this.isActive && this.voiceManager.isListening();
-  }
+	clear(): void {
+		this.transcriptionDisplay.clear();
+	}
 
-  isSupported(): boolean {
-    return this.voiceManager.isSupported();
-  }
+	isListening(): boolean {
+		return this.isActive && this.voiceManager.isListening();
+	}
 
-  getTranscriptText(): string {
-    return this.transcriptionDisplay.getTranscriptText();
-  }
+	isSupported(): boolean {
+		return this.voiceManager.isSupported();
+	}
 
-  onError(callback: (error: any) => void): void {
-    this.errorCallback = callback;
-  }
+	getTranscriptText(): string {
+		return this.transcriptionDisplay.getTranscriptText();
+	}
 
-  updateConfig(config: VoiceTranscriptionConfig): void {
-    if (config.displayConfig) {
-      this.transcriptionDisplay.setConfig(config.displayConfig);
-    }
-    // Note: Voice config changes require recreating the voice manager
-    // This is a limitation of the Web Speech API
-  }
+	onError(callback: (error: Error) => void): void {
+		this.errorCallback = callback;
+	}
+
+	updateConfig(config: VoiceTranscriptionConfig): void {
+		if (config.displayConfig) {
+			this.transcriptionDisplay.setConfig(config.displayConfig);
+		}
+		// Note: Voice config changes require recreating the voice manager
+		// This is a limitation of the Web Speech API
+	}
 }
