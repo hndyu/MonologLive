@@ -20,6 +20,7 @@ import {
 	BasicTopicExtractor,
 	SummaryGeneratorImpl,
 } from "../src/summary/summary-generator";
+import type { CommentRoleType } from "../src/types/core";
 import { TranscriptionDisplay } from "../src/ui/transcription-display";
 import { WebSpeechVoiceInputManager } from "../src/voice/voice-input-manager";
 import {

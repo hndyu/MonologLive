@@ -89,7 +89,7 @@ describe("Audio Recording and Storage Properties", () => {
 		// Setup mocks
 		(
 			global as typeof globalThis & { MediaRecorder: typeof MediaRecorder }
-		).MediaRecorder = MockMediaRecorder as typeof MediaRecorder;
+		).MediaRecorder = MockMediaRecorder as unknown as typeof MediaRecorder;
 		(navigator.mediaDevices.getUserMedia as jest.Mock).mockResolvedValue(
 			new MockMediaStream(),
 		);

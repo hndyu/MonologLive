@@ -132,7 +132,7 @@ describe("Voice Input Manager Property Tests", () => {
 									};
 									mockRecognition.onresult?.call(
 										mockRecognition as SpeechRecognition,
-										mockEvent as SpeechRecognitionEvent,
+										mockEvent as unknown as SpeechRecognitionEvent,
 									);
 								}
 								break;

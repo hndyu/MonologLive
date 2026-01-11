@@ -9,7 +9,7 @@ import type {
 import type { ConversationContext } from "../types/core";
 
 // Type for MLCEngine from @mlc-ai/web-llm
-interface MLCEngine {
+interface WebLLMEngineWrapper {
 	chat: {
 		completions: {
 			create: (options: {
@@ -27,44 +27,41 @@ interface MLCEngine {
 	};
 }
 
-// WebLLM types and imports
-interface ChatOptions {
-	temperature?: number;
-	max_tokens?: number;
-	top_p?: number;
-}
-
-interface ChatMessage {
-	role: string;
-	content: string;
-}
-
-interface WebLLMEngine {
-	reload(modelId: string, chatOpts?: ChatOptions): Promise<void>;
-	chat: {
-		completions: {
-			create: (options: {
-				messages: ChatMessage[];
-				temperature?: number;
-				max_tokens?: number;
-				top_p?: number;
-			}) => Promise<{ choices: Array<{ message: { content: string } }> }>;
-		};
-	};
-	runtimeStatsText(): string;
-	unload(): Promise<void>;
-}
-
 // Dynamic import function for WebLLM
 async function createWebLLMEngine(
 	modelId: string = "Llama-3.2-1B-Instruct-q4f32_1-MLC",
-): Promise<MLCEngine> {
+): Promise<WebLLMEngineWrapper> {
 	try {
 		const { CreateWebWorkerMLCEngine } = await import("@mlc-ai/web-llm");
 		const worker = new Worker(
 			new URL("@mlc-ai/web-llm/lib/webworker.js", import.meta.url),
 		);
-		return await CreateWebWorkerMLCEngine(worker, modelId);
+		const engine = await CreateWebWorkerMLCEngine(worker, modelId);
+
+		// Wrap the engine to match our interface
+		return {
+			chat: {
+				completions: {
+					create: async (options) => {
+						const response = await engine.chat.completions.create({
+							messages: options.messages.map((msg) => ({
+								role: msg.role as "system" | "user" | "assistant",
+								content: msg.content,
+							})),
+							temperature: options.temperature,
+							max_tokens: options.max_tokens,
+						});
+						return {
+							choices: response.choices.map((choice) => ({
+								message: {
+									content: choice.message?.content || "",
+								},
+							})),
+						};
+					},
+				},
+			},
+		};
 	} catch (error) {
 		throw new Error(`Failed to load WebLLM: ${error}`);
 	}
@@ -75,7 +72,8 @@ async function createWebLLMEngine(
  * Provides fallback mechanisms and browser compatibility checks
  */
 export class WebLLMProcessor implements LocalLLMProcessor {
-	private engine: WebLLMEngine | null = null;
+	private engine: WebLLMEngineWrapper | null = null;
+	private rawEngine: unknown = null; // Store the raw engine for other operations
 	private modelInfo: ModelInfo;
 	private isInitializing = false;
 	private initializationPromise: Promise<boolean> | null = null;
@@ -169,11 +167,23 @@ export class WebLLMProcessor implements LocalLLMProcessor {
 			console.log(`Loading WebLLM model: ${selectedModel}`);
 
 			// Create WebLLM engine with progress callback
+			const { CreateWebWorkerMLCEngine } = await import("@mlc-ai/web-llm");
+			const worker = new Worker(
+				new URL("@mlc-ai/web-llm/lib/webworker.js", import.meta.url),
+			);
+			this.rawEngine = await CreateWebWorkerMLCEngine(worker, selectedModel);
 			this.engine = await createWebLLMEngine(selectedModel);
 
 			// Load the model
-			if (this.engine) {
-				await this.engine.reload(selectedModel);
+			if (
+				this.rawEngine &&
+				typeof this.rawEngine === "object" &&
+				this.rawEngine !== null &&
+				"reload" in this.rawEngine
+			) {
+				await (
+					this.rawEngine as { reload: (modelId: string) => Promise<void> }
+				).reload(selectedModel);
 			}
 
 			// Update model info
@@ -190,6 +200,7 @@ export class WebLLMProcessor implements LocalLLMProcessor {
 			console.error("Failed to load WebLLM model:", error);
 			this.modelInfo.isLoaded = false;
 			this.engine = null;
+			this.rawEngine = null;
 			return false;
 		}
 	}
@@ -226,7 +237,6 @@ export class WebLLMProcessor implements LocalLLMProcessor {
 				messages,
 				temperature: 0.8,
 				max_tokens: 50,
-				top_p: 0.9,
 			});
 
 			// Clean and validate response
@@ -333,10 +343,19 @@ export class WebLLMProcessor implements LocalLLMProcessor {
 	 * Gets runtime statistics from WebLLM
 	 */
 	getRuntimeStats(): string {
-		if (!this.engine) return "Model not loaded";
+		if (!this.rawEngine) return "Model not loaded";
 
 		try {
-			return this.engine.runtimeStatsText();
+			if (
+				typeof this.rawEngine === "object" &&
+				this.rawEngine !== null &&
+				"runtimeStatsText" in this.rawEngine
+			) {
+				return (
+					this.rawEngine as { runtimeStatsText: () => string }
+				).runtimeStatsText();
+			}
+			return "Stats method not available";
 		} catch (error) {
 			return `Stats unavailable: ${error}`;
 		}
@@ -346,13 +365,20 @@ export class WebLLMProcessor implements LocalLLMProcessor {
 	 * Unloads the model and frees resources
 	 */
 	async unload(): Promise<void> {
-		if (this.engine) {
+		if (this.rawEngine) {
 			try {
-				await this.engine.unload();
+				if (
+					typeof this.rawEngine === "object" &&
+					this.rawEngine !== null &&
+					"unload" in this.rawEngine
+				) {
+					await (this.rawEngine as { unload: () => Promise<void> }).unload();
+				}
 			} catch (error) {
 				console.error("Error unloading WebLLM model:", error);
 			}
 
+			this.rawEngine = null;
 			this.engine = null;
 			this.modelInfo.isLoaded = false;
 		}
@@ -376,7 +402,7 @@ export class WebLLMProcessor implements LocalLLMProcessor {
 	 * Switches to a different model
 	 */
 	async switchModel(modelId: string): Promise<boolean> {
-		if (this.engine) {
+		if (this.rawEngine) {
 			await this.unload();
 		}
 
