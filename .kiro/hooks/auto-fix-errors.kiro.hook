@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "自動エラー修正",
+  "description": "TypeScriptファイルの編集時にbiome、tsc、Jestを実行し、エラーやFAILがゼロになるまで修正を行います",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.ts",
+      "*.tsx",
+      "*.js",
+      "*.jsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "編集されたファイルに対してbiome、tsc、Jestを実行し、エラーやFAILがゼロになるまで修正してください。以下の順序で実行してください：\n1. `npx biome check --apply .` でlintとフォーマットを実行\n2. `npx tsc --noEmit` で型チェックを実行\n3. `npm test` でテストを実行\n4. エラーがある場合は修正し、すべてのチェックが通るまで繰り返してください"
+  }
+}

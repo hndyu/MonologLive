@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "name": "ファイル・ドキュメント同期",
+  "description": "ソースコードファイルが変更された際に、AGENT STEERINGドキュメント（tech.md、structure.md、product.md）やREADME.mdを適切に更新して、プロジェクトの一貫性を保つ",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/**/*.ts",
+      "*.md",
+      "package.json",
+      "tsconfig.json",
+      "vite.config.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "ファイルが変更されました。以下を確認して必要に応じて更新してください：\n\n1. **AGENT STEERINGドキュメントの更新**:\n   - tech.md: 技術的な変更が技術ガイドラインに反映されているか\n   - structure.md: プロジェクト構造の変更が構造ガイドラインに反映されているか  \n   - product.md: 機能変更がプロダクトガイドラインに反映されているか\n\n2. **README.mdの更新**:\n   - 新機能や変更された機能の説明\n   - セットアップ手順の更新\n   - 使用方法の更新\n   - アーキテクチャ図の更新（必要に応じて）\n\n3. **一貫性チェック**:\n   - ドキュメント間の整合性確認\n   - 日本語での適切な記述\n   - 技術仕様とコードの整合性\n\n変更されたファイルの内容を分析し、関連するドキュメントを適切に更新してください。"
+  }
+}
