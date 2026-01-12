@@ -83,7 +83,6 @@ tmp/
 temp/
 
 # Audio files (user recordings)
-audio/
 recordings/
 *.wav
 *.mp3

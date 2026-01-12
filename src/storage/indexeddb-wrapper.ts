@@ -95,6 +95,10 @@ export class IndexedDBWrapper {
 		}
 	}
 
+	isInitialized(): boolean {
+		return !!this.db;
+	}
+
 	// Session operations
 	async saveSession(session: Session): Promise<void> {
 		await this.ensureInitialized();
@@ -198,6 +202,15 @@ export class IndexedDBWrapper {
 			return;
 		}
 		await this.db.delete("audioFiles", fileId);
+	}
+
+	async getAllAudioFiles(): Promise<(AudioFile & { blob?: Blob })[]> {
+		await this.ensureInitialized();
+		if (!this.db) {
+			console.warn("Database not available, returning empty array");
+			return [];
+		}
+		return await this.db.getAll("audioFiles");
 	}
 
 	// Summary operations
