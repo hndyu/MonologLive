@@ -59,9 +59,9 @@ async function createWebLLMEngine(
 			};
 		}
 
-		const worker = new Worker(
-			new URL("@mlc-ai/web-llm/lib/webworker.js", import.meta.url),
-		);
+		const worker = new Worker(new URL("./webworker.ts", import.meta.url), {
+			type: "module",
+		});
 
 		const engine = await CreateWebWorkerMLCEngine(worker, modelId);
 
@@ -201,9 +201,9 @@ export class WebLLMProcessor implements LocalLLMProcessor {
 				throw new Error("WebLLM not available in test environment");
 			}
 
-			const worker = new Worker(
-				new URL("@mlc-ai/web-llm/lib/webworker.js", import.meta.url),
-			);
+			const worker = new Worker(new URL("./webworker.ts", import.meta.url), {
+				type: "module",
+			});
 
 			this.rawEngine = await CreateWebWorkerMLCEngine(worker, selectedModel);
 			this.engine = await createWebLLMEngine(selectedModel);
