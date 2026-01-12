@@ -9,6 +9,7 @@ import {
 	DEFAULT_FREQUENCY_CONFIG,
 	type FrequencyAdaptationConfig,
 } from "../src/comment-generation/adaptive-frequency-manager";
+import { SafeFloatGenerator } from "./safe-float-generator";
 
 describe("Silence Handling Properties", () => {
 	/**
@@ -22,18 +23,18 @@ describe("Silence Handling Properties", () => {
 			fc.property(
 				// Generate silence duration and baseline activity parameters
 				fc.record({
-					silenceDuration: fc.float({ min: 1000, max: 30000 }), // 1-30 seconds
-					baselineActivity: fc.float({ min: 0.1, max: 0.8 }), // 10-80% baseline
-					silenceReduction: fc.float({ min: 0.1, max: 0.9 }), // 10-90% reduction
+					silenceDuration: SafeFloatGenerator.float({ min: 1000, max: 30000 }), // 1-30 seconds
+					baselineActivity: SafeFloatGenerator.float({ min: 0.1, max: 0.8 }), // 10-80% baseline
+					silenceReduction: SafeFloatGenerator.float({ min: 0.1, max: 0.9 }), // 10-90% reduction
 				}),
 				// Generate pre-silence activity level
 				fc.record({
-					volume: fc.float({ min: 30, max: 80 }),
-					speechRate: fc.float({ min: 80, max: 200 }),
+					volume: SafeFloatGenerator.float({ min: 30, max: 80 }),
+					speechRate: SafeFloatGenerator.float({ min: 80, max: 200 }),
 					isSpeaking: fc.constant(true),
 					silenceDuration: fc.constant(0),
-					averageVolume: fc.float({ min: 30, max: 80 }),
-					volumeVariance: fc.float({ min: 5, max: 25 }),
+					averageVolume: SafeFloatGenerator.float({ min: 30, max: 80 }),
+					volumeVariance: SafeFloatGenerator.float({ min: 5, max: 25 }),
 				}),
 				(silenceConfig, preSilenceAnalysis: AudioAnalysisData) => {
 					const config: FrequencyAdaptationConfig = {
@@ -95,12 +96,12 @@ describe("Silence Handling Properties", () => {
 			fc.property(
 				fc.array(
 					fc.record({
-						volume: fc.float({ min: 0, max: 100 }),
-						speechRate: fc.float({ min: 0, max: 300 }),
+						volume: SafeFloatGenerator.float({ min: 0, max: 100 }),
+						speechRate: SafeFloatGenerator.float({ min: 0, max: 300 }),
 						isSpeaking: fc.boolean(),
-						silenceDuration: fc.float({ min: 0, max: 15000 }),
-						averageVolume: fc.float({ min: 0, max: 100 }),
-						volumeVariance: fc.float({ min: 0, max: 50 }),
+						silenceDuration: SafeFloatGenerator.float({ min: 0, max: 15000 }),
+						averageVolume: SafeFloatGenerator.float({ min: 0, max: 100 }),
+						volumeVariance: SafeFloatGenerator.float({ min: 0, max: 50 }),
 					}),
 					{ minLength: 5, maxLength: 15 },
 				),
@@ -145,7 +146,7 @@ describe("Silence Handling Properties", () => {
 	test("Property: Gradual Frequency Reduction During Silence Transition", () => {
 		fc.assert(
 			fc.property(
-				fc.float({ min: 0.3, max: 0.9 }), // adaptation smoothness
+				SafeFloatGenerator.float({ min: 0.3, max: 0.9 }), // adaptation smoothness
 				fc.integer({ min: 5, max: 15 }), // number of silence updates
 				(adaptationSmoothness: number, numUpdates: number) => {
 					const config: FrequencyAdaptationConfig = {
@@ -226,9 +227,9 @@ describe("Silence Handling Properties", () => {
 		fc.assert(
 			fc.property(
 				fc.record({
-					silenceDuration: fc.float({ min: 2000, max: 20000 }),
-					recoveryVolume: fc.float({ min: 40, max: 90 }),
-					recoverySpeechRate: fc.float({ min: 100, max: 250 }),
+					silenceDuration: SafeFloatGenerator.float({ min: 2000, max: 20000 }),
+					recoveryVolume: SafeFloatGenerator.float({ min: 40, max: 90 }),
+					recoverySpeechRate: SafeFloatGenerator.float({ min: 100, max: 250 }),
 				}),
 				(recoveryParams) => {
 					const manager = new AdaptiveFrequencyManager(
@@ -302,16 +303,16 @@ describe("Silence Handling Properties", () => {
 	});
 
 	/**
-	 * Property: Baseline Activity Configuration
+	 * Property: Baseline Activity Maintenance
 	 * For any baseline activity setting, the system should maintain at least that level during silence
 	 * Validates: Requirements 4.5
 	 */
 	test("Property: Configurable Baseline Activity Maintenance", () => {
 		fc.assert(
 			fc.property(
-				fc.float({ min: 0.1, max: 0.8 }), // baseline activity ratio
-				fc.float({ min: 3, max: 15 }), // base frequency
-				fc.float({ min: 10000, max: 30000 }), // extended silence duration
+				SafeFloatGenerator.float({ min: 0.1, max: 0.8 }), // baseline activity ratio
+				SafeFloatGenerator.float({ min: 3, max: 15 }), // base frequency
+				SafeFloatGenerator.float({ min: 10000, max: 30000 }), // extended silence duration
 				(
 					baselineActivity: number,
 					baseFrequency: number,
@@ -363,11 +364,11 @@ describe("Silence Handling Properties", () => {
 				fc.array(
 					fc.record({
 						isSpeaking: fc.boolean(),
-						silenceDuration: fc.float({ min: 0, max: 10000 }),
-						volume: fc.float({ min: 0, max: 100 }),
-						speechRate: fc.float({ min: 0, max: 200 }),
-						averageVolume: fc.float({ min: 0, max: 100 }),
-						volumeVariance: fc.float({ min: 0, max: 30 }),
+						silenceDuration: SafeFloatGenerator.float({ min: 0, max: 10000 }),
+						volume: SafeFloatGenerator.float({ min: 0, max: 100 }),
+						speechRate: SafeFloatGenerator.float({ min: 0, max: 200 }),
+						averageVolume: SafeFloatGenerator.float({ min: 0, max: 100 }),
+						volumeVariance: SafeFloatGenerator.float({ min: 0, max: 30 }),
 					}),
 					{ minLength: 3, maxLength: 10 },
 				),
@@ -379,17 +380,6 @@ describe("Silence Handling Properties", () => {
 					let accurateTracking = true;
 
 					for (const analysis of analysisSequence) {
-						// Skip invalid data (NaN values)
-						if (
-							Number.isNaN(analysis.silenceDuration) ||
-							Number.isNaN(analysis.volume) ||
-							Number.isNaN(analysis.speechRate) ||
-							Number.isNaN(analysis.averageVolume) ||
-							Number.isNaN(analysis.volumeVariance)
-						) {
-							continue;
-						}
-
 						manager.updateFromAudioAnalysis(analysis);
 						const state = manager.getFrequencyState();
 

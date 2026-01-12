@@ -2,6 +2,9 @@
 
 import "jest-environment-jsdom";
 
+// Set NODE_ENV for test environment
+process.env.NODE_ENV = "test";
+
 // Mock IDB classes
 class MockIDBRequest {
 	result: unknown = null;
@@ -92,19 +95,67 @@ Object.defineProperty(global, "indexedDB", {
 	writable: true,
 });
 
-// Mock idb library
+// Mock idb library with in-memory storage
+// biome-ignore lint/suspicious/noExplicitAny: Mock store handles dynamic data
+const mockStore: Record<string, Map<any, any>> = {
+	sessions: new Map(),
+	preferences: new Map(),
+	audioFiles: new Map(),
+	summaries: new Map(),
+};
+
 jest.mock("idb", () => ({
 	openDB: jest.fn().mockResolvedValue({
-		put: jest.fn().mockResolvedValue(undefined),
-		get: jest.fn().mockResolvedValue(undefined),
-		getAllFromIndex: jest.fn().mockResolvedValue([]),
-		delete: jest.fn().mockResolvedValue(undefined),
+		put: jest.fn().mockImplementation((storeName, data, key) => {
+			const store = mockStore[storeName];
+			if (store) {
+				const actualKey = key || data.id || data.userId || "default";
+				store.set(actualKey, data);
+			}
+			return Promise.resolve(key);
+		}),
+		get: jest.fn().mockImplementation((storeName, key) => {
+			const store = mockStore[storeName];
+			return Promise.resolve(store ? store.get(key) : undefined);
+		}),
+		getAll: jest.fn().mockImplementation((storeName) => {
+			const store = mockStore[storeName];
+			return Promise.resolve(store ? Array.from(store.values()) : []);
+		}),
+		getAllFromIndex: jest.fn().mockImplementation((storeName) => {
+			const store = mockStore[storeName];
+			return Promise.resolve(store ? Array.from(store.values()) : []);
+		}),
+		delete: jest.fn().mockImplementation((storeName, key) => {
+			const store = mockStore[storeName];
+			if (store) store.delete(key);
+			return Promise.resolve();
+		}),
 		transaction: jest.fn().mockReturnValue({
-			objectStore: jest.fn().mockReturnValue({
-				clear: jest.fn().mockResolvedValue(undefined),
-			}),
+			objectStore: jest.fn().mockImplementation((storeName) => ({
+				clear: jest.fn().mockImplementation(() => {
+					if (mockStore[storeName]) mockStore[storeName].clear();
+					return Promise.resolve();
+				}),
+				put: jest.fn().mockImplementation((data, key) => {
+					const actualKey = key || data.id || data.userId || "default";
+					if (mockStore[storeName]) mockStore[storeName].set(actualKey, data);
+					return Promise.resolve(actualKey);
+				}),
+				get: jest.fn().mockImplementation((key) => {
+					const store = mockStore[storeName];
+					return Promise.resolve(store ? store.get(key) : undefined);
+				}),
+				delete: jest.fn().mockImplementation((key) => {
+					if (mockStore[storeName]) mockStore[storeName].delete(key);
+					return Promise.resolve();
+				}),
+			})),
 		}),
 		close: jest.fn(),
+		version: 1,
+		name: "test-db",
+		objectStoreNames: ["sessions", "preferences", "audioFiles", "summaries"],
 	}),
 }));
 

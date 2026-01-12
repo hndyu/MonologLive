@@ -8,6 +8,7 @@ import {
 	HybridCommentGenerator,
 } from "../src/comment-generation/hybrid-generator";
 import type { ConversationContext } from "../src/types/core";
+import { SafeFloatGenerator } from "./safe-float-generator";
 
 // Mock WebLLM to avoid actual model loading in tests
 jest.mock("../src/comment-generation/webllm-processor", () => {
@@ -55,32 +56,35 @@ describe("Cost-Effective Processing Properties", () => {
 							fc.string({ minLength: 1, maxLength: 50 }),
 							{ nil: undefined },
 						),
-						userEngagementLevel: fc.float({
-							min: Math.fround(0),
-							max: Math.fround(1),
+						userEngagementLevel: SafeFloatGenerator.float({
+							min: 0,
+							max: 1,
 						}),
-						speechVolume: fc.float({
-							min: Math.fround(0),
-							max: Math.fround(1),
+						speechVolume: SafeFloatGenerator.float({
+							min: 0,
+							max: 1,
 						}),
-						speechRate: fc.float({
-							min: Math.fround(0.5),
-							max: Math.fround(2.0),
+						speechRate: SafeFloatGenerator.float({
+							min: 0.5,
+							max: 2.0,
 						}),
-						silenceDuration: fc.float({
-							min: Math.fround(0),
-							max: Math.fround(30),
+						silenceDuration: SafeFloatGenerator.float({
+							min: 0,
+							max: 30,
 						}),
 					}),
 					{ minLength: 10, maxLength: 50 }, // Simulate session with multiple contexts
 				),
 				// Generate hybrid configuration ratios
 				fc.record({
-					ruleBasedRatio: fc.float({
-						min: Math.fround(0.5),
-						max: Math.fround(0.9),
+					ruleBasedRatio: SafeFloatGenerator.float({
+						min: 0.5,
+						max: 0.9,
 					}),
-					llmRatio: fc.float({ min: Math.fround(0.1), max: Math.fround(0.5) }),
+					llmRatio: SafeFloatGenerator.float({
+						min: 0.1,
+						max: 0.5,
+					}),
 				}),
 				async (contexts: ConversationContext[], ratioConfig) => {
 					const config = {
@@ -181,21 +185,21 @@ describe("Cost-Effective Processing Properties", () => {
 			fc.asyncProperty(
 				fc.record({
 					recentTranscript: fc.string({ minLength: 10, maxLength: 100 }),
-					userEngagementLevel: fc.float({
-						min: Math.fround(0.5),
-						max: Math.fround(1.0),
+					userEngagementLevel: SafeFloatGenerator.float({
+						min: 0.5,
+						max: 1.0,
 					}),
-					speechVolume: fc.float({
-						min: Math.fround(0.5),
-						max: Math.fround(1.0),
+					speechVolume: SafeFloatGenerator.float({
+						min: 0.5,
+						max: 1.0,
 					}),
-					speechRate: fc.float({
-						min: Math.fround(0.8),
-						max: Math.fround(1.5),
+					speechRate: SafeFloatGenerator.float({
+						min: 0.8,
+						max: 1.5,
 					}),
-					silenceDuration: fc.float({
-						min: Math.fround(0),
-						max: Math.fround(5),
+					silenceDuration: SafeFloatGenerator.float({
+						min: 0,
+						max: 5,
 					}),
 				}),
 				fc.integer({ min: 10, max: 30 }),
@@ -264,21 +268,21 @@ describe("Cost-Effective Processing Properties", () => {
 				fc.array(
 					fc.record({
 						recentTranscript: fc.string({ minLength: 5, maxLength: 100 }),
-						userEngagementLevel: fc.float({
-							min: Math.fround(0.3),
-							max: Math.fround(1.0),
+						userEngagementLevel: SafeFloatGenerator.float({
+							min: 0.3,
+							max: 1.0,
 						}),
-						speechVolume: fc.float({
-							min: Math.fround(0.3),
-							max: Math.fround(1.0),
+						speechVolume: SafeFloatGenerator.float({
+							min: 0.3,
+							max: 1.0,
 						}),
-						speechRate: fc.float({
-							min: Math.fround(0.8),
-							max: Math.fround(1.5),
+						speechRate: SafeFloatGenerator.float({
+							min: 0.8,
+							max: 1.5,
 						}),
-						silenceDuration: fc.float({
-							min: Math.fround(0),
-							max: Math.fround(10),
+						silenceDuration: SafeFloatGenerator.float({
+							min: 0,
+							max: 10,
 						}),
 					}),
 					{ minLength: 5, maxLength: 20 },
@@ -350,11 +354,14 @@ describe("Cost-Effective Processing Properties", () => {
 			fc.asyncProperty(
 				fc.integer({ min: 20, max: 100 }), // Session length in comments
 				fc.record({
-					ruleBasedRatio: fc.float({
-						min: Math.fround(0.6),
-						max: Math.fround(0.9),
+					ruleBasedRatio: SafeFloatGenerator.float({
+						min: 0.6,
+						max: 0.9,
 					}),
-					llmRatio: fc.float({ min: Math.fround(0.1), max: Math.fround(0.4) }),
+					llmRatio: SafeFloatGenerator.float({
+						min: 0.1,
+						max: 0.4,
+					}),
 				}),
 				async (sessionLength: number, ratioConfig) => {
 					const config = {

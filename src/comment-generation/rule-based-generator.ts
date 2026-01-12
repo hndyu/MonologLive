@@ -61,15 +61,37 @@ export class RuleBasedCommentGenerator {
 			return null;
 		}
 
-		// Select appropriate roles based on context
-		const relevantRoles = this.roleSelector.selectRoles(context);
+		// Select scored roles based on context
+		const scoredRoles = this.roleSelector.getRoles().map((role) => ({
+			role,
+			score: this.roleSelector.calculateRoleScore(role, context) || 0.1,
+		}));
 
-		if (relevantRoles.length === 0) {
+		if (scoredRoles.length === 0) {
 			return null;
 		}
 
-		// Select the best role (highest scored)
-		const selectedRole = relevantRoles[0];
+		// Use a more aggressive weighted selection to increase diversity
+		// We use scores as weights, but add a base weight to ensure every role has a chance
+		const weightedRoles = scoredRoles.map((item) => ({
+			role: item.role,
+			weight: (item.score + 0.1) ** 2, // Square to emphasize top but keep others possible
+		}));
+
+		const totalWeight = weightedRoles.reduce(
+			(sum, item) => sum + item.weight,
+			0,
+		);
+		let random = Math.random() * totalWeight;
+
+		let selectedRole = weightedRoles[0].role;
+		for (const item of weightedRoles) {
+			random -= item.weight;
+			if (random <= 0) {
+				selectedRole = item.role;
+				break;
+			}
+		}
 
 		// Generate comment content using pattern matching
 		const content = this.generateCommentContent(selectedRole, context);

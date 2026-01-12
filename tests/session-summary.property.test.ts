@@ -2,6 +2,13 @@
 // **Feature: monolog-live, Property 10: Session Summary Generation**
 // **Validates: Requirements 8.1, 8.2, 8.3, 8.5**
 
+// Mock Hugging Face Transformers to avoid ES module issues
+jest.mock("@huggingface/transformers", () => ({
+	pipeline: jest.fn().mockResolvedValue({
+		// Mock pipeline function
+	}),
+}));
+
 import { beforeEach, describe, expect, it } from "@jest/globals";
 import fc from "fast-check";
 import {
@@ -10,6 +17,7 @@ import {
 	SummaryGeneratorImpl,
 } from "../src/summary/summary-generator";
 import type { CommentRoleType, UserInteractionType } from "../src/types/core";
+import { SafeFloatGenerator } from "./safe-float-generator";
 
 describe("Session Summary Generation Properties", () => {
 	let summaryGenerator: SummaryGeneratorImpl;
@@ -31,7 +39,7 @@ describe("Session Summary Generation Properties", () => {
 			start: fc.nat(10000),
 			end: fc.nat(10000),
 			text: fc.string({ minLength: 1, maxLength: 100 }),
-			confidence: fc.float({ min: 0, max: 1 }),
+			confidence: SafeFloatGenerator.float({ min: 0, max: 1 }),
 			isFinal: fc.boolean(),
 		})
 		.map((segment) => ({
@@ -61,9 +69,9 @@ describe("Session Summary Generation Properties", () => {
 		context: fc.record({
 			recentTranscript: fc.string({ maxLength: 500 }),
 			currentTopic: fc.option(fc.string({ maxLength: 50 }), { nil: undefined }),
-			userEngagementLevel: fc.float({ min: 0, max: 1 }),
-			speechVolume: fc.float({ min: 0, max: 1 }),
-			speechRate: fc.float({ min: 0, max: 2 }),
+			userEngagementLevel: SafeFloatGenerator.float({ min: 0, max: 1 }),
+			speechVolume: SafeFloatGenerator.float({ min: 0, max: 1 }),
+			speechRate: SafeFloatGenerator.float({ min: 0, max: 2 }),
 			silenceDuration: fc.nat(10000),
 		}),
 	});
@@ -72,14 +80,14 @@ describe("Session Summary Generation Properties", () => {
 		commentId: fc.string({ minLength: 1, maxLength: 20 }),
 		type: userInteractionTypeArb,
 		timestamp: fc.date(),
-		confidence: fc.float({ min: 0, max: 1 }),
+		confidence: SafeFloatGenerator.float({ min: 0, max: 1 }),
 	});
 
 	const sessionMetricsArb = fc.record({
 		totalDuration: fc.nat(3600000), // up to 1 hour in ms
 		commentCount: fc.nat(1000),
 		interactionCount: fc.nat(500),
-		averageEngagement: fc.float({ min: 0, max: 10 }),
+		averageEngagement: SafeFloatGenerator.float({ min: 0, max: 10 }),
 	});
 
 	const sessionArb = fc.record({

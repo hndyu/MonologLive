@@ -290,7 +290,7 @@ export class RoleSelector {
 	/**
 	 * Calculates relevance score for a role given the context
 	 */
-	private calculateRoleScore(
+	public calculateRoleScore(
 		role: CommentRole,
 		context: ConversationContext,
 	): number {

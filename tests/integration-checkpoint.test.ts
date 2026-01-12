@@ -33,7 +33,11 @@ describe("Integration Checkpoint: Basic Voice Chat Functionality", () => {
 			throw new Error("Transcription area not found");
 		}
 		transcriptionDisplay = new TranscriptionDisplay(transcriptionArea);
-		commentSystem = new CommentSystem();
+		commentSystem = new CommentSystem({
+			enableRuleBasedGeneration: true,
+			enableLocalLLM: false,
+			enableAdaptiveFrequency: false, // Disable for tests
+		});
 		const commentArea = document.getElementById("comment-area");
 		if (!commentArea) {
 			throw new Error("Comment area not found");

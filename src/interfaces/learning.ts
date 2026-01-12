@@ -5,7 +5,7 @@ import type { Comment, CommentRoleType } from "../types/core.js";
 export interface LearningModule {
 	trackInteraction(comment: Comment, userResponse: UserResponse): void;
 	updatePreferences(userId: string, feedback: Feedback): void;
-	getPersonalizedWeights(userId: string): Map<CommentRoleType, number>;
+	getPersonalizedWeights(userId: string): Promise<Map<CommentRoleType, number>>;
 	detectCommentPickup(
 		comment: Comment,
 		subsequentSpeech: string,

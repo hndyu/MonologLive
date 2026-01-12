@@ -77,8 +77,10 @@ npm run preview
 The project uses Jest with fast-check for property-based testing:
 
 - **Unit Tests**: Specific examples and edge cases
-- **Property Tests**: Universal properties across all inputs
+- **Property Tests**: Universal properties across all inputs  
 - **Mocked APIs**: Web Speech API, MediaRecorder, IndexedDB
+
+**Current Test Status**: Actively fixing 11 failing test suites related to database initialization, float constraints, property test logic, and NaN value handling. See `.kiro/specs/test-fixes/` for progress tracking.
 
 ## Architecture
 
@@ -100,15 +102,27 @@ The project uses Jest with fast-check for property-based testing:
 - **AI Processing**: Local LLM integration (WebLLM)
 - **Enhanced Features**: Local Whisper transcription (optional)
 
-## Next Steps
+## Current Development Status
 
-This setup provides the foundation for implementing the MONOLOG LIVE features. The next tasks involve:
+### Test Suite Fixes (In Progress)
 
-1. Implementing voice input and transcription
-2. Building the comment generation system
-3. Creating the learning and personalization module
-4. Adding audio recording capabilities
-5. Integrating local LLM processing
-6. Building the user interface
+Currently addressing 11 failing test suites to ensure system stability:
+
+- **🔄 Database Initialization**: Fixing Audio Manager database initialization errors
+- **⏳ Float Constraints**: Resolving fast-check float constraint issues  
+- **⏳ Property Test Logic**: Correcting property test validation logic
+- **⏳ NaN Value Handling**: Improving NaN value detection and replacement
+
+See `.kiro/specs/test-fixes/` for detailed test fix specifications.
+
+### Next Implementation Steps
+
+1. Complete test suite stabilization
+2. Implement voice input and transcription
+3. Build the comment generation system
+4. Create the learning and personalization module
+5. Add audio recording capabilities
+6. Integrate local LLM processing
+7. Build the user interface
 
 See `tasks.md` in the `.kiro/specs/monolog-live/` directory for the complete implementation plan.

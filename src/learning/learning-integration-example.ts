@@ -80,7 +80,7 @@ export class LearningIntegrationExample {
 		const initialWeights =
 			this.preferenceLearning.getPersonalizedWeights(userId);
 		console.log("\nInitial role weights:");
-		for (const [role, weight] of initialWeights) {
+		for (const [role, weight] of await initialWeights) {
 			console.log(`  ${role}: ${weight.toFixed(2)}`);
 		}
 
@@ -127,7 +127,7 @@ export class LearningIntegrationExample {
 		const updatedWeights =
 			this.preferenceLearning.getPersonalizedWeights(userId);
 		console.log("\nUpdated role weights after feedback:");
-		for (const [role, weight] of updatedWeights) {
+		for (const [role, weight] of await updatedWeights) {
 			console.log(`  ${role}: ${weight.toFixed(2)}`);
 		}
 

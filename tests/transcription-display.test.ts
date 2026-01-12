@@ -125,11 +125,15 @@ describe("Transcription Display Property Tests", () => {
 				fc.array(
 					fc.oneof(
 						fc.string({ minLength: 1, maxLength: 100 }), // Reduced from 200 to 100
-						fc.string().filter((s) => s.trim().length === 0 && s.length <= 10), // Limited whitespace strings
+						fc
+							.string()
+							.filter((s) => s.trim().length === 0 && s.length <= 10), // Limited whitespace strings
 						fc.constant(""), // Empty strings
 						fc.string({ minLength: 100, maxLength: 200 }), // Reduced from 500-1000 to 100-200
 						fc.hexaString({ minLength: 1, maxLength: 20 }), // Replaced deprecated stringOf/char with hexaString
-						fc.string({ minLength: 1, maxLength: 10 }).map(s => s.replace(/[a-zA-Z0-9]/g, '!')), // Special characters
+						fc
+							.string({ minLength: 1, maxLength: 10 })
+							.map((s) => s.replace(/[a-zA-Z0-9]/g, "!")), // Special characters
 					),
 					{ minLength: 1, maxLength: 5 }, // Reduced from 10 to 5
 				),
@@ -185,18 +189,34 @@ describe("Transcription Display Property Tests", () => {
 					maxLines: fc.integer({ min: 1, max: 10 }), // Reduced from 20 to 10
 					autoScroll: fc.boolean(),
 					showTimestamps: fc.boolean(),
-					interimTextClass: fc.constantFrom("interim", "temp", "draft", "pending"), // Valid CSS class names
-					finalTextClass: fc.constantFrom("final", "complete", "done", "finished"), // Valid CSS class names
+					interimTextClass: fc.constantFrom(
+						"interim",
+						"temp",
+						"draft",
+						"pending",
+					), // Valid CSS class names
+					finalTextClass: fc.constantFrom(
+						"final",
+						"complete",
+						"done",
+						"finished",
+					), // Valid CSS class names
 				}),
-				fc.array(fc.string({ minLength: 1, maxLength: 20 }).filter(s => s.trim().length > 0), { // Ensure non-empty strings
-					minLength: 2, // Reduced from 5 to 2
-					maxLength: 10, // Reduced from 30 to 10
-				}),
+				fc.array(
+					fc
+						.string({ minLength: 1, maxLength: 20 })
+						.filter((s) => s.trim().length > 0),
+					{
+						// Ensure non-empty strings
+						minLength: 2, // Reduced from 5 to 2
+						maxLength: 10, // Reduced from 30 to 10
+					},
+				),
 				(config, texts) => {
 					const display = new TranscriptionDisplay(container, config);
 
 					// Add more segments than maxLines to test trimming
-					const validTexts = texts.filter(text => text.trim().length > 0);
+					const validTexts = texts.filter((text) => text.trim().length > 0);
 					validTexts.forEach((text) => {
 						display.addTranscript(text, true); // All final for simplicity
 					});

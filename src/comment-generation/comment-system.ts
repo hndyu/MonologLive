@@ -4,7 +4,12 @@ import type { AudioAnalysisData } from "../audio/audio-analyzer.js";
 import type { CommentGenerator } from "../interfaces/comment-generation";
 import { MainLearningModule } from "../learning/learning-module";
 import type { IndexedDBWrapper } from "../storage/indexeddb-wrapper";
-import type { Comment, ConversationContext, UserFeedback } from "../types/core";
+import type {
+	Comment,
+	CommentRoleType,
+	ConversationContext,
+	UserFeedback,
+} from "../types/core";
 import {
 	CommentDisplay,
 	type CommentInteractionHandlers,
@@ -13,7 +18,7 @@ import {
 	AdaptiveFrequencyManager,
 	DEFAULT_FREQUENCY_CONFIG,
 	type FrequencyAdaptationConfig,
-} from "./adaptive-frequency-manager.js";
+} from "./adaptive-frequency-manager";
 import { HybridCommentGenerator } from "./hybrid-generator";
 import { RuleBasedCommentGenerator } from "./rule-based-generator";
 
@@ -111,11 +116,12 @@ export class CommentSystem implements CommentGenerator {
 		// Get personalized weights and apply them to the generator
 		const personalizedWeights =
 			this.learningModule.getPersonalizedWeights(userId);
-		const weightRecord: Partial<
-			Record<import("../types/core").CommentRoleType, number>
-		> = {};
+		const weightRecord: Record<CommentRoleType, number> = {} as Record<
+			CommentRoleType,
+			number
+		>;
 
-		for (const [role, weight] of personalizedWeights) {
+		for (const [role, weight] of await personalizedWeights) {
 			weightRecord[role] = weight;
 		}
 

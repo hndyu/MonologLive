@@ -124,7 +124,7 @@ export class PreferenceManagementUI {
 		let html = "<h4>Comment Role Preferences</h4>";
 
 		// Sort roles by weight (highest first)
-		const sortedRoles = Array.from(weights.entries()).sort(
+		const sortedRoles = Array.from((await weights).entries()).sort(
 			([, a], [, b]) => b - a,
 		);
 

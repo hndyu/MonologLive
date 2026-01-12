@@ -11,11 +11,11 @@ import type {
 import {
 	InteractionTracker,
 	type InteractionTrackerConfig,
-} from "./interaction-tracker.js";
+} from "./interaction-tracker";
 import {
 	type PreferenceLearningConfig,
 	PreferenceLearningSystem,
-} from "./preference-learning.js";
+} from "./preference-learning";
 
 /**
  * Configuration for the main learning module
@@ -164,13 +164,15 @@ export class MainLearningModule implements LearningModule {
 	 * Gets personalized weights for comment generation
 	 * Implements Requirement 7.4
 	 */
-	getPersonalizedWeights(userId: string): Map<CommentRoleType, number> {
+	async getPersonalizedWeights(
+		userId: string,
+	): Promise<Map<CommentRoleType, number>> {
 		if (!this.config.enablePreferenceLearning) {
 			// Return default equal weights
 			return this.getDefaultWeights();
 		}
 
-		return this.preferenceLearning.getPersonalizedWeights(userId);
+		return await this.preferenceLearning.getPersonalizedWeights(userId);
 	}
 
 	/**

@@ -98,7 +98,8 @@ export class PreferenceLearningSystem {
 		interactionType: UserInteractionType,
 		confidence: number = 1.0,
 	): Promise<void> {
-		if (!this.currentPreferences) {
+		// Always ensure we have the correct user's preferences loaded
+		if (!this.currentPreferences || this.currentPreferences.userId !== userId) {
 			await this.initializePreferences(userId);
 		}
 
@@ -133,19 +134,22 @@ export class PreferenceLearningSystem {
 
 		// Persist the updated preferences
 		await this.storage.savePreferences(userId, this.currentPreferences);
-
-		console.log(
-			`Updated weight for ${commentRole}: ${currentWeight.toFixed(2)} -> ${newWeight.toFixed(2)} (adjustment: ${adjustment.toFixed(2)})`,
-		);
 	}
 
 	/**
 	 * Gets current personalized weights for comment generation
 	 * Implements Requirement 7.4 - provide personalized weights
 	 */
-	getPersonalizedWeights(userId: string): Map<CommentRoleType, number> {
+	async getPersonalizedWeights(
+		userId: string,
+	): Promise<Map<CommentRoleType, number>> {
+		// Always ensure we have the correct user's preferences loaded
 		if (!this.currentPreferences || this.currentPreferences.userId !== userId) {
-			// Return default weights if no preferences loaded
+			await this.initializePreferences(userId);
+		}
+
+		if (!this.currentPreferences) {
+			// Return default weights if initialization failed
 			return this.getDefaultRoleWeights();
 		}
 

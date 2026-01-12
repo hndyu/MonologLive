@@ -231,10 +231,6 @@ export class InteractionTracker {
 
 		// Update the comment with interaction info
 		comment.userInteraction = interaction;
-
-		console.log(
-			`Detected pickup for comment ${comment.id} with confidence ${confidence.toFixed(2)}`,
-		);
 	}
 
 	/**

@@ -41,6 +41,7 @@ export class ErrorHandler {
 	private static instance: ErrorHandler;
 	private errorLog: MonologError[] = [];
 	private maxLogSize = 100;
+	private isHandlingError = false; // Reentrancy guard
 	private errorCallbacks: Map<ErrorType, ((error: MonologError) => void)[]> =
 		new Map();
 
@@ -63,37 +64,56 @@ export class ErrorHandler {
 
 	// Handle error with recovery strategy
 	async handleError(error: MonologError): Promise<ErrorRecoveryStrategy> {
-		// Log the error
-		this.logError(error);
-
-		// Notify callbacks
-		const callbacks = this.errorCallbacks.get(error.type) || [];
-		callbacks.forEach((callback) => {
-			try {
-				callback(error);
-			} catch (callbackError) {
-				console.error("Error in error callback:", callbackError);
-			}
-		});
-
-		// Determine recovery strategy
-		const strategy = this.getRecoveryStrategy(error);
-
-		// Execute fallback if available
-		if (strategy.canRecover && strategy.fallbackAction) {
-			try {
-				await strategy.fallbackAction();
-			} catch (fallbackError) {
-				console.error("Fallback action failed:", fallbackError);
-				return {
-					canRecover: false,
-					userMessage: "System recovery failed. Please refresh the page.",
-					retryable: false,
-				};
-			}
+		// Prevent infinite recursion
+		if (this.isHandlingError) {
+			console.warn(
+				"Recursive error detected, skipping handling:",
+				error.message,
+			);
+			return {
+				canRecover: false,
+				userMessage: "An error occurred during error recovery.",
+				retryable: false,
+			};
 		}
 
-		return strategy;
+		this.isHandlingError = true;
+
+		try {
+			// Log the error
+			this.logError(error);
+
+			// Notify callbacks
+			const callbacks = this.errorCallbacks.get(error.type) || [];
+			callbacks.forEach((callback) => {
+				try {
+					callback(error);
+				} catch (callbackError) {
+					console.error("Error in error callback:", callbackError);
+				}
+			});
+
+			// Determine recovery strategy
+			const strategy = this.getRecoveryStrategy(error);
+
+			// Execute fallback if available
+			if (strategy.canRecover && strategy.fallbackAction) {
+				try {
+					await strategy.fallbackAction();
+				} catch (fallbackError) {
+					console.error("Fallback action failed:", fallbackError);
+					return {
+						canRecover: false,
+						userMessage: "System recovery failed. Please refresh the page.",
+						retryable: false,
+					};
+				}
+			}
+
+			return strategy;
+		} finally {
+			this.isHandlingError = false;
+		}
 	}
 
 	private logError(error: MonologError): void {

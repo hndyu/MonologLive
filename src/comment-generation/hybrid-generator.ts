@@ -85,21 +85,9 @@ export class HybridCommentGenerator implements CommentGenerator {
 	private async initializeLLM(): Promise<void> {
 		try {
 			if (this.llmProcessor.isAvailable()) {
-				console.log("Initializing WebLLM for hybrid generation...");
 				this.isLLMReady = await this.llmProcessor.loadModel();
-
-				if (this.isLLMReady) {
-					console.log("WebLLM ready for hybrid generation");
-				} else {
-					console.warn("WebLLM initialization failed, using rule-based only");
-				}
-			} else {
-				console.warn(
-					"WebLLM not available in this environment, using rule-based only",
-				);
 			}
-		} catch (error) {
-			console.error("Error initializing WebLLM:", error);
+		} catch (_unused) {
 			this.isLLMReady = false;
 		}
 	}
@@ -127,6 +115,8 @@ export class HybridCommentGenerator implements CommentGenerator {
 	 * Generates comment using hybrid approach
 	 */
 	async generateComment(context: ConversationContext): Promise<Comment | null> {
+		this.metrics.totalRequests++;
+
 		// For synchronous calls, always use rule-based
 		return await this.generateRuleBasedComment(context);
 	}
@@ -191,8 +181,7 @@ export class HybridCommentGenerator implements CommentGenerator {
 				};
 
 				return comment;
-			} catch (error) {
-				console.warn(`LLM generation attempt ${retries + 1} failed:`, error);
+			} catch (_unused) {
 				retries++;
 
 				if (retries > this.config.maxLLMRetries) {
@@ -201,7 +190,6 @@ export class HybridCommentGenerator implements CommentGenerator {
 
 					// Fallback to rule-based if enabled
 					if (this.config.fallbackToRuleBased) {
-						console.log("Falling back to rule-based generation");
 						return await this.generateRuleBasedComment(context);
 					} else {
 						throw new Error("LLM generation failed and fallback disabled");
@@ -243,10 +231,6 @@ export class HybridCommentGenerator implements CommentGenerator {
 				this.config.ruleBasedRatio + 0.1,
 			);
 			this.config.llmRatio = 1.0 - this.config.ruleBasedRatio;
-
-			console.log(
-				`Adjusted ratios due to poor LLM performance: Rule-based ${this.config.ruleBasedRatio}, LLM ${this.config.llmRatio}`,
-			);
 		}
 
 		// Decrease rule-based ratio if LLM performance is excellent
@@ -259,10 +243,6 @@ export class HybridCommentGenerator implements CommentGenerator {
 				this.config.ruleBasedRatio - 0.05,
 			);
 			this.config.llmRatio = 1.0 - this.config.ruleBasedRatio;
-
-			console.log(
-				`Adjusted ratios due to excellent LLM performance: Rule-based ${this.config.ruleBasedRatio}, LLM ${this.config.llmRatio}`,
-			);
 		}
 	}
 
@@ -330,11 +310,6 @@ export class HybridCommentGenerator implements CommentGenerator {
 	updateRoleWeights(feedback: UserFeedback): void {
 		// Update both generators
 		this.ruleBasedGenerator.updateRoleWeights(feedback);
-
-		// Additional logic for LLM feedback could be added here
-		console.log(
-			`Updated role weights based on feedback for comment ${feedback.commentId}`,
-		);
 	}
 
 	/**
@@ -353,10 +328,6 @@ export class HybridCommentGenerator implements CommentGenerator {
 		if (total > 0) {
 			this.config.ruleBasedRatio = ruleBasedRatio / total;
 			this.config.llmRatio = llmRatio / total;
-
-			console.log(
-				`Updated mixing ratios: Rule-based ${this.config.ruleBasedRatio}, LLM ${this.config.llmRatio}`,
-			);
 		}
 	}
 
@@ -379,7 +350,6 @@ export class HybridCommentGenerator implements CommentGenerator {
 	 */
 	updateConfig(newConfig: Partial<HybridGenerationConfig>): void {
 		this.config = { ...this.config, ...newConfig };
-		console.log("Updated hybrid generation config:", this.config);
 	}
 
 	/**

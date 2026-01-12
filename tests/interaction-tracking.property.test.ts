@@ -13,6 +13,7 @@ import type {
 	CommentRoleType,
 	ConversationContext,
 } from "../src/types/core";
+import { SafeFloatGenerator } from "./safe-float-generator";
 
 // Mock IndexedDB wrapper for testing
 class MockIndexedDBWrapper extends IndexedDBWrapper {
@@ -175,21 +176,21 @@ describe("Interaction Tracking Properties", () => {
 					}),
 					context: fc.record({
 						recentTranscript: fc.string({ minLength: 0, maxLength: 50 }),
-						userEngagementLevel: fc.float({
-							min: Math.fround(0.5),
-							max: Math.fround(1),
+						userEngagementLevel: SafeFloatGenerator.float({
+							min: 0.5,
+							max: 1,
 						}),
-						speechVolume: fc.float({
-							min: Math.fround(0.5),
-							max: Math.fround(1),
+						speechVolume: SafeFloatGenerator.float({
+							min: 0.5,
+							max: 1,
 						}),
-						speechRate: fc.float({
-							min: Math.fround(0.8),
-							max: Math.fround(1.5),
+						speechRate: SafeFloatGenerator.float({
+							min: 0.8,
+							max: 1.5,
 						}),
-						silenceDuration: fc.float({
-							min: Math.fround(0),
-							max: Math.fround(5),
+						silenceDuration: SafeFloatGenerator.float({
+							min: 0,
+							max: 5,
 						}),
 					}),
 				}),
