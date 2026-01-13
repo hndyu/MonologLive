@@ -7,7 +7,7 @@
 
 ## Phase 2: Session Lifecycle Integration
 - [x] Task: Implement `startSession` using `SessionManager.startSession()`. [0a196a9]
-- [ ] Task: Implement `stopSession` using `SessionManager.endSession()`.
+- [x] Task: Implement `stopSession` using `SessionManager.endSession()`. [6a3c18d]
 - [ ] Task: Update UI state to reflect session start/stop accurately.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Session Lifecycle Integration' (Protocol in workflow.md)
 
