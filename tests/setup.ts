@@ -96,57 +96,69 @@ Object.defineProperty(global, "indexedDB", {
 });
 
 // Mock idb library with in-memory storage
-// biome-ignore lint/suspicious/noExplicitAny: Mock store handles dynamic data
-const mockStore: Record<string, Map<any, any>> = {
-	sessions: new Map(),
-	preferences: new Map(),
-	audioFiles: new Map(),
-	summaries: new Map(),
+const mockStore: Record<string, Map<string, unknown>> = {
+	sessions: new Map<string, unknown>(),
+	preferences: new Map<string, unknown>(),
+	audioFiles: new Map<string, unknown>(),
+	summaries: new Map<string, unknown>(),
 };
 
 jest.mock("idb", () => ({
 	openDB: jest.fn().mockResolvedValue({
-		put: jest.fn().mockImplementation((storeName, data, key) => {
-			const store = mockStore[storeName];
-			if (store) {
-				const actualKey = key || data.id || data.userId || "default";
-				store.set(actualKey, data);
-			}
-			return Promise.resolve(key);
-		}),
-		get: jest.fn().mockImplementation((storeName, key) => {
+		put: jest
+			.fn()
+			.mockImplementation(
+				(
+					storeName: string,
+					data: { id?: string; userId?: string },
+					key?: string,
+				) => {
+					const store = mockStore[storeName];
+					if (store) {
+						const actualKey = key || data.id || data.userId || "default";
+						store.set(actualKey, data);
+					}
+					return Promise.resolve(key);
+				},
+			),
+		get: jest.fn().mockImplementation((storeName: string, key: string) => {
 			const store = mockStore[storeName];
 			return Promise.resolve(store ? store.get(key) : undefined);
 		}),
-		getAll: jest.fn().mockImplementation((storeName) => {
+		getAll: jest.fn().mockImplementation((storeName: string) => {
 			const store = mockStore[storeName];
 			return Promise.resolve(store ? Array.from(store.values()) : []);
 		}),
-		getAllFromIndex: jest.fn().mockImplementation((storeName) => {
+		getAllFromIndex: jest.fn().mockImplementation((storeName: string) => {
 			const store = mockStore[storeName];
 			return Promise.resolve(store ? Array.from(store.values()) : []);
 		}),
-		delete: jest.fn().mockImplementation((storeName, key) => {
+		delete: jest.fn().mockImplementation((storeName: string, key: string) => {
 			const store = mockStore[storeName];
 			if (store) store.delete(key);
 			return Promise.resolve();
 		}),
 		transaction: jest.fn().mockReturnValue({
-			objectStore: jest.fn().mockImplementation((storeName) => ({
+			objectStore: jest.fn().mockImplementation((storeName: string) => ({
 				clear: jest.fn().mockImplementation(() => {
 					if (mockStore[storeName]) mockStore[storeName].clear();
 					return Promise.resolve();
 				}),
-				put: jest.fn().mockImplementation((data, key) => {
-					const actualKey = key || data.id || data.userId || "default";
-					if (mockStore[storeName]) mockStore[storeName].set(actualKey, data);
-					return Promise.resolve(actualKey);
-				}),
-				get: jest.fn().mockImplementation((key) => {
+				put: jest
+					.fn()
+					.mockImplementation(
+						(data: { id?: string; userId?: string }, key?: string) => {
+							const actualKey = key || data.id || data.userId || "default";
+							if (mockStore[storeName])
+								mockStore[storeName].set(actualKey, data);
+							return Promise.resolve(actualKey);
+						},
+					),
+				get: jest.fn().mockImplementation((key: string) => {
 					const store = mockStore[storeName];
 					return Promise.resolve(store ? store.get(key) : undefined);
 				}),
-				delete: jest.fn().mockImplementation((key) => {
+				delete: jest.fn().mockImplementation((key: string) => {
 					if (mockStore[storeName]) mockStore[storeName].delete(key);
 					return Promise.resolve();
 				}),
@@ -212,8 +224,13 @@ const mockMediaRecorder = jest.fn().mockImplementation(() => ({
 	onstop: null,
 }));
 
-// biome-ignore lint/suspicious/noExplicitAny: Adding static method to mock
-(mockMediaRecorder as any).isTypeSupported = jest.fn().mockReturnValue(true);
+interface MockMediaRecorderType extends jest.Mock {
+	isTypeSupported?: jest.Mock<boolean, [string]>;
+}
+
+(mockMediaRecorder as MockMediaRecorderType).isTypeSupported = jest
+	.fn()
+	.mockReturnValue(true);
 
 Object.defineProperty(window, "MediaRecorder", {
 	value: mockMediaRecorder,

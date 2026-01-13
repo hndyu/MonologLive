@@ -456,8 +456,11 @@ describe("Audio Recording and Storage Properties", () => {
 		});
 
 		// Add static method to mock
-		// biome-ignore lint/suspicious/noExplicitAny: Mock static property assignment
-		(mockMediaRecorder as any).isTypeSupported = jest
+		interface MockMediaRecorderConstructor extends jest.Mock {
+			isTypeSupported?: jest.Mock<boolean, [string]>;
+		}
+
+		(mockMediaRecorder as MockMediaRecorderConstructor).isTypeSupported = jest
 			.fn()
 			.mockReturnValue(true);
 

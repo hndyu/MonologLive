@@ -13,21 +13,20 @@ export class TestDebugHelper {
 	 */
 	static formatPropertyFailure(
 		testName: string,
-		// biome-ignore lint/suspicious/noExplicitAny: Error can be any type
-		error: any,
-		// biome-ignore lint/suspicious/noExplicitAny: Counterexample can be any type
-		counterExample?: any,
+		error: unknown,
+		counterExample?: unknown,
 	): string {
 		let message = `
 --- PROPERTY TEST FAILURE: ${testName} ---
 `;
-		message += `Error: ${error.message || error}\n`;
+		const errorObj = error as { message?: string; stack?: string };
+		message += `Error: ${errorObj.message || String(error)}\n`;
 
 		if (counterExample) {
 			message += `Counterexample: ${JSON.stringify(counterExample, null, 2)}\n`;
 		}
 
-		message += `Stack: ${error.stack || "N/A"}\n`;
+		message += `Stack: ${errorObj.stack || "N/A"}\n`;
 		message += `-------------------------------------------\n`;
 
 		return message;
@@ -59,8 +58,7 @@ export class TestDebugHelper {
 	/**
 	 * Inspects a state object for potential issues (like NaN values)
 	 */
-	// biome-ignore lint/suspicious/noExplicitAny: State can be any structure
-	static inspectState(state: any, path: string = "root"): string[] {
+	static inspectState(state: unknown, path: string = "root"): string[] {
 		const issues: string[] = [];
 
 		if (state === null || state === undefined) return issues;
@@ -68,9 +66,10 @@ export class TestDebugHelper {
 		if (typeof state === "number" && Number.isNaN(state)) {
 			issues.push(`NaN value detected at '${path}'`);
 		} else if (typeof state === "object") {
-			for (const key in state) {
+			const obj = state as Record<string, unknown>;
+			for (const key in obj) {
 				issues.push(
-					...TestDebugHelper.inspectState(state[key], `${path}.${key}`),
+					...TestDebugHelper.inspectState(obj[key], `${path}.${key}`),
 				);
 			}
 		}

@@ -338,7 +338,7 @@ export class MonologLiveApp {
 			// Run transcription
 			const result = await this.whisper.transcribeAudio(audioFile);
 
-			if (result && result.text) {
+			if (result?.text) {
 				// Add to display with special marker
 				this.transcriptionDisplay.addTranscript(
 					`✨ [Enhanced] ${result.text}`,

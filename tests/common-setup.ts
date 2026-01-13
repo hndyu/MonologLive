@@ -89,8 +89,12 @@ export class CommonTestUtils {
 			onstop: null,
 			onerror: null,
 		}));
-		// biome-ignore lint/suspicious/noExplicitAny: Mocking internal property
-		(mockMediaRecorder as any).isTypeSupported = jest
+
+		interface MockMediaRecorderType extends jest.Mock {
+			isTypeSupported?: jest.Mock<boolean, [string]>;
+		}
+
+		(mockMediaRecorder as MockMediaRecorderType).isTypeSupported = jest
 			.fn()
 			.mockReturnValue(true);
 

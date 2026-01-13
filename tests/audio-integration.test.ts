@@ -1,4 +1,21 @@
+import type { LocalAudioManager } from "../src/audio/audio-manager";
+import type { WebAudioRecorder } from "../src/audio/audio-recorder";
 import { MonologLiveApp } from "../src/main";
+import type { WhisperTranscription } from "../src/transcription/enhanced-transcription";
+import type { AudioFile } from "../src/types/core";
+import type { TranscriptionDisplay } from "../src/ui/transcription-display";
+
+// Interface to access private members for testing
+interface PrivateMonologLiveApp {
+	startSession(): Promise<void>;
+	stopSession(): Promise<void>;
+	runEnhancedTranscription(): Promise<void>;
+	audioRecorder: WebAudioRecorder;
+	audioManager: LocalAudioManager;
+	whisper: WhisperTranscription;
+	transcriptionDisplay: TranscriptionDisplay;
+	currentSessionId: string | null;
+}
 
 // Mock DOM elements required for initialization
 document.body.innerHTML = `
@@ -17,9 +34,11 @@ document.body.innerHTML = `
 
 describe("MonologLiveApp Audio Integration", () => {
 	let app: MonologLiveApp;
+	let privateApp: PrivateMonologLiveApp;
 
 	beforeEach(() => {
 		app = new MonologLiveApp();
+		privateApp = app as unknown as PrivateMonologLiveApp;
 	});
 
 	it("should instantiate LocalAudioManager and WebAudioRecorder", async () => {
@@ -46,7 +65,7 @@ describe("MonologLiveApp Audio Integration", () => {
 		const startSpy = jest.spyOn(audioRecorder, "startRecording");
 
 		// Access private method for testing session start
-		await (app as any).startSession();
+		await privateApp.startSession();
 
 		expect(startSpy).toHaveBeenCalled();
 	});
@@ -56,7 +75,7 @@ describe("MonologLiveApp Audio Integration", () => {
 		const audioRecorder = app.getAudioRecorder();
 		const audioManager = app.getAudioManager();
 
-		const mockAudioFile = {
+		const mockAudioFile: AudioFile = {
 			id: "test-audio-id",
 			sessionId: "",
 			filename: "test.webm",
@@ -65,19 +84,24 @@ describe("MonologLiveApp Audio Integration", () => {
 			size: 1024,
 			createdAt: new Date(),
 			blob: new Blob(["test data"], { type: "audio/webm" }),
+			quality: {
+				bitrate: 128000,
+				sampleRate: 44100,
+				channels: 1,
+			},
 		};
 
 		const stopSpy = jest
 			.spyOn(audioRecorder, "stopRecording")
-			.mockResolvedValue(mockAudioFile as any);
+			.mockResolvedValue(mockAudioFile);
 		const saveSpy = jest
 			.spyOn(audioManager, "saveAudioFile")
 			.mockResolvedValue("test-audio-id");
 
 		// Start session first
-		await (app as any).startSession();
+		await privateApp.startSession();
 		// Stop session
-		await (app as any).stopSession();
+		await privateApp.stopSession();
 
 		expect(stopSpy).toHaveBeenCalled();
 		expect(saveSpy).toHaveBeenCalledWith(
@@ -93,17 +117,27 @@ describe("MonologLiveApp Audio Integration", () => {
 
 		await app.initialize();
 
-		const mockAudioFile = { id: "id", blob: new Blob() };
+		const mockAudioFile: AudioFile = {
+			id: "id",
+			sessionId: "",
+			filename: "test.webm",
+			format: "webm",
+			duration: 1,
+			size: 100,
+			createdAt: new Date(),
+			blob: new Blob(),
+			quality: { bitrate: 128000, sampleRate: 44100, channels: 1 },
+		};
 		jest
-			.spyOn((app as any).audioRecorder, "stopRecording")
-			.mockResolvedValue(mockAudioFile as any);
+			.spyOn(privateApp.audioRecorder, "stopRecording")
+			.mockResolvedValue(mockAudioFile);
 		jest
-			.spyOn((app as any).audioManager, "saveAudioFile")
+			.spyOn(privateApp.audioManager, "saveAudioFile")
 			.mockResolvedValue("id");
 
 		// Start and Stop
-		await (app as any).startSession();
-		await (app as any).stopSession();
+		await privateApp.startSession();
+		await privateApp.stopSession();
 
 		const btn = document.getElementById("enhanced-transcribe-btn");
 		expect(btn?.style.display).not.toBe("none");
@@ -119,28 +153,39 @@ describe("MonologLiveApp Audio Integration", () => {
 		await app.initialize();
 
 		// Mock components
-		const mockAudioFile = { id: "test-session", blob: new Blob() };
-		(app as any).currentSessionId = "test-session";
+		const mockAudioFile: AudioFile = {
+			id: "test-session",
+			sessionId: "test-session",
+			filename: "test.webm",
+			format: "webm",
+			duration: 1,
+			size: 100,
+			createdAt: new Date(),
+			blob: new Blob(),
+			quality: { bitrate: 128000, sampleRate: 44100, channels: 1 },
+		};
+		privateApp.currentSessionId = "test-session";
 
 		jest
-			.spyOn((app as any).audioManager, "getAudioFilesBySession")
+			.spyOn(privateApp.audioManager, "getAudioFilesBySession")
 			.mockResolvedValue([mockAudioFile]);
-		jest.spyOn((app as any).whisper, "isAvailable").mockReturnValue(true);
+		jest.spyOn(privateApp.whisper, "isAvailable").mockReturnValue(true);
 		const transcribeSpy = jest
-			.spyOn((app as any).whisper, "transcribeAudio")
+			.spyOn(privateApp.whisper, "transcribeAudio")
 			.mockResolvedValue({
 				text: "Hello from Whisper",
 				language: "en",
-				duration: 1.0,
+				processingTime: 1.0,
+				confidence: 1.0,
 				segments: [],
 			});
 		const displaySpy = jest.spyOn(
-			(app as any).transcriptionDisplay,
+			privateApp.transcriptionDisplay,
 			"addTranscript",
 		);
 
 		// Run
-		await (app as any).runEnhancedTranscription();
+		await privateApp.runEnhancedTranscription();
 
 		expect(transcribeSpy).toHaveBeenCalledWith(mockAudioFile);
 		expect(displaySpy).toHaveBeenCalledWith(
