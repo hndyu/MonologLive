@@ -67,6 +67,9 @@ export class MonologLiveApp {
 			// Set up event handlers
 			this.setupEventHandlers();
 
+			// Ensure topic manager is ready
+			this.topicManager.reset();
+
 			this.updateStatus("System ready", "ready");
 			console.log("MONOLOG LIVE initialized successfully");
 		} catch (error) {

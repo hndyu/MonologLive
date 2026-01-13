@@ -48,4 +48,14 @@ describe("MonologLiveApp Instantiation", () => {
 		expect(topicManager).toBeDefined();
 		expect(topicManager).toBeInstanceOf(TopicManager);
 	});
+
+	it("should update status to ready after initialization", async () => {
+		await app.initialize();
+
+		const statusText = document.getElementById("status-text");
+		const statusIndicator = document.getElementById("status-indicator");
+
+		expect(statusText?.textContent).toBe("System ready");
+		expect(statusIndicator?.className).toBe("ready");
+	});
 });
