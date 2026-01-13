@@ -157,4 +157,38 @@ describe("Session Data Tracking - Integration Tests", () => {
 			}),
 		);
 	});
+
+	test("Should update TopicManager when TopicField triggers onTopicSubmit", async () => {
+		const topicManager = app.getTopicManager();
+		const testTopic = "Integrated Testing Topic";
+
+		// TopicField creates its own elements inside topic-mount
+		// We need to find the actual input element it created
+		const topicMount = document.getElementById("topic-mount");
+		const topicInput = topicMount?.querySelector(
+			"input.topic-input",
+		) as HTMLInputElement;
+
+		if (topicInput) {
+			topicInput.value = testTopic;
+
+			// Trigger input event to update internal state
+			topicInput.dispatchEvent(new Event("input", { bubbles: true }));
+
+			// Simulate Enter key to trigger submitTopic()
+			const event = new KeyboardEvent("keydown", {
+				key: "Enter",
+				code: "Enter",
+				keyCode: 13,
+				which: 13,
+				bubbles: true,
+			});
+			topicInput.dispatchEvent(event);
+		} else {
+			throw new Error("Could not find topic input created by TopicField");
+		}
+
+		// Verify topicManager was updated
+		expect(topicManager.getCurrentTopic()).toBe(testTopic);
+	});
 });

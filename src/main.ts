@@ -127,9 +127,28 @@ export class MonologLiveApp {
 		const topicMount = document.getElementById("topic-mount");
 		if (topicMount) {
 			this.topicField = new TopicField(topicMount, {
-				onTopicChange: (topic) => console.log("Topic changed:", topic),
-				onTopicSubmit: (topic) => console.log("Topic submitted:", topic),
-				onTopicClear: () => console.log("Topic cleared"),
+				onTopicChange: (topic) => {
+					console.log("Topic changed:", topic);
+					this.topicManager.setTopic(topic, "user_input");
+				},
+				onTopicSubmit: (topic) => {
+					console.log("Topic submitted:", topic);
+					this.topicManager.setTopic(topic, "user_input");
+
+					// If session is running, add interaction
+					if (this.isRunning && this.currentSessionId) {
+						this.sessionManager.addUserInteraction(this.currentSessionId, {
+							commentId: "topic_change",
+							type: "pickup",
+							timestamp: new Date(),
+							confidence: 1.0,
+						});
+					}
+				},
+				onTopicClear: () => {
+					console.log("Topic cleared");
+					this.topicManager.setTopic(null, "user_input");
+				},
 			});
 		}
 
