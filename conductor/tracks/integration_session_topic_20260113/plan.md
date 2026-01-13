@@ -15,7 +15,7 @@
 - [x] Task: Update `voiceManager.onTranscript` to save transcript segments via `SessionManager.addTranscriptSegment()`. [c182593]
 - [x] Task: Update `commentSystem.generateComment` flow to save generated comments via `SessionManager.addComment()`. [d8007d0]
 - [x] Task: Integrate `TopicField` with `TopicManager` to handle topic updates and influence context. [21f0a54]
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Real-time Data Tracking' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Real-time Data Tracking' (Protocol in workflow.md)
 
 ## Phase 4: Post-Session Features & UI
 - [ ] Task: Implement a "Session Summary" notification or display after `stopSession`.
