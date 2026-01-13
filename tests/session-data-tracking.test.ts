@@ -1,0 +1,122 @@
+import { MonologLiveApp } from "../src/main";
+import type { IndexedDBWrapper } from "../src/storage/indexeddb-wrapper";
+
+describe("Session Data Tracking - Integration Tests", () => {
+	let app: MonologLiveApp;
+	let mockRecognition: {
+		start: jest.Mock;
+		stop: jest.Mock;
+		abort: jest.Mock;
+		// biome-ignore lint/suspicious/noExplicitAny: Mocking SpeechRecognition event
+		onresult: null | ((event: any) => void);
+		// biome-ignore lint/suspicious/noExplicitAny: Mocking SpeechRecognition error
+		onerror: null | ((event: any) => void);
+		onend: null | (() => void);
+		onstart: null | (() => void);
+	};
+	let originalSpeechRecognition: unknown;
+
+	beforeEach(async () => {
+		// Mock DOM elements
+		document.body.innerHTML = `
+			<button id="start-btn"></button>
+			<button id="stop-btn"></button>
+			<button id="enhanced-transcribe-btn"></button>
+			<button id="preferences-btn"></button>
+			<button id="close-preferences"></button>
+			<div id="preferences-modal"></div>
+			<div id="transcription-area"></div>
+			<div id="comment-mount"></div>
+			<div id="topic-mount"></div>	
+			<div id="preferences-mount"></div>
+			<div id="status-indicator"></div>
+			<div id="topic-field">
+				<input type="text" id="topic-input" />
+				<button id="update-topic-btn"></button>
+			</div>
+		`;
+
+		// Mock SpeechRecognition
+		mockRecognition = {
+			start: jest.fn(),
+			stop: jest.fn(),
+			abort: jest.fn(),
+			onresult: null,
+			onerror: null,
+			onend: null,
+			onstart: null,
+		};
+
+		// biome-ignore lint/suspicious/noExplicitAny: Mocking global SpeechRecognition
+		originalSpeechRecognition = (window as any).SpeechRecognition;
+		// biome-ignore lint/suspicious/noExplicitAny: Mocking global SpeechRecognition
+		(window as any).SpeechRecognition = jest.fn(() => mockRecognition);
+		// biome-ignore lint/suspicious/noExplicitAny: Mocking global SpeechRecognition
+		(window as any).webkitSpeechRecognition = (window as any).SpeechRecognition;
+
+		// Initialize app
+		app = new MonologLiveApp();
+
+		// Mock onTranscript before initialization to capture the callback
+		// biome-ignore lint/suspicious/noExplicitAny: Accessing private voiceManager for testing
+		jest.spyOn((app as any).voiceManager, "onTranscript");
+
+		await app.initialize();
+	});
+
+	afterEach(async () => {
+		// Restore original SpeechRecognition
+		// biome-ignore lint/suspicious/noExplicitAny: Restoring global SpeechRecognition
+		(window as any).SpeechRecognition = originalSpeechRecognition;
+		// biome-ignore lint/suspicious/noExplicitAny: Restoring global SpeechRecognition
+		(window as any).webkitSpeechRecognition = originalSpeechRecognition;
+
+		// biome-ignore lint/suspicious/noExplicitAny: Accessing private storage for testing
+		const storage = (app as any).storage as IndexedDBWrapper;
+		await storage.clearAllData();
+	});
+
+	test("Should save transcript segments to SessionManager when onTranscript is called with isFinal=true", async () => {
+		const sessionManager = app.getSessionManager();
+		const addTranscriptSegmentSpy = jest.spyOn(
+			sessionManager,
+			"addTranscriptSegment",
+		);
+
+		// Start session
+		const startBtn = document.getElementById("start-btn");
+		startBtn?.click();
+
+		// Wait for async startSession to complete (it's async but called from event listener)
+		// We need to wait a bit or call it directly
+		// biome-ignore lint/suspicious/noExplicitAny: Accessing private startSession for testing
+		await (app as any).startSession();
+
+		// biome-ignore lint/suspicious/noExplicitAny: Accessing private currentSessionId for testing
+		const sessionId = (app as any).currentSessionId;
+		expect(sessionId).toBeDefined();
+
+		// Simulate voice transcript
+		const testText = "Hello, this is a test transcript.";
+
+		// Capture the callback passed to onTranscript
+		// Since we want to test the integration in main.ts
+		// biome-ignore lint/suspicious/noExplicitAny: Accessing private voiceManager for testing
+		const voiceManager = (app as any).voiceManager;
+
+		// Simulate a final transcript result
+		const onTranscriptCallback = (voiceManager.onTranscript as jest.Mock).mock
+			.calls[0][0];
+
+		await onTranscriptCallback(testText, true);
+
+		// Verify addTranscriptSegment was called
+		expect(addTranscriptSegmentSpy).toHaveBeenCalledWith(
+			sessionId,
+			expect.objectContaining({
+				text: testText,
+				isFinal: true,
+			}),
+		);
+	});
+});

@@ -135,7 +135,7 @@ export class MonologLiveApp {
 
 		// Initialize Preference UI
 		const preferencesMount = document.getElementById("preferences-mount");
-		const learningSystem = this.commentSystem.getLearningSystem();
+		const learningSystem = this.commentSystem?.getLearningSystem();
 		if (preferencesMount && learningSystem) {
 			this.preferenceUI = new PreferenceManagementUI(
 				preferencesMount,
@@ -175,19 +175,32 @@ export class MonologLiveApp {
 				this.transcriptionDisplay.addTranscript(text, isFinal);
 			}
 
-			if (isFinal && this.commentSystem) {
-				const context = {
-					recentTranscript: text,
-					currentTopic: this.topicField?.getCurrentTopic() || "general",
-					userEngagement: "medium" as const,
-					userEngagementLevel: 0.5,
-					speechVolume: 0.5,
-					speechRate: 1.0,
-					silenceDuration: 0,
-					sessionDuration: 0, // Should be tracked
-					commentHistory: [],
-				};
-				await this.commentSystem.generateComment(context);
+			if (isFinal) {
+				// Save transcript segment to session manager
+				if (this.currentSessionId) {
+					this.sessionManager.addTranscriptSegment(this.currentSessionId, {
+						start: Date.now(), // Simplified timing for now
+						end: Date.now(),
+						text: text,
+						confidence: 1.0,
+						isFinal: true,
+					});
+				}
+
+				if (this.commentSystem) {
+					const context = {
+						recentTranscript: text,
+						currentTopic: this.topicField?.getCurrentTopic() || "general",
+						userEngagement: "medium" as const,
+						userEngagementLevel: 0.5,
+						speechVolume: 0.5,
+						speechRate: 1.0,
+						silenceDuration: 0,
+						sessionDuration: 0, // Should be tracked
+						commentHistory: [],
+					};
+					await this.commentSystem.generateComment(context);
+				}
 			}
 		});
 
