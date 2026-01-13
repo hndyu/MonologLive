@@ -38,6 +38,7 @@ export class MonologLiveApp {
 	private whisper: WhisperTranscription;
 	private isRunning = false;
 	private currentSessionId: string | null = null;
+	private lastSessionId: string | null = null;
 
 	constructor() {
 		this.storage = new IndexedDBWrapper();
@@ -314,6 +315,7 @@ export class MonologLiveApp {
 			}
 
 			this.isRunning = false;
+			this.lastSessionId = this.currentSessionId;
 			this.currentSessionId = null;
 			this.updateUIState();
 			this.updateStatus("Session ended", "ready");
@@ -366,7 +368,8 @@ export class MonologLiveApp {
 	}
 
 	private async runEnhancedTranscription(): Promise<void> {
-		if (!this.currentSessionId || !this.whisper.isAvailable()) {
+		const sessionId = this.currentSessionId || this.lastSessionId;
+		if (!sessionId || !this.whisper.isAvailable()) {
 			return;
 		}
 
@@ -382,15 +385,11 @@ export class MonologLiveApp {
 				statusText.textContent = "Enhanced transcription in progress...";
 
 			// Get the audio file for current session
-			const audioFiles = await this.audioManager.getAudioFilesBySession(
-				this.currentSessionId,
-			);
+			const audioFiles =
+				await this.audioManager.getAudioFilesBySession(sessionId);
 
 			if (!audioFiles || audioFiles.length === 0) {
-				console.error(
-					"No audio file found for session:",
-					this.currentSessionId,
-				);
+				console.error("No audio file found for session:", sessionId);
 				if (statusText)
 					statusText.textContent = "No audio recorded for this session.";
 				return;
