@@ -121,6 +121,10 @@ export class SessionManagerImpl implements SessionManager {
 		return await this.summaryGenerator.createSummary(session, apiKey);
 	}
 
+	async getSummary(sessionId: string): Promise<SessionSummary | undefined> {
+		return await this.storage.getSummary(sessionId);
+	}
+
 	getCurrentSession(userId: string): Session | null {
 		return this.activeSessions.get(userId) || null;
 	}

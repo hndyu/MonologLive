@@ -8,4 +8,5 @@ export interface SessionManager {
 	trackActivity(sessionId: string, activity: ActivityEvent): void;
 	generateSummary(session: Session, apiKey?: string): Promise<SessionSummary>;
 	getCurrentSession(userId: string): Session | null;
+	getSummary(sessionId: string): Promise<SessionSummary | undefined>;
 }

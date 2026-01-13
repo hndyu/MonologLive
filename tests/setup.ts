@@ -110,15 +110,18 @@ jest.mock("idb", () => ({
 			.mockImplementation(
 				(
 					storeName: string,
-					data: { id?: string; userId?: string },
+					data: { id?: string; userId?: string; sessionId?: string },
 					key?: string,
 				) => {
 					const store = mockStore[storeName];
 					if (store) {
-						const actualKey = key || data.id || data.userId || "default";
+						const actualKey =
+							key || data.id || data.userId || data.sessionId || "default";
 						store.set(actualKey, data);
 					}
-					return Promise.resolve(key);
+					return Promise.resolve(
+						key || data.id || data.userId || data.sessionId,
+					);
 				},
 			),
 		get: jest.fn().mockImplementation((storeName: string, key: string) => {
@@ -147,8 +150,12 @@ jest.mock("idb", () => ({
 				put: jest
 					.fn()
 					.mockImplementation(
-						(data: { id?: string; userId?: string }, key?: string) => {
-							const actualKey = key || data.id || data.userId || "default";
+						(
+							data: { id?: string; userId?: string; sessionId?: string },
+							key?: string,
+						) => {
+							const actualKey =
+								key || data.id || data.userId || data.sessionId || "default";
 							if (mockStore[storeName])
 								mockStore[storeName].set(actualKey, data);
 							return Promise.resolve(actualKey);
