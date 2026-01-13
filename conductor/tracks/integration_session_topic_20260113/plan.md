@@ -18,7 +18,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Real-time Data Tracking' (Protocol in workflow.md)
 
 ## Phase 4: Post-Session Features & UI
-- [ ] Task: Implement a "Session Summary" notification or display after `stopSession`.
+- [~] Task: Implement a "Session Summary" notification or display after `stopSession`.
 - [ ] Task: Add "Enhance Transcription" button/option to the UI after session end.
 - [ ] Task: Connect "Enhance Transcription" to `SummaryGenerator.enhanceTranscript()`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Post-Session Features & UI' (Protocol in workflow.md)

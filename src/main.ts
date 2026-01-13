@@ -1,6 +1,7 @@
 // Main entry point for MONOLOG LIVE
 import "./ui/comment-display.css";
 import "./ui/transcription-display.css";
+import "./ui/session-summary.css";
 
 import { LocalAudioManager } from "./audio/audio-manager";
 import { WebAudioRecorder } from "./audio/audio-recorder";
@@ -16,6 +17,7 @@ import {
 } from "./summary/summary-generator.js";
 import { WhisperTranscription } from "./transcription/enhanced-transcription";
 import { PreferenceManagementUI } from "./ui/preference-management.js";
+import { SessionSummaryUI } from "./ui/session-summary.js";
 import { TopicField } from "./ui/topic-field.js";
 import { TranscriptionDisplay } from "./ui/transcription-display.js";
 import { WebSpeechVoiceInputManager } from "./voice/voice-input-manager.js";
@@ -27,6 +29,7 @@ export class MonologLiveApp {
 	private commentSystem!: CommentSystem;
 	private topicField!: TopicField;
 	private preferenceUI!: PreferenceManagementUI;
+	private summaryUI!: SessionSummaryUI;
 	private summaryGenerator: SummaryGenerator;
 	private sessionManager: SessionManagerImpl;
 	private topicManager: TopicManager;
@@ -161,6 +164,12 @@ export class MonologLiveApp {
 				learningSystem,
 			);
 		}
+
+		// Initialize Summary UI
+		const summaryMount = document.getElementById("summary-mount");
+		if (summaryMount) {
+			this.summaryUI = new SessionSummaryUI(summaryMount);
+		}
 	}
 
 	private setupEventHandlers(): void {
@@ -293,7 +302,15 @@ export class MonologLiveApp {
 
 			// End the session in SessionManager
 			if (this.currentSessionId) {
-				await this.sessionManager.endSession(this.currentSessionId);
+				const summary = await this.sessionManager.endSession(
+					this.currentSessionId,
+				);
+				console.log("Session summary generated:", summary);
+
+				// Show summary UI
+				if (this.summaryUI) {
+					this.summaryUI.show(summary);
+				}
 			}
 
 			this.isRunning = false;
