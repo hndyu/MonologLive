@@ -2,6 +2,8 @@
 import "./ui/comment-display.css";
 import "./ui/transcription-display.css";
 
+import { LocalAudioManager } from "./audio/audio-manager";
+import { WebAudioRecorder } from "./audio/audio-recorder";
 import { CommentSystem } from "./comment-generation/comment-system.js";
 import type { SummaryGenerator } from "./interfaces/summary-generation.js";
 import { SessionManagerImpl } from "./session/session-manager.js";
@@ -12,6 +14,7 @@ import {
 	BasicTopicExtractor,
 	SummaryGeneratorImpl,
 } from "./summary/summary-generator.js";
+import { WhisperTranscription } from "./transcription/enhanced-transcription";
 import { PreferenceManagementUI } from "./ui/preference-management.js";
 import { TopicField } from "./ui/topic-field.js";
 import { TranscriptionDisplay } from "./ui/transcription-display.js";
@@ -27,12 +30,18 @@ export class MonologLiveApp {
 	private summaryGenerator: SummaryGenerator;
 	private sessionManager: SessionManagerImpl;
 	private topicManager: TopicManager;
+	private audioManager: LocalAudioManager;
+	private audioRecorder: WebAudioRecorder;
+	private whisper: WhisperTranscription;
 	private isRunning = false;
 	private currentSessionId: string | null = null;
 
 	constructor() {
 		this.storage = new IndexedDBWrapper();
 		this.voiceManager = new WebSpeechVoiceInputManager();
+		this.audioRecorder = new WebAudioRecorder();
+		this.audioManager = new LocalAudioManager(this.storage);
+		this.whisper = new WhisperTranscription();
 		this.summaryGenerator = new SummaryGeneratorImpl(
 			new BasicTopicExtractor(),
 			new BasicInsightGenerator(),
@@ -56,6 +65,18 @@ export class MonologLiveApp {
 		return this.topicManager;
 	}
 
+	public getAudioManager(): LocalAudioManager {
+		return this.audioManager;
+	}
+
+	public getAudioRecorder(): WebAudioRecorder {
+		return this.audioRecorder;
+	}
+
+	public getWhisper(): WhisperTranscription {
+		return this.whisper;
+	}
+
 	async initialize(): Promise<void> {
 		try {
 			// Initialize storage
@@ -69,6 +90,13 @@ export class MonologLiveApp {
 
 			// Ensure topic manager is ready
 			this.topicManager.reset();
+
+			// Check audio recording support
+			if (!this.audioRecorder.isSupported()) {
+				console.warn("Audio recording is not supported in this browser.");
+			} else {
+				console.log("Audio recording supported.");
+			}
 
 			this.updateStatus("System ready", "ready");
 			console.log("MONOLOG LIVE initialized successfully");
