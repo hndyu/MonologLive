@@ -289,3 +289,8 @@ Object.defineProperty(navigator, "storage", {
 	},
 	writable: true,
 });
+
+// Mock env-helper
+jest.mock("../src/utils/env-helper", () => ({
+	getEnvVar: jest.fn().mockImplementation((key: string) => process.env[key]),
+}));

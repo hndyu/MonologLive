@@ -21,6 +21,7 @@ import { PreferenceManagementUI } from "./ui/preference-management.js";
 import { SessionSummaryUI } from "./ui/session-summary.js";
 import { TopicField } from "./ui/topic-field.js";
 import { TranscriptionDisplay } from "./ui/transcription-display.js";
+import { getEnvVar } from "./utils/env-helper.js";
 import { WebSpeechVoiceInputManager } from "./voice/voice-input-manager.js";
 
 export class MonologLiveApp {
@@ -309,8 +310,7 @@ export class MonologLiveApp {
 				// Get Gemini API key from localStorage or environment
 				const apiKey =
 					localStorage.getItem("GEMINI_API_KEY") ||
-					// biome-ignore lint/suspicious/noExplicitAny: ImportMeta might not have env in some environments
-					(import.meta as any).env?.VITE_GEMINI_API_KEY;
+					getEnvVar("VITE_GEMINI_API_KEY");
 
 				const summary = await this.sessionManager.endSession(
 					this.currentSessionId,
