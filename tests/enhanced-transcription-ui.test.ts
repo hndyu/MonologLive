@@ -77,7 +77,9 @@ describe("MonologLiveApp - Enhanced Transcription UI", () => {
 			{ id: "file1" },
 		]);
 		// @ts-expect-error
-		app.whisper.transcribeAudio.mockResolvedValue({ text: "Enhanced text" });
+		app.sessionManager.getSessionById.mockResolvedValue({ transcript: [] });
+		// @ts-expect-error
+		app.summaryGenerator.enhanceTranscript.mockResolvedValue("Enhanced text");
 
 		// Stop session
 		// @ts-expect-error
@@ -88,6 +90,6 @@ describe("MonologLiveApp - Enhanced Transcription UI", () => {
 		await app.runEnhancedTranscription();
 
 		// @ts-expect-error
-		expect(app.whisper.transcribeAudio).toHaveBeenCalled();
+		expect(app.summaryGenerator.enhanceTranscript).toHaveBeenCalled();
 	});
 });

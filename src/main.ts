@@ -397,13 +397,24 @@ export class MonologLiveApp {
 
 			const audioFile = audioFiles[0];
 
-			// Run transcription
-			const result = await this.whisper.transcribeAudio(audioFile);
+			// Get raw transcript from session to compare
+			const session = await this.sessionManager.getSessionById(sessionId);
+			const rawTranscript =
+				session?.transcript
+					.filter((s) => s.isFinal)
+					.map((s) => s.text)
+					.join(" ") || "";
 
-			if (result?.text) {
+			// Run transcription via summary generator for quality comparison
+			const enhancedText = await this.summaryGenerator.enhanceTranscript(
+				rawTranscript,
+				audioFile,
+			);
+
+			if (enhancedText) {
 				// Add to display with special marker
 				this.transcriptionDisplay.addTranscript(
-					`✨ [Enhanced] ${result.text}`,
+					`✨ [Enhanced] ${enhancedText}`,
 					true,
 				);
 				if (statusText) statusText.textContent = "Transcription complete!";
