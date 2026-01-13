@@ -3,25 +3,40 @@ import "./ui/comment-display.css";
 import "./ui/transcription-display.css";
 
 import { CommentSystem } from "./comment-generation/comment-system.js";
+import type { SummaryGenerator } from "./interfaces/summary-generation.js";
 import { IndexedDBWrapper } from "./storage/indexeddb-wrapper.js";
+import {
+	BasicInsightGenerator,
+	BasicTopicExtractor,
+	SummaryGeneratorImpl,
+} from "./summary/summary-generator.js";
 import { PreferenceManagementUI } from "./ui/preference-management.js";
 import { TopicField } from "./ui/topic-field.js";
 import { TranscriptionDisplay } from "./ui/transcription-display.js";
 import { WebSpeechVoiceInputManager } from "./voice/voice-input-manager.js";
 
-class MonologLiveApp {
+export class MonologLiveApp {
 	private storage: IndexedDBWrapper;
 	private voiceManager: WebSpeechVoiceInputManager;
 	private transcriptionDisplay!: TranscriptionDisplay;
 	private commentSystem!: CommentSystem;
 	private topicField!: TopicField;
 	private preferenceUI!: PreferenceManagementUI;
+	private summaryGenerator: SummaryGenerator;
 	private isRunning = false;
 	private currentSessionId: string | null = null;
 
 	constructor() {
 		this.storage = new IndexedDBWrapper();
 		this.voiceManager = new WebSpeechVoiceInputManager();
+		this.summaryGenerator = new SummaryGeneratorImpl(
+			new BasicTopicExtractor(),
+			new BasicInsightGenerator(),
+		);
+	}
+
+	public getSummaryGenerator(): SummaryGenerator {
+		return this.summaryGenerator;
 	}
 
 	async initialize(): Promise<void> {

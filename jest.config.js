@@ -19,6 +19,7 @@ export default {
 		"^@huggingface/transformers$":
 			"<rootDir>/tests/__mocks__/@huggingface/transformers.ts",
 		"webllm-processor$": "<rootDir>/tests/__mocks__/webllm-processor.ts",
+		"\\.(css|less|scss|sass)$": "<rootDir>/tests/__mocks__/styleMock.js",
 		// Map .js extensions to .ts for local imports in ESM projects
 		"^(..*).js$": "$1",
 	},
