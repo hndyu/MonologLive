@@ -17,13 +17,21 @@ describe("SummaryGeneratorImpl - cleanTranscript Japanese support", () => {
 	it("should not strip Japanese characters from transcript", async () => {
 		const japaneseText = "こんにちは、これはテストです。";
 		// Access private method for testing
-		const cleaned = (summaryGenerator as any).cleanTranscript(japaneseText);
+		const cleaned = (
+			summaryGenerator as unknown as {
+				cleanTranscript: (t: string) => string;
+			}
+		).cleanTranscript(japaneseText);
 		expect(cleaned).toBe(japaneseText);
 	});
 
 	it("should strip only prohibited special characters", async () => {
 		const textWithSpecial = "こんにちは！ Test text @#$%^&*";
-		const cleaned = (summaryGenerator as any).cleanTranscript(textWithSpecial);
+		const cleaned = (
+			summaryGenerator as unknown as {
+				cleanTranscript: (t: string) => string;
+			}
+		).cleanTranscript(textWithSpecial);
 		// Should keep Japanese, alphanumeric, and basic punctuation
 		// @#$%^&* should be removed
 		expect(cleaned).toBe("こんにちは！ Test text");
@@ -31,7 +39,11 @@ describe("SummaryGeneratorImpl - cleanTranscript Japanese support", () => {
 
 	it("should handle mixed English and Japanese correctly", async () => {
 		const mixedText = "今日は sunny ですね。 Let's eat 寿司！";
-		const cleaned = (summaryGenerator as any).cleanTranscript(mixedText);
+		const cleaned = (
+			summaryGenerator as unknown as {
+				cleanTranscript: (t: string) => string;
+			}
+		).cleanTranscript(mixedText);
 		expect(cleaned).toBe(mixedText);
 	});
 });

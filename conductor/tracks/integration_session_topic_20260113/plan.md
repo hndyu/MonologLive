@@ -21,4 +21,4 @@
 - [x] Task: Implement a "Session Summary" notification or display after `stopSession`. [4c9b445]
 - [x] Task: Add "Enhance Transcription" button/option to the UI after session end. [3a10be0]
 - [x] Task: Connect "Enhance Transcription" to `SummaryGenerator.enhanceTranscript()`. [d6e3b34]
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Post-Session Features & UI' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Post-Session Features & UI' (Protocol in workflow.md)

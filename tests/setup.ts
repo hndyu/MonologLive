@@ -205,8 +205,28 @@ Object.defineProperty(window, "webkitSpeechRecognition", {
 });
 
 // Mock MediaRecorder
+interface MockMediaRecorder extends EventTarget {
+	start: jest.Mock;
+	stop: jest.Mock;
+	pause: jest.Mock;
+	resume: jest.Mock;
+	requestData: jest.Mock;
+	state: string;
+	stream: MediaStream;
+	mimeType: string;
+	audioBitsPerSecond: number;
+	videoBitsPerSecond: number;
+	ondataavailable: ((event: BlobEvent) => void) | null;
+	onerror: ((event: Event) => void) | null;
+	onpause: (() => void) | null;
+	onresume: (() => void) | null;
+	onstart: (() => void) | null;
+	onstop: (() => void) | null;
+}
+
 const mockMediaRecorder = jest.fn().mockImplementation((stream, options) => {
-	const mr: any = {
+	const mr: MockMediaRecorder = {
+		...new EventTarget(),
 		start: jest.fn().mockImplementation(() => {
 			mr.state = "recording";
 			if (mr.onstart) mr.onstart();
