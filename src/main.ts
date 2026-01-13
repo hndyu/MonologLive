@@ -10,6 +10,7 @@ import type { SummaryGenerator } from "./interfaces/summary-generation.js";
 import { SessionManagerImpl } from "./session/session-manager.js";
 import { TopicManager } from "./session/topic-manager.js";
 import { IndexedDBWrapper } from "./storage/indexeddb-wrapper.js";
+import { GeminiClientImpl } from "./summary/gemini-client.js";
 import {
 	BasicInsightGenerator,
 	BasicTopicExtractor,
@@ -50,6 +51,7 @@ export class MonologLiveApp {
 			new BasicTopicExtractor(),
 			new BasicInsightGenerator(),
 			this.audioManager,
+			new GeminiClientImpl(),
 		);
 		this.sessionManager = new SessionManagerImpl(
 			this.storage,
@@ -304,8 +306,15 @@ export class MonologLiveApp {
 
 			// End the session in SessionManager
 			if (this.currentSessionId) {
+				// Get Gemini API key from localStorage or environment
+				const apiKey =
+					localStorage.getItem("GEMINI_API_KEY") ||
+					// biome-ignore lint/suspicious/noExplicitAny: ImportMeta might not have env in some environments
+					(import.meta as any).env?.VITE_GEMINI_API_KEY;
+
 				const summary = await this.sessionManager.endSession(
 					this.currentSessionId,
+					apiKey,
 				);
 				console.log("Session summary generated:", summary);
 

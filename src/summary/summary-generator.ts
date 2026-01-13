@@ -15,20 +15,24 @@ import type {
 	Topic,
 	TranscriptSegment,
 } from "../types/core.js";
+import type { GeminiClientImpl } from "./gemini-client";
 
 export class SummaryGeneratorImpl implements SummaryGenerator {
 	private topicExtractor: TopicExtractor;
 	private insightGenerator: InsightGenerator;
 	private audioManager?: LocalAudioManager;
+	private geminiClient?: GeminiClientImpl;
 
 	constructor(
 		topicExtractor: TopicExtractor,
 		insightGenerator: InsightGenerator,
 		audioManager?: LocalAudioManager,
+		geminiClient?: GeminiClientImpl,
 	) {
 		this.topicExtractor = topicExtractor;
 		this.insightGenerator = insightGenerator;
 		this.audioManager = audioManager;
+		this.geminiClient = geminiClient;
 
 		// Initialize enhanced transcription
 		this.initializeEnhancedTranscription();
@@ -103,10 +107,31 @@ export class SummaryGeneratorImpl implements SummaryGenerator {
 		return insights;
 	}
 
-	async createSummary(session: Session): Promise<SessionSummary> {
+	async createSummary(
+		session: Session,
+		apiKey?: string,
+	): Promise<SessionSummary> {
 		// Combine all transcript segments into full text
 		const fullTranscript = this.combineTranscriptSegments(session.transcript);
 
+		// Try to use Gemini API if key is provided and client is available
+		if (apiKey && this.geminiClient) {
+			try {
+				console.log("Using Gemini API for high-quality summary generation");
+				return await this.geminiClient.generateSummary(
+					session.id,
+					fullTranscript,
+					apiKey,
+				);
+			} catch (error) {
+				console.warn(
+					"Gemini summary generation failed, falling back to basic implementation:",
+					error,
+				);
+			}
+		}
+
+		// Basic implementation (fallback)
 		// Try to get audio file for enhanced transcription
 		const audioFile = await this.getSessionAudioFile(session.id);
 

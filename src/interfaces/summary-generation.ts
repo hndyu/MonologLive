@@ -15,7 +15,7 @@ export interface SummaryGenerator {
 	): Promise<string>;
 	extractTopics(transcript: string): Promise<Topic[]>;
 	generateInsights(topics: Topic[]): Promise<Insight[]>;
-	createSummary(session: Session): Promise<SessionSummary>;
+	createSummary(session: Session, apiKey?: string): Promise<SessionSummary>;
 }
 
 export interface TopicExtractor {

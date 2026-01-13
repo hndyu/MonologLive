@@ -50,7 +50,10 @@ export class SessionManagerImpl implements SessionManager {
 		return session;
 	}
 
-	async endSession(sessionId: string): Promise<SessionSummary> {
+	async endSession(
+		sessionId: string,
+		apiKey?: string,
+	): Promise<SessionSummary> {
 		const session = await this.getSessionById(sessionId);
 		if (!session) {
 			throw new Error(`Session ${sessionId} not found`);
@@ -71,7 +74,7 @@ export class SessionManagerImpl implements SessionManager {
 		this.activeSessions.delete(session.userId);
 
 		// Generate summary
-		const summary = await this.generateSummary(session);
+		const summary = await this.generateSummary(session, apiKey);
 
 		// Save summary to storage
 		await this.storage.saveSummary(summary);
@@ -111,8 +114,11 @@ export class SessionManagerImpl implements SessionManager {
 		});
 	}
 
-	async generateSummary(session: Session): Promise<SessionSummary> {
-		return await this.summaryGenerator.createSummary(session);
+	async generateSummary(
+		session: Session,
+		apiKey?: string,
+	): Promise<SessionSummary> {
+		return await this.summaryGenerator.createSummary(session, apiKey);
 	}
 
 	getCurrentSession(userId: string): Session | null {
