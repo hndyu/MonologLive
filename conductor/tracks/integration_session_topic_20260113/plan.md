@@ -9,10 +9,10 @@
 - [x] Task: Implement `startSession` using `SessionManager.startSession()`. [0a196a9]
 - [x] Task: Implement `stopSession` using `SessionManager.endSession()`. [6a3c18d]
 - [x] Task: Update UI state to reflect session start/stop accurately. [e2220ba]
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Session Lifecycle Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Session Lifecycle Integration' (Protocol in workflow.md)
 
 ## Phase 3: Real-time Data Tracking
-- [ ] Task: Update `voiceManager.onTranscript` to save transcript segments via `SessionManager.addTranscriptSegment()`.
+- [x] Task: Update `voiceManager.onTranscript` to save transcript segments via `SessionManager.addTranscriptSegment()`. [c182593]
 - [ ] Task: Update `commentSystem.generateComment` flow to save generated comments via `SessionManager.addComment()`.
 - [ ] Task: Integrate `TopicField` with `TopicManager` to handle topic updates and influence context.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Real-time Data Tracking' (Protocol in workflow.md)
