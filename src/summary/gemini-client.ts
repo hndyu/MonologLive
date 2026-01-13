@@ -5,7 +5,7 @@ import type { SessionSummary } from "../types/core";
  */
 export class GeminiClientImpl {
 	private readonly API_URL =
-		"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+		"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 	/**
 	 * Generates a structured summary from session transcript using Gemini API.
@@ -20,32 +20,22 @@ export class GeminiClientImpl {
 		apiKey: string,
 	): Promise<SessionSummary> {
 		const prompt = `
-      You are an expert AI assistant helping a user build a "Second Brain".
-      Analyze the following transcript from a monologue/conversation session and provide a structured summary in JSON format.
+      あなたは、ユーザーの「セカンドブレイン」構築を支援する、熟練したAIアシスタントです。
+      以下のモノローグ/会話セッションのトランスクリプトを分析し、JSON形式で構造化された要約を作成してください。
 
-      Transcript:
+      トランスクリプト:
       "${transcript}"
 
-      Required JSON structure:
-      {
-        "overallSummary": "A concise summary of the session",
-        "topics": [
-          { "name": "Topic Name", "relevance": 0.0-1.0, "mentions": 1, "sentiment": 0.0 }
-        ],
-        "insights": [
-          { "type": "type_of_insight", "content": "The insight content", "confidence": 0.9 }
-        ]
-      }
-
-      Focus on extracting personal values, interests, and key takeaways for the user's "Second Brain".
-      Respond ONLY with the JSON object.
+      ユーザーの「セカンドブレイン」として、個人的な価値観、興味、そして重要なポイントを抽出することに重点を置いてください。
+      JSONオブジェクトのみで応答してください。
     `;
 
 		try {
-			const response = await fetch(`${this.API_URL}?key=${apiKey}`, {
+			const response = await fetch(`${this.API_URL}`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
+					"x-goog-api-key": `${apiKey}`,
 				},
 				body: JSON.stringify({
 					contents: [
@@ -55,6 +45,69 @@ export class GeminiClientImpl {
 					],
 					generationConfig: {
 						response_mime_type: "application/json",
+						responseJsonSchema: {
+							type: "object",
+							properties: {
+								overallSummary: {
+									type: "string",
+									description: "セッションの簡潔な要約",
+								},
+								topics: {
+									type: "array",
+									items: {
+										type: "object",
+										properties: {
+											name: {
+												type: "string",
+												description: "トピック名",
+											},
+											relevance: {
+												type: "number",
+												description: "トピックの関連度（0.0-1.0）",
+												minimum: 0.0,
+												maximum: 1.0,
+											},
+											mentions: {
+												type: "number",
+												description: "トピックの提唱回数",
+												minimum: 0,
+												maximum: 100,
+											},
+											sentiment: {
+												type: "number",
+												description: "トピックの感情度（-1.0-1.0）",
+												minimum: -1.0,
+												maximum: 1.0,
+											},
+										},
+										required: ["name", "relevance", "mentions", "sentiment"],
+									},
+								},
+								insights: {
+									type: "array",
+									items: {
+										type: "object",
+										properties: {
+											type: {
+												type: "string",
+												description: "インサイトの種類",
+											},
+											content: {
+												type: "string",
+												description: "インサイトの内容",
+											},
+											confidence: {
+												type: "number",
+												description: "インサイトの信頼度（0.0-1.0）",
+												minimum: 0.0,
+												maximum: 1.0,
+											},
+										},
+									},
+								},
+							},
+							required: ["overallSummary", "topics", "insights"],
+						},
 					},
 				}),
 			});

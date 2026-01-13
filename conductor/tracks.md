@@ -9,3 +9,8 @@
 
 ## [x] Track: AudioManager とEnhancedTranscription を統合し、セッション終了後に高精度な文字起こしをオンデマンドで実行可能にする
 *Link: [./conductor/tracks/audio_transcription_integration_20260113/](./conductor/tracks/audio_transcription_integration_20260113/)*
+
+---
+
+## [~] Track: Summary Generation Integration & Persistence
+*Link: [./conductor/tracks/summary_persistence_20260113/](./conductor/tracks/summary_persistence_20260113/)*

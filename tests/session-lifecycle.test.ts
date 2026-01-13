@@ -68,7 +68,7 @@ describe("Session Lifecycle Integration", () => {
 		// @ts-expect-error
 		await app.stopSession();
 
-		expect(endSessionSpy).toHaveBeenCalledWith(sessionId);
+		expect(endSessionSpy).toHaveBeenCalledWith(sessionId, undefined);
 	});
 
 	it("should set isRunning to false and reset currentSessionId when session stops", async () => {

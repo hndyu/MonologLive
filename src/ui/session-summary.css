@@ -91,6 +91,10 @@
     font-size: 1.2rem;
 }
 
+.insight-text {
+    color: #444;
+}
+
 .close-summary-btn {
     margin-top: 1rem;
     width: 100%;
