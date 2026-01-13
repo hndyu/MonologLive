@@ -199,7 +199,12 @@ export class MonologLiveApp {
 						sessionDuration: 0, // Should be tracked
 						commentHistory: [],
 					};
-					await this.commentSystem.generateComment(context);
+					const comment = await this.commentSystem.generateComment(context);
+
+					// Save comment to session manager if generated
+					if (this.currentSessionId && comment) {
+						this.sessionManager.addComment(this.currentSessionId, comment);
+					}
 				}
 			}
 		});

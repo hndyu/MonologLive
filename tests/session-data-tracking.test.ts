@@ -119,4 +119,42 @@ describe("Session Data Tracking - Integration Tests", () => {
 			}),
 		);
 	});
+
+	test("Should save generated comments to SessionManager when generateComment is called", async () => {
+		const sessionManager = app.getSessionManager();
+		const addCommentSpy = jest.spyOn(sessionManager, "addComment");
+
+		// Start session
+		const startBtn = document.getElementById("start-btn");
+		startBtn?.click();
+
+		// biome-ignore lint/suspicious/noExplicitAny: Accessing private startSession for testing
+		await (app as any).startSession();
+
+		// biome-ignore lint/suspicious/noExplicitAny: Accessing private currentSessionId for testing
+		const sessionId = (app as any).currentSessionId;
+		expect(sessionId).toBeDefined();
+
+		// Simulate voice transcript to trigger comment generation
+		const testText = "Hello, I want to talk about something interesting.";
+
+		// biome-ignore lint/suspicious/noExplicitAny: Accessing private voiceManager for testing
+		const voiceManager = (app as any).voiceManager;
+		const onTranscriptCallback = (voiceManager.onTranscript as jest.Mock).mock
+			.calls[0][0];
+
+		await onTranscriptCallback(testText, true);
+
+		// Wait for any pending async operations (like comment generation)
+		await new Promise((resolve) => setTimeout(resolve, 100));
+
+		// Verify addComment was called
+		expect(addCommentSpy).toHaveBeenCalledWith(
+			sessionId,
+			expect.objectContaining({
+				content: expect.any(String),
+				timestamp: expect.any(Date),
+			}),
+		);
+	});
 });

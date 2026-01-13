@@ -131,9 +131,13 @@ export class AdaptiveFrequencyManager {
 	shouldGenerateComment(): boolean {
 		const now = Date.now();
 
+		// For the first comment, always allow generation
+		if (this.state.lastCommentTime === 0) {
+			return true;
+		}
+
 		// Calculate time since last comment
-		const timeSinceLastComment =
-			this.state.lastCommentTime > 0 ? now - this.state.lastCommentTime : 0;
+		const timeSinceLastComment = now - this.state.lastCommentTime;
 
 		// Calculate expected interval based on current frequency
 		const expectedInterval = (60 * 1000) / this.state.currentFrequency; // milliseconds per comment
