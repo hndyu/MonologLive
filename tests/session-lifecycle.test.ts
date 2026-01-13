@@ -48,6 +48,11 @@ describe("Session Lifecycle Integration", () => {
 		const stopBtn = document.getElementById("stop-btn") as HTMLButtonElement;
 		expect(startBtn.disabled).toBe(true);
 		expect(stopBtn.disabled).toBe(false);
+
+		const statusText = document.getElementById("status-text");
+		const statusIndicator = document.getElementById("status-indicator");
+		expect(statusText?.textContent).toBe("Recording active - Speak naturally");
+		expect(statusIndicator?.className).toBe("running");
 	});
 
 	it("should call sessionManager.endSession when stopSession is called", async () => {
@@ -76,5 +81,15 @@ describe("Session Lifecycle Integration", () => {
 		expect(app.isRunning).toBe(false);
 		// @ts-expect-error
 		expect(app.currentSessionId).toBeNull();
+
+		const startBtn = document.getElementById("start-btn") as HTMLButtonElement;
+		const stopBtn = document.getElementById("stop-btn") as HTMLButtonElement;
+		expect(startBtn.disabled).toBe(false);
+		expect(stopBtn.disabled).toBe(true);
+
+		const statusText = document.getElementById("status-text");
+		const statusIndicator = document.getElementById("status-indicator");
+		expect(statusText?.textContent).toBe("Session ended");
+		expect(statusIndicator?.className).toBe("ready");
 	});
 });
