@@ -14,10 +14,10 @@ Prepare the `MonologLiveApp` class to handle the new audio and transcription com
 ## Phase 2: Audio Recording Lifecycle
 Synchronize the audio recording process with the session start/stop events.
 
-- [ ] Task: Update `startSession()` to trigger `audioRecorder.startRecording()` in parallel with voice manager.
-- [ ] Task: Update `stopSession()` to be `async` and await `audioRecorder.stopRecording()`.
-- [ ] Task: Implement automatic saving of the stopped recording via `audioManager.saveAudioFile()`.
-- [ ] Task: Add error handling for microphone access and storage quota issues.
+- [x] Task: Update `startSession()` to trigger `audioRecorder.startRecording()` in parallel with voice manager. [a7a6272]
+- [x] Task: Update `stopSession()` to be `async` and await `audioRecorder.stopRecording()`. [a7a6272]
+- [x] Task: Implement automatic saving of the stopped recording via `audioManager.saveAudioFile()`. [a7a6272]
+- [x] Task: Add error handling for microphone access and storage quota issues. [a7a6272]
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Audio Recording Lifecycle' (Protocol in workflow.md)
 
 ## Phase 3: UI for Enhanced Transcription
