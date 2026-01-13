@@ -49,4 +49,32 @@ describe("Session Lifecycle Integration", () => {
 		expect(startBtn.disabled).toBe(true);
 		expect(stopBtn.disabled).toBe(false);
 	});
+
+	it("should call sessionManager.endSession when stopSession is called", async () => {
+		const sessionManager = app.getSessionManager();
+		const endSessionSpy = jest.spyOn(sessionManager, "endSession");
+
+		// Start session first
+		// @ts-expect-error
+		await app.startSession();
+		// @ts-expect-error
+		const sessionId = app.currentSessionId;
+
+		// @ts-expect-error
+		await app.stopSession();
+
+		expect(endSessionSpy).toHaveBeenCalledWith(sessionId);
+	});
+
+	it("should set isRunning to false and reset currentSessionId when session stops", async () => {
+		// @ts-expect-error
+		await app.startSession();
+		// @ts-expect-error
+		await app.stopSession();
+
+		// @ts-expect-error
+		expect(app.isRunning).toBe(false);
+		// @ts-expect-error
+		expect(app.currentSessionId).toBeNull();
+	});
 });

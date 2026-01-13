@@ -205,24 +205,33 @@ Object.defineProperty(window, "webkitSpeechRecognition", {
 });
 
 // Mock MediaRecorder
-const mockMediaRecorder = jest.fn().mockImplementation(() => ({
-	start: jest.fn(),
-	stop: jest.fn(),
-	pause: jest.fn(),
-	resume: jest.fn(),
-	requestData: jest.fn(),
-	state: "inactive",
-	stream: null,
-	mimeType: "audio/webm",
-	audioBitsPerSecond: 0,
-	videoBitsPerSecond: 0,
-	ondataavailable: null,
-	onerror: null,
-	onpause: null,
-	onresume: null,
-	onstart: null,
-	onstop: null,
-}));
+const mockMediaRecorder = jest.fn().mockImplementation((stream, options) => {
+	const mr: any = {
+		start: jest.fn().mockImplementation(() => {
+			mr.state = "recording";
+			if (mr.onstart) mr.onstart();
+		}),
+		stop: jest.fn().mockImplementation(() => {
+			mr.state = "inactive";
+			if (mr.onstop) mr.onstop();
+		}),
+		pause: jest.fn(),
+		resume: jest.fn(),
+		requestData: jest.fn(),
+		state: "inactive",
+		stream: stream,
+		mimeType: options?.mimeType || "audio/webm",
+		audioBitsPerSecond: options?.audioBitsPerSecond || 0,
+		videoBitsPerSecond: 0,
+		ondataavailable: null,
+		onerror: null,
+		onpause: null,
+		onresume: null,
+		onstart: null,
+		onstop: null,
+	};
+	return mr;
+});
 
 interface MockMediaRecorderType extends jest.Mock {
 	isTypeSupported?: jest.Mock<boolean, [string]>;

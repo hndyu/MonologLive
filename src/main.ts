@@ -254,6 +254,11 @@ export class MonologLiveApp {
 				this.toggleEnhancedTranscriptionButton(true);
 			}
 
+			// End the session in SessionManager
+			if (this.currentSessionId) {
+				await this.sessionManager.endSession(this.currentSessionId);
+			}
+
 			this.isRunning = false;
 			this.currentSessionId = null;
 			this.updateUIState();
