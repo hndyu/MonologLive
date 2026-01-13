@@ -2,7 +2,7 @@
 
 ---
 
-## [~] Track: index.htmlに統合されていない機能を活かし、サービスが正常に動作するよう統合を行う（特にSession & Topic Management）
+## [x] Track: index.htmlに統合されていない機能を活かし、サービスが正常に動作するよう統合を行う（特にSession & Topic Management）
 *Link: [./conductor/tracks/integration_session_topic_20260113/](./conductor/tracks/integration_session_topic_20260113/)*
 
 ---

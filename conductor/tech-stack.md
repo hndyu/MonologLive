@@ -5,6 +5,7 @@
 - **Frontend/Build:** Vite
 - **Storage:** IndexedDB (via `idb` library)
 - **AI/LLM:** WebLLM (@mlc-ai/web-llm), Hugging Face Transformers (@huggingface/transformers)
+  - 使用モデル: Llama-3 (WebLLM), Whisper (Xenova/whisper-tiny via Transformers.js)
 
 ## APIs
 - **Voice:** Web Speech API (SpeechRecognition)

@@ -170,15 +170,12 @@ describe("MonologLiveApp Audio Integration", () => {
 			.spyOn(privateApp.audioManager, "getAudioFilesBySession")
 			.mockResolvedValue([mockAudioFile]);
 		jest.spyOn(privateApp.whisper, "isAvailable").mockReturnValue(true);
+
+		const summaryGenerator = app.getSummaryGenerator();
 		const transcribeSpy = jest
-			.spyOn(privateApp.whisper, "transcribeAudio")
-			.mockResolvedValue({
-				text: "Hello from Whisper",
-				language: "en",
-				processingTime: 1.0,
-				confidence: 1.0,
-				segments: [],
-			});
+			.spyOn(summaryGenerator, "enhanceTranscript")
+			.mockResolvedValue("Hello from Whisper");
+
 		const displaySpy = jest.spyOn(
 			privateApp.transcriptionDisplay,
 			"addTranscript",
@@ -187,7 +184,10 @@ describe("MonologLiveApp Audio Integration", () => {
 		// Run
 		await privateApp.runEnhancedTranscription();
 
-		expect(transcribeSpy).toHaveBeenCalledWith(mockAudioFile);
+		expect(transcribeSpy).toHaveBeenCalledWith(
+			expect.any(String),
+			mockAudioFile,
+		);
 		expect(displaySpy).toHaveBeenCalledWith(
 			expect.stringContaining("✨ [Enhanced] Hello from Whisper"),
 			true,

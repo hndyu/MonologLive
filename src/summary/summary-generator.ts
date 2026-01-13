@@ -1,5 +1,6 @@
 // Basic summary generation implementation with enhanced transcription support
 
+import type { LocalAudioManager } from "../audio/audio-manager.js";
 import type {
 	InsightGenerator,
 	SummaryGenerator,
@@ -18,13 +19,16 @@ import type {
 export class SummaryGeneratorImpl implements SummaryGenerator {
 	private topicExtractor: TopicExtractor;
 	private insightGenerator: InsightGenerator;
+	private audioManager?: LocalAudioManager;
 
 	constructor(
 		topicExtractor: TopicExtractor,
 		insightGenerator: InsightGenerator,
+		audioManager?: LocalAudioManager,
 	) {
 		this.topicExtractor = topicExtractor;
 		this.insightGenerator = insightGenerator;
+		this.audioManager = audioManager;
 
 		// Initialize enhanced transcription
 		this.initializeEnhancedTranscription();
@@ -148,20 +152,22 @@ export class SummaryGeneratorImpl implements SummaryGenerator {
 	private cleanTranscript(transcript: string): string {
 		return transcript
 			.replace(/\s+/g, " ")
-			.replace(/[^\w\s.,!?]/g, "")
+			.replace(/[^\p{L}\p{N}\s.,!?！？。、'']/gu, "")
 			.trim();
 	}
 
 	private async getSessionAudioFile(
-		_sessionId: string,
+		sessionId: string,
 	): Promise<AudioFile | undefined> {
-		// This would typically fetch from the audio storage system
-		// For now, we'll return undefined as a placeholder
-		// In a real implementation, this would integrate with the AudioManager
-		try {
-			// TODO: Integrate with AudioManager to get session audio file
+		if (!this.audioManager) {
 			return undefined;
-		} catch (_unused) {
+		}
+
+		try {
+			const files = await this.audioManager.getAudioFilesBySession(sessionId);
+			return files.length > 0 ? files[0] : undefined;
+		} catch (error) {
+			console.warn("Failed to get session audio file:", error);
 			return undefined;
 		}
 	}

@@ -49,6 +49,7 @@ export class MonologLiveApp {
 		this.summaryGenerator = new SummaryGeneratorImpl(
 			new BasicTopicExtractor(),
 			new BasicInsightGenerator(),
+			this.audioManager,
 		);
 		this.sessionManager = new SessionManagerImpl(
 			this.storage,
