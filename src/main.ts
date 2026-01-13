@@ -4,6 +4,8 @@ import "./ui/transcription-display.css";
 
 import { CommentSystem } from "./comment-generation/comment-system.js";
 import type { SummaryGenerator } from "./interfaces/summary-generation.js";
+import { SessionManagerImpl } from "./session/session-manager.js";
+import { TopicManager } from "./session/topic-manager.js";
 import { IndexedDBWrapper } from "./storage/indexeddb-wrapper.js";
 import {
 	BasicInsightGenerator,
@@ -23,6 +25,8 @@ export class MonologLiveApp {
 	private topicField!: TopicField;
 	private preferenceUI!: PreferenceManagementUI;
 	private summaryGenerator: SummaryGenerator;
+	private sessionManager: SessionManagerImpl;
+	private topicManager: TopicManager;
 	private isRunning = false;
 	private currentSessionId: string | null = null;
 
@@ -33,10 +37,23 @@ export class MonologLiveApp {
 			new BasicTopicExtractor(),
 			new BasicInsightGenerator(),
 		);
+		this.sessionManager = new SessionManagerImpl(
+			this.storage,
+			this.summaryGenerator,
+		);
+		this.topicManager = new TopicManager("init");
 	}
 
 	public getSummaryGenerator(): SummaryGenerator {
 		return this.summaryGenerator;
+	}
+
+	public getSessionManager(): SessionManagerImpl {
+		return this.sessionManager;
+	}
+
+	public getTopicManager(): TopicManager {
+		return this.topicManager;
 	}
 
 	async initialize(): Promise<void> {

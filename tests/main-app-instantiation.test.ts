@@ -1,4 +1,6 @@
 import { MonologLiveApp } from "../src/main";
+import { SessionManagerImpl } from "../src/session/session-manager";
+import { TopicManager } from "../src/session/topic-manager";
 import { SummaryGeneratorImpl } from "../src/summary/summary-generator";
 
 // Mock DOM elements required for initialization
@@ -16,7 +18,7 @@ document.body.innerHTML = `
   <div id="status-indicator"></div>
 `;
 
-describe("MonologLiveApp Summary Integration", () => {
+describe("MonologLiveApp Instantiation", () => {
 	let app: MonologLiveApp;
 
 	beforeEach(() => {
@@ -31,5 +33,19 @@ describe("MonologLiveApp Summary Integration", () => {
 
 		expect(summaryGenerator).toBeDefined();
 		expect(summaryGenerator).toBeInstanceOf(SummaryGeneratorImpl);
+	});
+
+	it("should instantiate SessionManager and TopicManager", async () => {
+		await app.initialize();
+
+		// Use public getters
+		const sessionManager = app.getSessionManager();
+		const topicManager = app.getTopicManager();
+
+		expect(sessionManager).toBeDefined();
+		expect(sessionManager).toBeInstanceOf(SessionManagerImpl);
+
+		expect(topicManager).toBeDefined();
+		expect(topicManager).toBeInstanceOf(TopicManager);
 	});
 });
