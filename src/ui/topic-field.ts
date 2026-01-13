@@ -546,7 +546,7 @@ export class TopicField {
 		);
 		window.removeEventListener("resize", this.handleScrollOrResize.bind(this));
 
-		if (this.suggestionsContainer && this.suggestionsContainer.parentNode) {
+		if (this.suggestionsContainer?.parentNode) {
 			this.suggestionsContainer.parentNode.removeChild(
 				this.suggestionsContainer,
 			);

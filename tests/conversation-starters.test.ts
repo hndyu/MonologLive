@@ -306,7 +306,7 @@ describe("Conversation Starters", () => {
 
 		test("should show and hide suggestions appropriately", () => {
 			const input = container.querySelector(".topic-input") as HTMLInputElement;
-			const suggestions = container.querySelector(
+			const suggestions = document.querySelector(
 				".topic-suggestions",
 			) as HTMLElement;
 
@@ -328,7 +328,7 @@ describe("Conversation Starters", () => {
 			input.value = "アニメ";
 			input.dispatchEvent(new Event("input"));
 
-			const suggestions = container.querySelectorAll(".topic-suggestion-item");
+			const suggestions = document.querySelectorAll(".topic-suggestion-item");
 			const suggestionTexts = Array.from(suggestions).map((s) => s.textContent);
 
 			expect(suggestionTexts.some((text) => text?.includes("アニメ"))).toBe(
@@ -341,7 +341,7 @@ describe("Conversation Starters", () => {
 
 			input.focus();
 
-			const firstSuggestion = container.querySelector(
+			const firstSuggestion = document.querySelector(
 				".topic-suggestion-item",
 			) as HTMLElement;
 			const suggestionText = firstSuggestion.textContent || "";
