@@ -201,8 +201,12 @@ export class MonologLiveApp {
 		if (this.isRunning) return;
 
 		try {
-			this.currentSessionId = `session_${Date.now()}`;
 			const userId = "default_user";
+			const topic = this.topicField?.getCurrentTopic() || "general";
+
+			// Use SessionManager to start the session
+			const session = this.sessionManager.startSession(userId, topic);
+			this.currentSessionId = session.id;
 
 			// Hide enhanced transcription button at session start
 			this.toggleEnhancedTranscriptionButton(false);
