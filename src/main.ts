@@ -307,6 +307,11 @@ export class MonologLiveApp {
 
 			// End the session in SessionManager
 			if (this.currentSessionId) {
+				// Show loading UI while generating summary
+				if (this.summaryUI) {
+					this.summaryUI.showLoading();
+				}
+
 				// Get Gemini API key from localStorage or environment
 				const apiKey =
 					localStorage.getItem("GEMINI_API_KEY") ||

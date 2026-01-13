@@ -1,13 +1,17 @@
+import { MarkdownExporter } from "../summary/markdown-exporter.js";
 import type { SessionSummary } from "../types/core.js";
 
 export class SessionSummaryUI {
 	private container: HTMLElement;
 	private modal: HTMLElement;
+	private exporter: MarkdownExporter;
+	private currentSummary: SessionSummary | null = null;
 
 	constructor(container: HTMLElement) {
 		this.container = container;
 		this.modal = this.createModal();
 		this.container.appendChild(this.modal);
+		this.exporter = new MarkdownExporter();
 	}
 
 	private createModal(): HTMLElement {
@@ -22,7 +26,22 @@ export class SessionSummaryUI {
 		return modal;
 	}
 
+	public showLoading(): void {
+		const content = this.modal.querySelector(".session-summary-content");
+		if (!content) return;
+
+		content.innerHTML = `
+            <div class="summary-loading">
+                <div class="loading-spinner"></div>
+                <p>Generating summary with AI...</p>
+            </div>
+        `;
+
+		this.modal.classList.add("active");
+	}
+
 	public show(summary: SessionSummary): void {
+		this.currentSummary = summary;
 		const content = this.modal.querySelector(".session-summary-content");
 		if (!content) return;
 
@@ -63,11 +82,21 @@ export class SessionSummaryUI {
             ${topicsHtml}
             ${insightsHtml}
             <div class="session-id-display">ID: ${summary.sessionId}</div>
-            <button class="close-summary-btn">Close</button>
+            <div class="summary-actions">
+                <button class="save-markdown-btn">Save as Markdown</button>
+                <button class="close-summary-btn">Close</button>
+            </div>
         `;
 
 		const closeBtn = content.querySelector(".close-summary-btn");
 		closeBtn?.addEventListener("click", () => this.hide());
+
+		const saveBtn = content.querySelector(".save-markdown-btn");
+		saveBtn?.addEventListener("click", () => {
+			if (this.currentSummary) {
+				this.exporter.downloadAsFile(this.currentSummary);
+			}
+		});
 
 		this.modal.classList.add("active");
 	}
