@@ -85,4 +85,27 @@ describe("MonologLiveApp Audio Integration", () => {
 			expect.any(String),
 		);
 	});
+
+	it("should show 'Run Enhanced Transcription' button when session ends", async () => {
+		// Mock DOM for the button
+		document.body.innerHTML +=
+			'<button id="enhanced-transcribe-btn" style="display: none;"></button>';
+
+		await app.initialize();
+
+		const mockAudioFile = { id: "id", blob: new Blob() };
+		jest
+			.spyOn((app as any).audioRecorder, "stopRecording")
+			.mockResolvedValue(mockAudioFile as any);
+		jest
+			.spyOn((app as any).audioManager, "saveAudioFile")
+			.mockResolvedValue("id");
+
+		// Start and Stop
+		await (app as any).startSession();
+		await (app as any).stopSession();
+
+		const btn = document.getElementById("enhanced-transcribe-btn");
+		expect(btn?.style.display).not.toBe("none");
+	});
 });

@@ -147,12 +147,16 @@ export class MonologLiveApp {
 	private setupEventHandlers(): void {
 		const startBtn = document.getElementById("start-btn");
 		const stopBtn = document.getElementById("stop-btn");
+		const enhancedBtn = document.getElementById("enhanced-transcribe-btn");
 		const preferencesBtn = document.getElementById("preferences-btn");
 		const closePreferencesBtn = document.getElementById("close-preferences");
 		const modalOverlay = document.getElementById("preferences-modal");
 
 		startBtn?.addEventListener("click", () => this.startSession());
 		stopBtn?.addEventListener("click", () => this.stopSession());
+		enhancedBtn?.addEventListener("click", () =>
+			this.runEnhancedTranscription(),
+		);
 
 		// Preference Modal Handlers
 		preferencesBtn?.addEventListener("click", () =>
@@ -200,6 +204,9 @@ export class MonologLiveApp {
 			this.currentSessionId = `session_${Date.now()}`;
 			const userId = "default_user";
 
+			// Hide enhanced transcription button at session start
+			this.toggleEnhancedTranscriptionButton(false);
+
 			// Initialize learning for the new session
 			if (this.commentSystem) {
 				await this.commentSystem.initializeLearning(
@@ -238,6 +245,9 @@ export class MonologLiveApp {
 			if (this.currentSessionId && audioFile) {
 				await this.audioManager.saveAudioFile(audioFile, this.currentSessionId);
 				console.log(`Audio saved for session: ${this.currentSessionId}`);
+
+				// Show enhanced transcription button
+				this.toggleEnhancedTranscriptionButton(true);
 			}
 
 			this.isRunning = false;
@@ -283,6 +293,18 @@ export class MonologLiveApp {
 				modal.classList.remove("active");
 			}
 		}
+	}
+
+	private toggleEnhancedTranscriptionButton(show: boolean): void {
+		const btn = document.getElementById("enhanced-transcribe-btn");
+		if (btn) {
+			btn.style.display = show ? "flex" : "none";
+		}
+	}
+
+	private async runEnhancedTranscription(): Promise<void> {
+		console.log("Enhanced transcription triggered");
+		// To be implemented in Phase 4
 	}
 }
 
