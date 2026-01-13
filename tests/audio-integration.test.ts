@@ -108,4 +108,47 @@ describe("MonologLiveApp Audio Integration", () => {
 		const btn = document.getElementById("enhanced-transcribe-btn");
 		expect(btn?.style.display).not.toBe("none");
 	});
+
+	it("should run enhanced transcription and update display", async () => {
+		document.body.innerHTML += `
+			<button id="enhanced-transcribe-btn"></button>
+			<span id="status-text"></span>
+			<div id="transcription-mount"></div>
+		`;
+
+		await app.initialize();
+
+		// Mock components
+		const mockAudioFile = { id: "test-session", blob: new Blob() };
+		(app as any).currentSessionId = "test-session";
+
+		jest
+			.spyOn((app as any).audioManager, "getAudioFilesBySession")
+			.mockResolvedValue([mockAudioFile]);
+		jest.spyOn((app as any).whisper, "isAvailable").mockReturnValue(true);
+		const transcribeSpy = jest
+			.spyOn((app as any).whisper, "transcribeAudio")
+			.mockResolvedValue({
+				text: "Hello from Whisper",
+				language: "en",
+				duration: 1.0,
+				segments: [],
+			});
+		const displaySpy = jest.spyOn(
+			(app as any).transcriptionDisplay,
+			"addTranscript",
+		);
+
+		// Run
+		await (app as any).runEnhancedTranscription();
+
+		expect(transcribeSpy).toHaveBeenCalledWith(mockAudioFile);
+		expect(displaySpy).toHaveBeenCalledWith(
+			expect.stringContaining("✨ [Enhanced] Hello from Whisper"),
+			true,
+		);
+		expect(document.getElementById("status-text")?.textContent).toBe(
+			"Transcription complete!",
+		);
+	});
 });

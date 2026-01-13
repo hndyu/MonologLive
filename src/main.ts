@@ -303,8 +303,59 @@ export class MonologLiveApp {
 	}
 
 	private async runEnhancedTranscription(): Promise<void> {
-		console.log("Enhanced transcription triggered");
-		// To be implemented in Phase 4
+		if (!this.currentSessionId || !this.whisper.isAvailable()) {
+			return;
+		}
+
+		const btn = document.getElementById(
+			"enhanced-transcribe-btn",
+		) as HTMLButtonElement;
+		const statusText = document.getElementById("status-text");
+
+		try {
+			// Update UI to loading state
+			if (btn) btn.disabled = true;
+			if (statusText)
+				statusText.textContent = "Enhanced transcription in progress...";
+
+			// Get the audio file for current session
+			const audioFiles = await this.audioManager.getAudioFilesBySession(
+				this.currentSessionId,
+			);
+
+			if (!audioFiles || audioFiles.length === 0) {
+				console.error(
+					"No audio file found for session:",
+					this.currentSessionId,
+				);
+				if (statusText)
+					statusText.textContent = "No audio recorded for this session.";
+				return;
+			}
+
+			const audioFile = audioFiles[0];
+
+			// Run transcription
+			const result = await this.whisper.transcribeAudio(audioFile);
+
+			if (result && result.text) {
+				// Add to display with special marker
+				this.transcriptionDisplay.addTranscript(
+					`✨ [Enhanced] ${result.text}`,
+					true,
+				);
+				if (statusText) statusText.textContent = "Transcription complete!";
+			} else {
+				if (statusText)
+					statusText.textContent = "Transcription failed or returned no text.";
+			}
+		} catch (error) {
+			console.error("Enhanced transcription error:", error);
+			if (statusText)
+				statusText.textContent = "Error during enhanced transcription.";
+		} finally {
+			if (btn) btn.disabled = false;
+		}
 	}
 }
 

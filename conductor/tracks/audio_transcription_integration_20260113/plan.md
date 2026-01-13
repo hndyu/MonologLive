@@ -23,19 +23,19 @@ Synchronize the audio recording process with the session start/stop events.
 ## Phase 3: UI for Enhanced Transcription
 Add the necessary UI elements to trigger and monitor the Whisper transcription process.
 
-- [ ] Task: Add a "Run Enhanced Transcription" button to `index.html` (initially hidden).
-- [ ] Task: Implement `toggleEnhancedTranscriptionButton(show: boolean)` in `MonologLiveApp`.
-- [ ] Task: Show the button in `updateStatus()` or `updateUIState()` when a session ends and an audio file is available.
-- [ ] Task: Add a "Transcription in progress..." status indicator.
+- [x] Task: Add a "Run Enhanced Transcription" button to `index.html` (initially hidden).
+- [x] Task: Implement `toggleEnhancedTranscriptionButton(show: boolean)` in `MonologLiveApp`.
+- [x] Task: Show the button in `updateStatus()` or `updateUIState()` when a session ends and an audio file is available.
+- [x] Task: Add a "Transcription in progress..." status indicator.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: UI for Enhanced Transcription' (Protocol in workflow.md)
 
 ## Phase 4: Enhanced Transcription Logic
 Implement the logic to run the Whisper model and update the UI with results.
 
-- [ ] Task: Implement `runEnhancedTranscription()` method in `MonologLiveApp`.
-- [ ] Task: Logic: Load Whisper model on first request.
-- [ ] Task: Logic: Retrieve the last session's audio blob from `audioManager`.
-- [ ] Task: Logic: Execute `whisper.transcribeAudio()` and handle the `TranscriptionResult`.
-- [ ] Task: Logic: Clear the current `TranscriptionDisplay` and repopulate it with Whisper's segments.
-- [ ] Task: Integration Test: Verify the flow from session end to enhanced transcription display.
+- [x] Task: Implement `runEnhancedTranscription()` method in `MonologLiveApp`.
+- [x] Task: Logic: Load Whisper model on first request.
+- [x] Task: Logic: Retrieve the last session's audio blob from `audioManager`.
+- [x] Task: Logic: Execute `whisper.transcribeAudio()` and handle the `TranscriptionResult`.
+- [x] Task: Logic: Clear the current `TranscriptionDisplay` and repopulate it with Whisper's segments.
+- [x] Task: Integration Test: Verify the flow from session end to enhanced transcription display.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Enhanced Transcription Logic' (Protocol in workflow.md)
