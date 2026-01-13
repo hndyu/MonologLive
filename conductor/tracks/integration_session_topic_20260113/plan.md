@@ -13,7 +13,7 @@
 
 ## Phase 3: Real-time Data Tracking
 - [x] Task: Update `voiceManager.onTranscript` to save transcript segments via `SessionManager.addTranscriptSegment()`. [c182593]
-- [ ] Task: Update `commentSystem.generateComment` flow to save generated comments via `SessionManager.addComment()`.
+- [x] Task: Update `commentSystem.generateComment` flow to save generated comments via `SessionManager.addComment()`. [d8007d0]
 - [ ] Task: Integrate `TopicField` with `TopicManager` to handle topic updates and influence context.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Real-time Data Tracking' (Protocol in workflow.md)
 
