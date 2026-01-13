@@ -6,7 +6,7 @@
 - [x] Task: Update `MonologLiveApp.initialize()` to ensure all managers are ready. [1367884]
 
 ## Phase 2: Session Lifecycle Integration
-- [ ] Task: Implement `startSession` using `SessionManager.startSession()`.
+- [x] Task: Implement `startSession` using `SessionManager.startSession()`. [0a196a9]
 - [ ] Task: Implement `stopSession` using `SessionManager.endSession()`.
 - [ ] Task: Update UI state to reflect session start/stop accurately.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Session Lifecycle Integration' (Protocol in workflow.md)
