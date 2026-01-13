@@ -2,7 +2,7 @@
 
 ## Phase 1: Foundation & Dependency Injection
 - [x] Task: Instantiate `SummaryGenerator` and its dependencies (`BasicTopicExtractor`, `BasicInsightGenerator`) in `main.ts`. [f70dfb8]
-- [ ] Task: Instantiate `SessionManagerImpl` and `TopicManager` in `MonologLiveApp`.
+- [x] Task: Instantiate `SessionManagerImpl` and `TopicManager` in `MonologLiveApp`. [6030bc3]
 - [ ] Task: Update `MonologLiveApp.initialize()` to ensure all managers are ready.
 
 ## Phase 2: Session Lifecycle Integration
