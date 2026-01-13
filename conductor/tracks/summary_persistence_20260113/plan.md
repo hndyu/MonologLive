@@ -4,7 +4,7 @@
 Gemini API を使用して高品質なサマリーを生成する基盤を構築します。
 
 - [x] Task: Gemini API クライアントの実装（`src/summary/gemini-client.ts`）。要約、トピック、インサイト用のプロンプト設計を含む。 [2fb1e09]
-- [ ] Task: `SummaryGeneratorImpl` を更新し、Gemini API を呼び出すロジックを追加。失敗時の Basic 実装へのフォールバックを実装。
+- [x] Task: `SummaryGeneratorImpl` を更新し、Gemini API を呼び出すロジックを追加。失敗時の Basic 実装へのフォールバックを実装。 [42268fe]
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Gemini Integration' (Protocol in workflow.md)
 
 ## Phase 2: Persistence & Session Manager Extension
