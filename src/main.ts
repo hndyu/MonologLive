@@ -212,24 +212,45 @@ export class MonologLiveApp {
 				this.preferenceUI?.setUser(userId);
 			}
 
+			// Start audio recording
+			await this.audioRecorder.startRecording();
+
 			this.voiceManager.startListening();
 			this.isRunning = true;
 			this.updateUIState();
-			this.updateStatus("Recoding active - Speak naturally", "running");
+			this.updateStatus("Recording active - Speak naturally", "running");
 		} catch (error) {
 			console.error("Failed to start session:", error);
 			this.updateStatus("Failed to start session", "error");
 		}
 	}
 
-	private stopSession(): void {
+	private async stopSession(): Promise<void> {
 		if (!this.isRunning) return;
 
-		this.voiceManager.stopListening();
-		this.isRunning = false;
-		this.currentSessionId = null;
-		this.updateUIState();
-		this.updateStatus("Session ended", "ready");
+		try {
+			this.voiceManager.stopListening();
+
+			// Stop audio recording and get the file
+			const audioFile = await this.audioRecorder.stopRecording();
+
+			// Save the audio file to storage if we have a session ID
+			if (this.currentSessionId && audioFile) {
+				await this.audioManager.saveAudioFile(audioFile, this.currentSessionId);
+				console.log(`Audio saved for session: ${this.currentSessionId}`);
+			}
+
+			this.isRunning = false;
+			this.currentSessionId = null;
+			this.updateUIState();
+			this.updateStatus("Session ended", "ready");
+		} catch (error) {
+			console.error("Failed to stop session cleanly:", error);
+			this.updateStatus("Error stopping session", "error");
+			this.isRunning = false;
+			this.currentSessionId = null;
+			this.updateUIState();
+		}
 	}
 
 	private updateUIState(): void {

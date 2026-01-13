@@ -193,25 +193,30 @@ Object.defineProperty(window, "webkitSpeechRecognition", {
 });
 
 // Mock MediaRecorder
+const mockMediaRecorder = jest.fn().mockImplementation(() => ({
+	start: jest.fn(),
+	stop: jest.fn(),
+	pause: jest.fn(),
+	resume: jest.fn(),
+	requestData: jest.fn(),
+	state: "inactive",
+	stream: null,
+	mimeType: "audio/webm",
+	audioBitsPerSecond: 0,
+	videoBitsPerSecond: 0,
+	ondataavailable: null,
+	onerror: null,
+	onpause: null,
+	onresume: null,
+	onstart: null,
+	onstop: null,
+}));
+
+// biome-ignore lint/suspicious/noExplicitAny: Adding static method to mock
+(mockMediaRecorder as any).isTypeSupported = jest.fn().mockReturnValue(true);
+
 Object.defineProperty(window, "MediaRecorder", {
-	value: jest.fn().mockImplementation(() => ({
-		start: jest.fn(),
-		stop: jest.fn(),
-		pause: jest.fn(),
-		resume: jest.fn(),
-		requestData: jest.fn(),
-		state: "inactive",
-		stream: null,
-		mimeType: "audio/webm",
-		audioBitsPerSecond: 0,
-		videoBitsPerSecond: 0,
-		ondataavailable: null,
-		onerror: null,
-		onpause: null,
-		onresume: null,
-		onstart: null,
-		onstop: null,
-	})),
+	value: mockMediaRecorder,
 	writable: true,
 });
 

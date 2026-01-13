@@ -39,4 +39,50 @@ describe("MonologLiveApp Audio Integration", () => {
 		expect(typeof audioRecorder.startRecording).toBe("function");
 		expect(typeof whisper.transcribeAudio).toBe("function");
 	});
+
+	it("should start recording when session starts", async () => {
+		await app.initialize();
+		const audioRecorder = app.getAudioRecorder();
+		const startSpy = jest.spyOn(audioRecorder, "startRecording");
+
+		// Access private method for testing session start
+		await (app as any).startSession();
+
+		expect(startSpy).toHaveBeenCalled();
+	});
+
+	it("should stop recording and save file when session stops", async () => {
+		await app.initialize();
+		const audioRecorder = app.getAudioRecorder();
+		const audioManager = app.getAudioManager();
+
+		const mockAudioFile = {
+			id: "test-audio-id",
+			sessionId: "",
+			filename: "test.webm",
+			format: "webm",
+			duration: 10,
+			size: 1024,
+			createdAt: new Date(),
+			blob: new Blob(["test data"], { type: "audio/webm" }),
+		};
+
+		const stopSpy = jest
+			.spyOn(audioRecorder, "stopRecording")
+			.mockResolvedValue(mockAudioFile as any);
+		const saveSpy = jest
+			.spyOn(audioManager, "saveAudioFile")
+			.mockResolvedValue("test-audio-id");
+
+		// Start session first
+		await (app as any).startSession();
+		// Stop session
+		await (app as any).stopSession();
+
+		expect(stopSpy).toHaveBeenCalled();
+		expect(saveSpy).toHaveBeenCalledWith(
+			expect.objectContaining({ id: "test-audio-id" }),
+			expect.any(String),
+		);
+	});
 });
