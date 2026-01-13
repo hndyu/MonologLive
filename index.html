@@ -3,45 +3,314 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MONOLOG LIVE</title>
+    <title>MONOLOG LIVE - AI-Generated Live Experience</title>
     <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --border-color: #334155;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
+
+        header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .main-layout {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            padding: 1rem;
+            gap: 1rem;
+        }
+
+        .left-panel {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .transcription-card {
+            flex: 1;
+            min-height: 200px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        #status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #64748b;
+        }
+
+        #status-indicator.ready { background-color: #22c55e; }
+        #status-indicator.error { background-color: #ef4444; }
+        #status-indicator.running { background-color: #3b82f6; animation: pulse 2s infinite; }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            background-color: var(--card-bg);
+            padding: 1rem 2rem;
+            border-top: 1px solid var(--border-color);
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
             border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
         }
-        #status {
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            text-align: center;
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
         }
-        .ready { background-color: #d4edda; color: #155724; }
-        .error { background-color: #f8d7da; color: #721c24; }
+
+        .btn-secondary {
+            background-color: var(--border-color);
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            background-color: #475569;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #app {
+            display: contents;
+        }
+
+        /* Container for component mounting */
+        #transcription-mount, #comment-mount, #topic-mount {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-container {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-container {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background-color: var(--card-bg);
+            z-index: 1;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--text-main);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            line-height: 1;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .close-modal:hover {
+            background-color: var(--border-color);
+            color: var(--text-main);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <header>
         <h1>MONOLOG LIVE</h1>
-        <div id="status" class="ready">
-            System initializing...
+        <div id="status-display" style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem; color: var(--text-dim);">
+            <div id="status-indicator"></div>
+            <span id="status-text">Initializing...</span>
         </div>
-        <div id="app"></div>
+    </header>
+
+    <main class="main-layout">
+        <div class="left-panel">
+            <div class="card" style="margin-bottom: 0;">
+                <div class="card-title">📍 Topic Management</div>
+                <div id="topic-mount" style="margin-top: 1rem;"></div>
+            </div>
+            
+            <div class="card transcription-card">
+                <div class="card-header">
+                    <div class="card-title">🎙️ Live Transcription</div>
+                </div>
+                <div id="transcription-mount"></div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div style="padding: 1rem; border-bottom: 1px solid var(--border-color);">
+                <div class="card-title">💬 Live Comments</div>
+            </div>
+            <div id="comment-mount"></div>
+        </div>
+    </main>
+
+    <footer class="controls">
+        <button id="start-btn" class="btn btn-primary">
+            <span>▶️</span> Start Session
+        </button>
+        <button id="stop-btn" class="btn btn-secondary" disabled>
+            <span>⏹️</span> Stop Session
+        </button>
+        <button id="preferences-btn" class="btn btn-secondary">
+            <span>⚙️</span> Preferences
+        </button>
+    </footer>
+
+    <!-- Preferences Modal -->
+    <div id="preferences-modal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>⚙️ Preferences</h2>
+                <button id="close-preferences" class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="preferences-mount"></div>
+            </div>
+        </div>
     </div>
+
+    <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

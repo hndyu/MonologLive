@@ -80,6 +80,13 @@ export class MainLearningModule implements LearningModule {
 	}
 
 	/**
+	 * Gets the preference learning system
+	 */
+	public getPreferenceLearning(): PreferenceLearningSystem {
+		return this.preferenceLearning;
+	}
+
+	/**
 	 * Initializes the learning module for a specific user and session
 	 */
 	async initialize(userId: string, sessionId: string): Promise<void> {

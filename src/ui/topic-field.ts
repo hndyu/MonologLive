@@ -161,18 +161,16 @@ export class TopicField {
 		this.suggestionsContainer = document.createElement("div");
 		this.suggestionsContainer.className = "topic-suggestions";
 		Object.assign(this.suggestionsContainer.style, {
-			position: "absolute",
-			top: "100%",
-			left: "0",
-			right: "0",
+			position: "fixed", // Changed from absolute to fixed to break out of containers
 			backgroundColor: "#ffffff",
 			border: "1px solid #ced4da",
 			borderTop: "none",
 			borderRadius: "0 0 6px 6px",
 			maxHeight: "200px",
 			overflowY: "auto",
-			zIndex: "1000",
+			zIndex: "10000", // Increased z-index
 			display: "none",
+			boxShadow: "0 4px 6px rgba(0,0,0,0.1)", // Add shadow for better visibility
 		});
 
 		// Add event listeners
@@ -181,14 +179,48 @@ export class TopicField {
 		// Assemble the UI
 		inputContainer.appendChild(this.inputElement);
 		inputContainer.appendChild(clearButton);
-		inputContainer.appendChild(this.suggestionsContainer);
+		// inputContainer.appendChild(this.suggestionsContainer); // Removed from inputContainer
 
 		this.container.appendChild(label);
 		this.container.appendChild(inputContainer);
 
+		// Append suggestions to body to avoid clipping
+		document.body.appendChild(this.suggestionsContainer);
+
 		// Initialize suggestions if enabled
 		if (this.config.showSuggestions) {
 			this.initializeSuggestions();
+		}
+
+		// Update position on scroll and resize
+		window.addEventListener(
+			"scroll",
+			this.handleScrollOrResize.bind(this),
+			true,
+		);
+		window.addEventListener("resize", this.handleScrollOrResize.bind(this));
+	}
+
+	/**
+	 * Updates the position of the suggestions container
+	 */
+	private updateSuggestionsPosition(): void {
+		if (this.suggestionsContainer.style.display === "none") return;
+
+		const rect = this.inputElement.getBoundingClientRect();
+		Object.assign(this.suggestionsContainer.style, {
+			top: `${rect.bottom}px`,
+			left: `${rect.left}px`,
+			width: `${rect.width}px`,
+		});
+	}
+
+	/**
+	 * Handles scroll or resize events
+	 */
+	private handleScrollOrResize(): void {
+		if (this.suggestionsContainer.style.display !== "none") {
+			this.updateSuggestionsPosition();
 		}
 	}
 
@@ -328,6 +360,7 @@ export class TopicField {
 		// Show/hide suggestions container
 		if (filteredSuggestions.length > 0) {
 			this.suggestionsContainer.style.display = "block";
+			this.updateSuggestionsPosition();
 		} else {
 			this.suggestionsContainer.style.display = "none";
 		}
@@ -343,6 +376,7 @@ export class TopicField {
 			this.suggestionsContainer.appendChild(suggestionElement);
 		});
 		this.suggestionsContainer.style.display = "block";
+		this.updateSuggestionsPosition();
 	}
 
 	/**
@@ -504,6 +538,20 @@ export class TopicField {
 	 */
 	destroy(): void {
 		this.hideSuggestions();
+		// Remove event listeners for scroll/resize
+		window.removeEventListener(
+			"scroll",
+			this.handleScrollOrResize.bind(this),
+			true,
+		);
+		window.removeEventListener("resize", this.handleScrollOrResize.bind(this));
+
+		if (this.suggestionsContainer && this.suggestionsContainer.parentNode) {
+			this.suggestionsContainer.parentNode.removeChild(
+				this.suggestionsContainer,
+			);
+		}
+
 		this.container.innerHTML = "";
 		this.container.className = "";
 	}

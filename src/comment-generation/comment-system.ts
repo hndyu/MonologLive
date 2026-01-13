@@ -2,8 +2,9 @@
 
 import type { AudioAnalysisData } from "../audio/audio-analyzer.js";
 import type { CommentGenerator } from "../interfaces/comment-generation";
-import { MainLearningModule } from "../learning/learning-module";
-import type { IndexedDBWrapper } from "../storage/indexeddb-wrapper";
+import { MainLearningModule } from "../learning/learning-module.js";
+import type { PreferenceLearningSystem } from "../learning/preference-learning.js";
+import type { IndexedDBWrapper } from "../storage/indexeddb-wrapper.js";
 import type {
 	Comment,
 	CommentRoleType,
@@ -71,6 +72,15 @@ export class CommentSystem implements CommentGenerator {
 	private learningModule: MainLearningModule | null = null;
 	private currentUserId: string | null = null;
 	private adaptiveFrequencyManager: AdaptiveFrequencyManager | null = null;
+
+	/**
+	 * Gets the learning system associated with this comment system
+	 */
+	public getLearningSystem(): PreferenceLearningSystem | null {
+		return this.learningModule
+			? this.learningModule.getPreferenceLearning()
+			: null;
+	}
 
 	constructor(config: CommentSystemConfig = DEFAULT_COMMENT_SYSTEM_CONFIG) {
 		this.config = config;
