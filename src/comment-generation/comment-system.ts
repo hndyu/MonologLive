@@ -109,6 +109,16 @@ export class CommentSystem implements CommentGenerator {
 	}
 
 	/**
+	 * Initializes the comment system with storage access
+	 */
+	initialize(storage: IndexedDBWrapper): void {
+		// Initialize learning module early so it's available for UI
+		if (!this.learningModule) {
+			this.learningModule = new MainLearningModule(storage);
+		}
+	}
+
+	/**
 	 * Initializes the learning system with storage
 	 * Implements Requirements 7.1-7.5
 	 */
@@ -120,7 +130,9 @@ export class CommentSystem implements CommentGenerator {
 		this.currentUserId = userId;
 
 		// Initialize learning module
-		this.learningModule = new MainLearningModule(storage);
+		if (!this.learningModule) {
+			this.learningModule = new MainLearningModule(storage);
+		}
 		await this.learningModule.initialize(userId, sessionId);
 
 		// Get personalized weights and apply them to the generator

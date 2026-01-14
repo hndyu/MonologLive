@@ -49,6 +49,7 @@ export class PreferenceManagementUI {
 	 * Initializes the preference management UI
 	 */
 	private initialize(): void {
+		console.log("Initializing PreferenceManagementUI...");
 		const existingKey = localStorage.getItem("GEMINI_API_KEY") || "";
 
 		this.container.className = "preference-management";
@@ -82,12 +83,14 @@ export class PreferenceManagementUI {
 
 		this.attachEventListeners();
 		this.applyStyles();
+		console.log("PreferenceManagementUI initialized successfully");
 	}
 
 	/**
 	 * Sets the current user and starts updating the display
 	 */
 	setUser(userId: string): void {
+		console.log(`Setting user for PreferenceUI: ${userId}`);
 		this.currentUserId = userId;
 		this.startPeriodicUpdates();
 		this.updateDisplay();
@@ -264,22 +267,21 @@ export class PreferenceManagementUI {
 		const style = document.createElement("style");
 		style.textContent = `
       .preference-management {
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 20px;
-        margin: 10px 0;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: transparent;
+        padding: 0;
+        margin: 0;
+        font-family: inherit;
       }
       
       .preference-header h3 {
         margin: 0 0 5px 0;
-        color: #333;
+        color: var(--text-main);
         font-size: 18px;
       }
       
       .preference-description {
         margin: 0 0 20px 0;
-        color: #666;
+        color: var(--text-dim);
         font-size: 14px;
       }
       
@@ -296,32 +298,34 @@ export class PreferenceManagementUI {
       
       .role-name {
         font-weight: 500;
-        color: #333;
+        color: var(--text-main);
       }
       
       .role-value {
         font-size: 12px;
-        color: #666;
+        color: var(--text-dim);
         font-family: monospace;
       }
       
       .weight-bar {
         height: 8px;
-        background: #e9ecef;
+        background: var(--border-color);
         border-radius: 4px;
         overflow: hidden;
       }
       
       .weight-fill {
         height: 100%;
-        background: linear-gradient(90deg, #28a745, #20c997);
+        background: linear-gradient(90deg, var(--primary-color), #c084fc);
         transition: width 0.3s ease;
       }
       
-      .learning-stats h4 {
-        margin: 20px 0 10px 0;
-        color: #333;
+      .learning-stats h4, .ai-settings h4 {
+        margin: 24px 0 12px 0;
+        color: var(--text-main);
         font-size: 16px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 8px;
       }
       
       .stats-grid {
@@ -332,102 +336,110 @@ export class PreferenceManagementUI {
       
       .stat-item {
         display: flex;
-        justify-content: space-between;
-        padding: 8px;
-        background: white;
-        border-radius: 4px;
-        border: 1px solid #dee2e6;
+        flex-direction: column;
+        gap: 4px;
+        padding: 10px;
+        background: #0f172a;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
       }
       
       .stat-label {
-        font-size: 12px;
-        color: #666;
+        font-size: 11px;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
       }
       
       .stat-value {
-        font-weight: 500;
-        color: #333;
+        font-weight: 600;
+        color: var(--text-main);
+        font-size: 14px;
       }
       
       .stat-value.preferred {
-        color: #28a745;
+        color: #4ade80;
       }
       
       .stat-value.less-preferred {
-        color: #dc3545;
+        color: #f87171;
       }
       
       .preference-actions {
-        margin-top: 20px;
+        margin-top: 24px;
         display: flex;
-        gap: 10px;
+        gap: 12px;
       }
       
       .preference-actions button {
-        padding: 8px 16px;
+        flex: 1;
+        padding: 10px 16px;
         border: none;
-        border-radius: 4px;
+        border-radius: 8px;
         cursor: pointer;
         font-size: 14px;
-        transition: background-color 0.2s;
+        font-weight: 600;
+        transition: all 0.2s;
       }
       
       .reset-btn {
-        background: #dc3545;
+        background: #ef4444;
         color: white;
       }
       
       .reset-btn:hover {
-        background: #c82333;
+        background: #dc2626;
       }
       
       .refresh-btn {
-        background: #007bff;
-        color: white;
+        background: var(--border-color);
+        color: var(--text-main);
       }
       
       .refresh-btn:hover {
-        background: #0056b3;
-      }
-
-      .ai-settings h4 {
-        margin: 20px 0 10px 0;
-        color: #333;
-        font-size: 16px;
+        background: #475569;
       }
 
       .setting-item {
         display: flex;
         flex-direction: column;
-        gap: 5px;
-        background: white;
+        gap: 8px;
+        background: #0f172a;
         padding: 12px;
-        border-radius: 4px;
-        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
       }
 
       .setting-item label {
         font-size: 12px;
-        font-weight: bold;
-        color: #666;
+        font-weight: 600;
+        color: var(--text-dim);
       }
 
       .setting-item input {
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
+        padding: 10px;
+        background: #1e293b;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        color: var(--text-main);
         font-size: 14px;
       }
 
+      .setting-item input:focus {
+        outline: 2px solid var(--primary-color);
+        border-color: transparent;
+      }
+
       .setting-hint {
-        margin: 5px 0 0 0;
-        font-size: 11px;
-        color: #888;
+        margin: 4px 0 0 0;
+        font-size: 12px;
+        color: var(--text-dim);
+        line-height: 1.4;
       }
 
       .setting-hint a {
-        color: #007bff;
-        text-decoration: none;
+        color: var(--primary-color);
+        text-decoration: underline;
       }
     `;
 

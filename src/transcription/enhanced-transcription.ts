@@ -119,7 +119,6 @@ export class WhisperTranscription implements EnhancedTranscription {
 				throw new Error("Transcriber not initialized");
 			}
 			const result = await this.transcriber(audioData, {
-				language: this.settings.language,
 				temperature: this.settings.temperature,
 				return_timestamps: true,
 				chunk_length_s: 30, // Process in 30-second chunks
@@ -194,20 +193,6 @@ export class WhisperTranscription implements EnhancedTranscription {
 			large: "Xenova/whisper-large-v2",
 		};
 
-		// For English-only models, use the .en variants for better performance
-		if (this.settings.language === "en") {
-			const englishModelMap: Record<string, string> = {
-				tiny: "Xenova/whisper-tiny.en",
-				base: "Xenova/whisper-base.en",
-				small: "Xenova/whisper-small.en",
-				medium: "Xenova/whisper-medium.en",
-			};
-
-			if (englishModelMap[this.settings.modelSize]) {
-				return englishModelMap[this.settings.modelSize];
-			}
-		}
-
 		return modelMap[this.settings.modelSize] || modelMap.tiny;
 	}
 
@@ -257,7 +242,7 @@ export class WhisperTranscription implements EnhancedTranscription {
 		let text = "";
 		const confidence = 1.0;
 		let segments: TranscriptSegment[] = [];
-		let language = this.settings.language || "en";
+		let language = "";
 
 		if (typeof result === "string") {
 			text = result;

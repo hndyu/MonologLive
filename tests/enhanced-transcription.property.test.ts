@@ -94,7 +94,6 @@ describe("Enhanced Transcription Property Tests", () => {
 		// Initialize with smallest model for testing
 		whisperTranscription = new WhisperTranscription({
 			modelSize: "tiny",
-			language: "en",
 			temperature: 0.0,
 			beamSize: 1,
 		});
@@ -180,7 +179,6 @@ describe("Enhanced Transcription Property Tests", () => {
 							"medium" as const,
 							"large" as const,
 						),
-						language: fc.constantFrom("en", "ja", "es", "fr"),
 						temperature: SafeFloatGenerator.float({ min: 0, max: 1 }),
 						beamSize: fc.integer({ min: 1, max: 5 }),
 					}),
@@ -188,7 +186,6 @@ describe("Enhanced Transcription Property Tests", () => {
 						// Setup initial state
 						const initialSettings: WhisperSettings = {
 							modelSize: "tiny" as const,
-							language: "en",
 							temperature: 0.0,
 							beamSize: 1,
 						};
@@ -451,7 +448,6 @@ describe("Enhanced Transcription Property Tests", () => {
 							"medium" as const,
 							"large" as const,
 						),
-						language: fc.string({ minLength: 0, maxLength: 10 }),
 						temperature: SafeFloatGenerator.float({ min: -10, max: 10 }),
 						beamSize: fc.integer({ min: -10, max: 100 }),
 					}),

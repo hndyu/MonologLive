@@ -28,7 +28,6 @@ export interface WhisperModelInfo {
 
 export interface WhisperSettings {
 	modelSize: "tiny" | "base" | "small" | "medium" | "large";
-	language?: string;
 	temperature: number;
 	beamSize: number;
 }

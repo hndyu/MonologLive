@@ -33,7 +33,7 @@ export class TranscriptionIntegration {
 			// Create Whisper transcription with recommended settings
 			const whisperTranscription = new WhisperTranscription({
 				modelSize: capabilities.recommendedModelSize,
-				language: "en", // Default to English, could be made configurable
+				// Language not set to allow multilingual support by default
 				temperature: 0.0,
 				beamSize: 1,
 			});

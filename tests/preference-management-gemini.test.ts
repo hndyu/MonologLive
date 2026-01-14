@@ -4,7 +4,7 @@ import { PreferenceManagementUI } from "../src/ui/preference-management";
 
 describe("PreferenceManagementUI Gemini Integration", () => {
 	let container: HTMLElement;
-	let mockLearningSystem: any;
+	let mockLearningSystem: PreferenceLearningSystem;
 
 	beforeEach(() => {
 		container = document.createElement("div");

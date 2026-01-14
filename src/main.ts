@@ -129,6 +129,7 @@ export class MonologLiveApp {
 		if (commentMount) {
 			this.commentSystem = new CommentSystem();
 			this.commentSystem.initializeDisplay(commentMount);
+			this.commentSystem.initialize(this.storage);
 		}
 
 		// Initialize Topic Field
@@ -163,10 +164,19 @@ export class MonologLiveApp {
 		// Initialize Preference UI
 		const preferencesMount = document.getElementById("preferences-mount");
 		const learningSystem = this.commentSystem?.getLearningSystem();
+		console.log("Preference UI Initializing:", {
+			preferencesMount: !!preferencesMount,
+			learningSystem: !!learningSystem,
+		});
 		if (preferencesMount && learningSystem) {
 			this.preferenceUI = new PreferenceManagementUI(
 				preferencesMount,
 				learningSystem,
+			);
+			console.log("Preference UI instance created");
+		} else {
+			console.warn(
+				"Preference UI failed to initialize: mount or learning system missing",
 			);
 		}
 
