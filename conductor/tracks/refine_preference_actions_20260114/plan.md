@@ -2,9 +2,9 @@
 
 Based on `spec.md`, we will remove the redundant Refresh button, relocate the Reset button to a more contextually appropriate position, and update its styling to be more subtle.
 
-## Phase 1: Preparation and Testing Setup
+## Phase 1: Preparation and Testing Setup [checkpoint: 55f3371]
 - [x] Task: Create unit tests for PreferenceManagementUI to verify current button existence and behavior `[x]` (55b5827)
-- [~] Task: Conductor - User Manual Verification 'Phase 1: Preparation and Testing Setup' (Protocol in workflow.md) `[~]`
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Preparation and Testing Setup' (Protocol in workflow.md) `[x]` (55f3371)
 
 ## Phase 2: UI Structure and Logic Refinement
 - [ ] Task: Update `initialize` method to remove Refresh button and move Reset button above AI Settings `[ ]`
