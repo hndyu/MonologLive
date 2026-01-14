@@ -49,6 +49,8 @@ export class PreferenceManagementUI {
 	 * Initializes the preference management UI
 	 */
 	private initialize(): void {
+		const existingKey = localStorage.getItem("GEMINI_API_KEY") || "";
+
 		this.container.className = "preference-management";
 		this.container.innerHTML = `
       <div class="preference-header">
@@ -61,6 +63,15 @@ export class PreferenceManagementUI {
         </div>
         <div class="learning-stats" id="learningStats">
           <!-- Learning statistics will be populated here -->
+        </div>
+        
+        <div class="ai-settings">
+          <h4>AI Settings</h4>
+          <div class="setting-item">
+            <label for="geminiApiKey">Gemini API Key</label>
+            <input type="password" id="geminiApiKey" value="${existingKey}" placeholder="Enter your Gemini API key">
+            <p class="setting-hint">Required for high-quality session summaries. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a key here</a></p>
+          </div>
         </div>
       </div>
       <div class="preference-actions">
@@ -196,9 +207,17 @@ export class PreferenceManagementUI {
 	private attachEventListeners(): void {
 		const resetBtn = this.container.querySelector("#resetPreferences");
 		const refreshBtn = this.container.querySelector("#refreshData");
+		const apiKeyInput = this.container.querySelector(
+			"#geminiApiKey",
+		) as HTMLInputElement;
 
 		resetBtn?.addEventListener("click", () => this.handleReset());
 		refreshBtn?.addEventListener("click", () => this.updateDisplay());
+
+		apiKeyInput?.addEventListener("change", (e) => {
+			const value = (e.target as HTMLInputElement).value;
+			localStorage.setItem("GEMINI_API_KEY", value.trim());
+		});
 	}
 
 	/**
@@ -369,6 +388,46 @@ export class PreferenceManagementUI {
       
       .refresh-btn:hover {
         background: #0056b3;
+      }
+
+      .ai-settings h4 {
+        margin: 20px 0 10px 0;
+        color: #333;
+        font-size: 16px;
+      }
+
+      .setting-item {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        background: white;
+        padding: 12px;
+        border-radius: 4px;
+        border: 1px solid #dee2e6;
+      }
+
+      .setting-item label {
+        font-size: 12px;
+        font-weight: bold;
+        color: #666;
+      }
+
+      .setting-item input {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+
+      .setting-hint {
+        margin: 5px 0 0 0;
+        font-size: 11px;
+        color: #888;
+      }
+
+      .setting-hint a {
+        color: #007bff;
+        text-decoration: none;
       }
     `;
 
