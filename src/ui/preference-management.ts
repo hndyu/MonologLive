@@ -207,13 +207,11 @@ export class PreferenceManagementUI {
 	 */
 	private attachEventListeners(): void {
 		const resetBtn = this.container.querySelector("#resetPreferences");
-		const refreshBtn = this.container.querySelector("#refreshData");
 		const apiKeyInput = this.container.querySelector(
 			"#geminiApiKey",
 		) as HTMLInputElement;
 
 		resetBtn?.addEventListener("click", () => this.handleReset());
-		refreshBtn?.addEventListener("click", () => this.updateDisplay());
 
 		apiKeyInput?.addEventListener("change", (e) => {
 			const value = (e.target as HTMLInputElement).value;
