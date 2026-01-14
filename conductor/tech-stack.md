@@ -17,3 +17,7 @@
 - **Linting & Formatting:** Biome
 - **Git Hooks:** Lefthook, Commitlint
 - **CI/CD Readiness:** TypeScript strict mode, integrated test suites
+
+## System Maintenance & Optimization
+- **パフォーマンス監視:** `PerformanceMonitor` によるメモリおよび応答時間のリアルタイム監視
+- **最適化:** `LazyLoader` による重いUIコンポーネント（設定、サマリー等）のオンデマンド読み込み、および `AdaptiveBehaviorManager` による負荷に応じた動的設定変更
