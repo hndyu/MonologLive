@@ -299,28 +299,33 @@ describe("Transcription Display Property Tests", () => {
 					let expectedFinalCount = 0;
 
 					actions.forEach((action) => {
-						switch (action.action) {
-							case "interim":
-								display.addTranscript(action.text, false);
-								if (expectedInterimCount === 0) {
-									expectedInterimCount = 1; // First interim
-								}
-								// Subsequent interims update the existing one
-								break;
-							case "final":
-								display.addTranscript(action.text, true);
-								expectedFinalCount++;
-								expectedInterimCount = 0; // Interim becomes final
-								break;
-							case "new-interim":
-								// Force a new interim by finalizing current one first
-								if (expectedInterimCount > 0) {
-									display.addTranscript("finalized", true);
+						if (action.text.trim()) {
+							switch (action.action) {
+								case "interim":
+									display.addTranscript(action.text, false);
+									if (expectedInterimCount === 0) {
+										expectedInterimCount = 1; // First interim
+									}
+									// Subsequent interims update the existing one
+									break;
+								case "final":
+									display.addTranscript(action.text, true);
 									expectedFinalCount++;
-								}
-								display.addTranscript(action.text, false);
-								expectedInterimCount = 1;
-								break;
+									expectedInterimCount = 0; // Interim becomes final
+									break;
+								case "new-interim":
+									// Force a new interim by finalizing current one first
+									if (expectedInterimCount > 0) {
+										display.addTranscript("finalized", true);
+										expectedFinalCount++;
+									}
+									display.addTranscript(action.text, false);
+									expectedInterimCount = 1;
+									break;
+							}
+						} else {
+							// For whitespace text, display should ignore it
+							display.addTranscript(action.text, action.action === "final");
 						}
 					});
 

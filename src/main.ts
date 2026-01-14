@@ -33,7 +33,6 @@ import { PreferenceManagementUI } from "./ui/preference-management.js";
 import { SessionSummaryUI } from "./ui/session-summary.js";
 import { TopicField } from "./ui/topic-field.js";
 import { TranscriptionDisplay } from "./ui/transcription-display.js";
-import { getEnvVar } from "./utils/env-helper.js";
 import { WebSpeechVoiceInputManager } from "./voice/voice-input-manager.js";
 
 export class MonologLiveApp {
@@ -63,7 +62,6 @@ export class MonologLiveApp {
 		this.summaryGenerator = new SummaryGeneratorImpl(
 			new BasicTopicExtractor(),
 			new BasicInsightGenerator(),
-			this.audioManager,
 			new GeminiClientImpl(),
 		);
 		this.sessionManager = new SessionManagerImpl(
@@ -487,22 +485,23 @@ export class MonologLiveApp {
 
 			// End the session in SessionManager
 			if (this.currentSessionId) {
+				// Get Gemini API key from localStorage (Prioritize UI preference)
+				const storedKey = localStorage.getItem("GEMINI_API_KEY");
+				const apiKey = this.isValidKey(storedKey) ? storedKey : undefined;
+
 				// Lazy load summary components
 				await this.initializeSummaryUI();
 
 				// Show loading UI while generating summary
 				if (this.summaryUI) {
-					this.summaryUI.showLoading();
+					this.summaryUI.showLoading(
+						apiKey ? "Generating summary with AI..." : "Generating summary...",
+					);
 				}
-
-				// Get Gemini API key from localStorage or environment
-				const apiKey =
-					localStorage.getItem("GEMINI_API_KEY") ||
-					getEnvVar("VITE_GEMINI_API_KEY");
 
 				const summary = await this.sessionManager.endSession(
 					this.currentSessionId,
-					apiKey,
+					apiKey as string | undefined, // cast to match signature but we know it's valid if provided
 				);
 				console.log("Session summary generated:", summary);
 
@@ -603,6 +602,12 @@ export class MonologLiveApp {
 		if (btn) {
 			btn.style.display = show ? "flex" : "none";
 		}
+	}
+
+	private isValidKey(key: string | null | undefined): boolean {
+		if (!key) return false;
+		const trimmed = key.trim();
+		return trimmed !== "" && trimmed !== "null" && trimmed !== "undefined";
 	}
 
 	private async runEnhancedTranscription(): Promise<void> {

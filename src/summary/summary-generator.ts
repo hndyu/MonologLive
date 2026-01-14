@@ -1,6 +1,5 @@
 // Basic summary generation implementation with enhanced transcription support
 
-import type { LocalAudioManager } from "../audio/audio-manager.js";
 import type {
 	InsightGenerator,
 	SummaryGenerator,
@@ -20,18 +19,15 @@ import type { GeminiClientImpl } from "./gemini-client";
 export class SummaryGeneratorImpl implements SummaryGenerator {
 	private topicExtractor: TopicExtractor;
 	private insightGenerator: InsightGenerator;
-	private audioManager?: LocalAudioManager;
 	private geminiClient?: GeminiClientImpl;
 
 	constructor(
 		topicExtractor: TopicExtractor,
 		insightGenerator: InsightGenerator,
-		audioManager?: LocalAudioManager,
 		geminiClient?: GeminiClientImpl,
 	) {
 		this.topicExtractor = topicExtractor;
 		this.insightGenerator = insightGenerator;
-		this.audioManager = audioManager;
 		this.geminiClient = geminiClient;
 
 		// Initialize enhanced transcription
@@ -132,17 +128,11 @@ export class SummaryGeneratorImpl implements SummaryGenerator {
 		}
 
 		// Basic implementation (fallback)
-		// Try to get audio file for enhanced transcription
-		const audioFile = await this.getSessionAudioFile(session.id);
-
-		// Enhance transcript if needed
-		const enhancedTranscript = await this.enhanceTranscript(
-			fullTranscript,
-			audioFile,
-		);
+		// Clean the transcript for processing
+		const cleanedTranscript = this.cleanTranscript(fullTranscript);
 
 		// Extract topics from transcript
-		const topics = await this.extractTopics(enhancedTranscript);
+		const topics = await this.extractTopics(cleanedTranscript);
 
 		// Generate insights
 		const insights = await this.insightGenerator.generateInsights(
@@ -179,22 +169,6 @@ export class SummaryGeneratorImpl implements SummaryGenerator {
 			.replace(/\s+/g, " ")
 			.replace(/[^\p{L}\p{N}\s.,!?！？。、'']/gu, "")
 			.trim();
-	}
-
-	private async getSessionAudioFile(
-		sessionId: string,
-	): Promise<AudioFile | undefined> {
-		if (!this.audioManager) {
-			return undefined;
-		}
-
-		try {
-			const files = await this.audioManager.getAudioFilesBySession(sessionId);
-			return files.length > 0 ? files[0] : undefined;
-		} catch (error) {
-			console.warn("Failed to get session audio file:", error);
-			return undefined;
-		}
 	}
 
 	private generateOverallSummary(

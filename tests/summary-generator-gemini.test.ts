@@ -18,7 +18,6 @@ describe("SummaryGenerator Gemini Integration", () => {
 		summaryGenerator = new SummaryGeneratorImpl(
 			new BasicTopicExtractor(),
 			new BasicInsightGenerator(),
-			undefined, // audioManager
 			mockGeminiClient,
 		);
 	});

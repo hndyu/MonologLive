@@ -26,14 +26,14 @@ export class SessionSummaryUI {
 		return modal;
 	}
 
-	public showLoading(): void {
+	public showLoading(message = "Generating summary..."): void {
 		const content = this.modal.querySelector(".session-summary-content");
 		if (!content) return;
 
 		content.innerHTML = `
             <div class="summary-loading">
                 <div class="loading-spinner"></div>
-                <p>Generating summary with AI...</p>
+                <p>${message}</p>
             </div>
         `;
 
