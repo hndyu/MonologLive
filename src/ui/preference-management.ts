@@ -65,6 +65,8 @@ export class PreferenceManagementUI {
         <div class="learning-stats" id="learningStats">
           <!-- Learning statistics will be populated here -->
         </div>
+
+        <button id="resetPreferences" class="subtle-reset-btn">Reset Preferences to Default</button>
         
         <div class="ai-settings">
           <h4>AI Settings</h4>
@@ -74,10 +76,6 @@ export class PreferenceManagementUI {
             <p class="setting-hint">Required for high-quality session summaries. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a key here</a></p>
           </div>
         </div>
-      </div>
-      <div class="preference-actions">
-        <button id="resetPreferences" class="reset-btn">Reset to Defaults</button>
-        <button id="refreshData" class="refresh-btn">Refresh</button>
       </div>
     `;
 
