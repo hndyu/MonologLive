@@ -10,11 +10,11 @@
 - [x] Task: Conductor - User Manual Verification 'Performance Foundation' (Protocol in workflow.md) (a676ac8)
 
 ## Phase 2: Lazy Loading Integration
-- [ ] Task: Refactor `MonologLiveApp` to use `LazyLoader` for `PreferenceManagementUI`.
+- [x] Task: Refactor `MonologLiveApp` to use `LazyLoader` for `PreferenceManagementUI`. (a676ac8)
     - Move instantiation from `initializeUI` to the `preferencesBtn` click handler.
-- [ ] Task: Refactor `MonologLiveApp` to use `LazyLoader` for `SessionSummaryUI`.
+- [x] Task: Refactor `MonologLiveApp` to use `LazyLoader` for `SessionSummaryUI`. (58146b3)
     - Move instantiation to the session end flow.
-- [ ] Task: Ensure `LazyLoader` properly handles initialization errors through the `ErrorHandler`.
+- [~] Task: Ensure `LazyLoader` properly handles initialization errors through the `ErrorHandler`.
 - [ ] Task: Conductor - User Manual Verification 'Lazy Loading Integration' (Protocol in workflow.md)
 
 ## Phase 3: System Health UI

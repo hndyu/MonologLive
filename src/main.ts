@@ -313,10 +313,25 @@ export class MonologLiveApp {
 	private async initializeSummaryUI(): Promise<void> {
 		if (this.summaryUI) return;
 
-		const summaryMount = document.getElementById("summary-mount");
-		if (summaryMount) {
-			this.summaryUI = new SessionSummaryUI(summaryMount);
-			console.log("Summary UI initialized on demand");
+		try {
+			// Ensure summary-generator feature is loaded
+			if (!lazyLoader.isFeatureLoaded("summary-generator")) {
+				await lazyLoader.loadFeature("summary-generator");
+			}
+
+			const summaryMount = document.getElementById("summary-mount");
+			if (summaryMount) {
+				this.summaryUI = new SessionSummaryUI(summaryMount);
+				console.log("Summary UI initialized on demand");
+			}
+		} catch (error) {
+			const monologError = createError(
+				ErrorType.BROWSER_COMPATIBILITY,
+				ErrorSeverity.MEDIUM,
+				`Failed to initialize Summary UI: ${error instanceof Error ? error.message : String(error)}`,
+				error instanceof Error ? error : new Error(String(error)),
+			);
+			await errorHandler.handleError(monologError);
 		}
 	}
 
@@ -470,11 +485,6 @@ export class MonologLiveApp {
 					this.summaryUI.showLoading();
 				}
 
-				// Ensure summary generator is loaded
-				if (!lazyLoader.isFeatureLoaded("summary-generator")) {
-					await lazyLoader.loadFeature("summary-generator");
-				}
-
 				// Get Gemini API key from localStorage or environment
 				const apiKey =
 					localStorage.getItem("GEMINI_API_KEY") ||
@@ -549,20 +559,10 @@ export class MonologLiveApp {
 		if (this.preferenceUI) return;
 
 		try {
-			// Load the module
-			await lazyLoader.loadFeature("learning-module");
-
-			// In a real implementation, we might need to load the UI class separately if it's not exported by the feature loader
-			// But for now, we'll assume we can get it or we import it statically (since it's a UI component, maybe not heavy)
-			// Wait, PreferenceManagementUI is imported at the top of the file.
-			// The heavy part is likely the learning system or dependencies.
-			// But the task says "Lazy Load PreferenceManagementUI".
-
-			// Re-reading lazy-loader.ts:
-			// "learning-module" loader returns PreferenceLearning class.
-			// It doesn't seem to return PreferenceManagementUI.
-
-			// Let's check src/ui/preference-management.ts imports.
+			// Ensure learning-module is loaded via LazyLoader
+			if (!lazyLoader.isFeatureLoaded("learning-module")) {
+				await lazyLoader.loadFeature("learning-module");
+			}
 
 			const preferencesMount = document.getElementById("preferences-mount");
 			const learningSystem = this.commentSystem?.getLearningSystem();
@@ -574,19 +574,17 @@ export class MonologLiveApp {
 				);
 				console.log("Preference UI initialized on demand");
 
-				// Set user if session is already running or user is known
-				// For now default to default_user
+				// Set user if known (default to current user or default_user)
 				this.preferenceUI.setUser("default_user");
 			}
 		} catch (error) {
-			console.error("Failed to initialize Preference UI:", error);
 			const monologError = createError(
-				ErrorType.BROWSER_COMPATIBILITY, // Or generic UI error
+				ErrorType.BROWSER_COMPATIBILITY,
 				ErrorSeverity.MEDIUM,
-				"Failed to load preferences. Please try again.",
+				`Failed to initialize Preference UI: ${error instanceof Error ? error.message : String(error)}`,
 				error instanceof Error ? error : new Error(String(error)),
 			);
-			errorHandler.handleError(monologError);
+			await errorHandler.handleError(monologError);
 		}
 	}
 

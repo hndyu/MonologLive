@@ -157,4 +157,22 @@ describe("Performance Integration", () => {
 		expect(loader.isFeatureLoaded("dependency")).toBe(true);
 		expect(loader.isFeatureLoaded("main-feature")).toBe(true);
 	});
+
+	test("LazyLoader handles loading errors and propagates them", async () => {
+		const errorMessage = "Network failure while loading module";
+		const mockLoader = jest.fn().mockRejectedValue(new Error(errorMessage));
+
+		loader.registerFeature({
+			name: "error-feature",
+			isLoaded: false,
+			isLoading: false,
+			loader: mockLoader,
+		});
+
+		await expect(loader.loadFeature("error-feature")).rejects.toThrow(
+			errorMessage,
+		);
+		expect(loader.isFeatureLoaded("error-feature")).toBe(false);
+		expect(loader.isFeatureLoading("error-feature")).toBe(false);
+	});
 });
