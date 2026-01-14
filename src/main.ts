@@ -188,32 +188,40 @@ export class MonologLiveApp {
 	}
 
 	private setupPerformanceMonitoring(): void {
+		const healthDisplay = document.getElementById("health-display");
 		const healthIndicator = document.getElementById("health-indicator");
 		const healthText = document.getElementById("health-text");
 
 		performanceMonitor.onPerformanceUpdate((metrics) => {
-			if (!healthIndicator || !healthText) return;
+			if (!healthIndicator || !healthText || !healthDisplay) return;
 
 			// Update health UI based on metrics
 			// Simple logic: High memory or response time -> Warning
+			let status: "Good" | "Warning" | "Critical" = "Good";
+			let color = "#22c55e";
+			let details = "System performance is optimal";
+
 			if (
 				metrics.memoryUsage.percentage > 85 ||
 				metrics.responseTime.voiceInput > 1000 ||
 				metrics.responseTime.commentGeneration > 2000
 			) {
-				healthIndicator.style.backgroundColor = "#ef4444"; // Red
-				healthText.textContent = "Critical";
+				status = "Critical";
+				color = "#ef4444";
+				details = `Critical: High resource usage detected (Memory: ${metrics.memoryUsage.percentage.toFixed(0)}%)`;
 			} else if (
 				metrics.memoryUsage.percentage > 70 ||
 				metrics.responseTime.voiceInput > 500 ||
 				metrics.responseTime.commentGeneration > 1000
 			) {
-				healthIndicator.style.backgroundColor = "#eab308"; // Yellow
-				healthText.textContent = "Warning";
-			} else {
-				healthIndicator.style.backgroundColor = "#22c55e"; // Green
-				healthText.textContent = "Good";
+				status = "Warning";
+				color = "#eab308";
+				details = "Warning: System under moderate load";
 			}
+
+			healthIndicator.style.backgroundColor = color;
+			healthText.textContent = status;
+			healthDisplay.title = details;
 		});
 
 		performanceMonitor.onPerformanceWarning((warning, metrics) => {
@@ -234,19 +242,21 @@ export class MonologLiveApp {
 		adaptiveBehaviorManager.onConfigurationChange((_config) => {
 			const optimizationStatus =
 				adaptiveBehaviorManager.getOptimizationStatus();
-			if (
-				optimizationStatus.level !== "none" ||
-				optimizationStatus.activeOptimizations.length > 0
-			) {
+
+			if (optimizationStatus.level !== "none") {
 				console.log("Adaptive behavior triggered:", optimizationStatus);
-				// Only show notification if there are active optimizations
-				if (optimizationStatus.activeOptimizations.length > 0) {
+
+				// Briefly notify user through status bar
+				const adjustmentsCount = optimizationStatus.activeOptimizations.length;
+				if (adjustmentsCount > 0) {
+					const originalText =
+						document.getElementById("status-text")?.textContent;
 					this.updateStatus(
-						`Optimizing: ${optimizationStatus.activeOptimizations.length} adjustments applied`,
+						`Optimizing performance: ${adjustmentsCount} adjustments applied`,
 						"running",
 					);
 
-					// Revert status after 3 seconds
+					// Revert status after 4 seconds
 					setTimeout(() => {
 						if (this.isRunning) {
 							this.updateStatus(
@@ -254,9 +264,9 @@ export class MonologLiveApp {
 								"running",
 							);
 						} else {
-							this.updateStatus("Session ended", "ready");
+							this.updateStatus(originalText || "System ready", "ready");
 						}
-					}, 3000);
+					}, 4000);
 				}
 			}
 		});

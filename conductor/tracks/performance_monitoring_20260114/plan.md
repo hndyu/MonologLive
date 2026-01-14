@@ -18,11 +18,11 @@
 - [x] Task: Conductor - User Manual Verification 'Lazy Loading Integration' (Protocol in workflow.md) (5353287)
 
 ## Phase 3: System Health UI
-- [~] Task: Update the status bar in `index.html` and `main.ts` to support "System Health" states.
+- [x] Task: Update the status bar in `index.html` and `main.ts` to support "System Health" states. (33153d7)
     - Add a health indicator (dot or icon) next to the status text.
-- [ ] Task: Connect `PerformanceMonitor` events to the status bar health indicator.
-- [ ] Task: Implement subtle user notifications when `AdaptiveBehaviorManager` triggers an optimization.
-- [ ] Task: Conductor - User Manual Verification 'System Health UI' (Protocol in workflow.md)
+- [x] Task: Connect `PerformanceMonitor` events to the status bar health indicator. (33153d7)
+- [x] Task: Implement subtle user notifications when `AdaptiveBehaviorManager` triggers an optimization. (33153d7)
+- [~] Task: Conductor - User Manual Verification 'System Health UI' (Protocol in workflow.md)
 
 ## Phase 4: Final Validation
 - [ ] Task: Run performance profiling using browser DevTools to verify reduced startup time.
