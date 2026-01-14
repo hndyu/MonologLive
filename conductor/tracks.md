@@ -22,5 +22,8 @@
 
 ---
 
-## [~] Track: Performance Monitoring Integration
+
+
+## [x] Track: Performance Monitoring Integration
+
 *Link: [./conductor/tracks/performance_monitoring_20260114/](./conductor/tracks/performance_monitoring_20260114/)*
