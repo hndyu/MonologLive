@@ -136,6 +136,10 @@
     padding: 3rem 0;
 }
 
+.summary-loading p {
+    color: #333;
+}
+
 .loading-spinner {
     width: 40px;
     height: 40px;
