@@ -25,6 +25,7 @@ export interface PerformanceMetrics {
 		voiceInput: number;
 		commentGeneration: number;
 		transcription: number;
+		initialization: number;
 	};
 	resourceLoading: {
 		localLLM: number;
@@ -80,6 +81,7 @@ export class PerformanceMonitor {
 				voiceInput: 0,
 				commentGeneration: 0,
 				transcription: 0,
+				initialization: 0,
 			},
 			resourceLoading: {
 				localLLM: 0,

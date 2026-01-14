@@ -138,6 +138,7 @@ export class MonologLiveApp {
 
 			// Record initialization time
 			const initDuration = performance.now() - startTime;
+			performanceMonitor.recordResponseTime("initialization", initDuration);
 			console.log(
 				`MONOLOG LIVE initialized successfully in ${initDuration.toFixed(2)}ms`,
 			);

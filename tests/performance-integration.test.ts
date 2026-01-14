@@ -40,6 +40,12 @@ describe("Performance Integration", () => {
 		expect(metrics.memoryUsage.percentage).toBe(50);
 	});
 
+	test("PerformanceMonitor tracks initialization time", () => {
+		monitor.recordResponseTime("initialization", 123.45);
+		const metrics = monitor.getMetrics();
+		expect(metrics.responseTime.initialization).toBe(123.45);
+	});
+
 	test("PerformanceMonitor triggers warnings when thresholds are exceeded", () => {
 		const warningCallback = jest.fn();
 		monitor.onPerformanceWarning(warningCallback);
