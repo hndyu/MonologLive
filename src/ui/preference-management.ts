@@ -361,39 +361,24 @@ export class PreferenceManagementUI {
         color: #f87171;
       }
       
-      .preference-actions {
-        margin-top: 24px;
-        display: flex;
-        gap: 12px;
-      }
-      
-      .preference-actions button {
-        flex: 1;
-        padding: 10px 16px;
-        border: none;
-        border-radius: 8px;
+      .subtle-reset-btn {
+        display: block;
+        width: fit-content;
+        margin: 10px 0 0 auto;
+        padding: 4px 8px;
+        background: transparent;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        color: var(--text-dim);
+        font-size: 11px;
         cursor: pointer;
-        font-size: 14px;
-        font-weight: 600;
         transition: all 0.2s;
       }
       
-      .reset-btn {
-        background: #ef4444;
-        color: white;
-      }
-      
-      .reset-btn:hover {
-        background: #dc2626;
-      }
-      
-      .refresh-btn {
-        background: var(--border-color);
+      .subtle-reset-btn:hover {
+        border-color: var(--text-dim);
         color: var(--text-main);
-      }
-      
-      .refresh-btn:hover {
-        background: #475569;
+        background: rgba(255, 255, 255, 0.05);
       }
 
       .setting-item {
