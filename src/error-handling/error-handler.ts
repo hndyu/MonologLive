@@ -142,7 +142,7 @@ export class ErrorHandler {
 		}
 	}
 
-	private getRecoveryStrategy(error: MonologError): ErrorRecoveryStrategy {
+	public getRecoveryStrategy(error: MonologError): ErrorRecoveryStrategy {
 		switch (error.type) {
 			case ErrorType.VOICE_INPUT:
 				return this.getVoiceInputRecovery(error);
@@ -354,6 +354,30 @@ export function createError(
 		context,
 		recoveryAction,
 	};
+}
+
+/**
+ * Custom error class that implements MonologError interface.
+ * Useful for throwing typed errors from anywhere in the application.
+ */
+export class MonologAppError extends Error implements MonologError {
+	public timestamp: Date;
+
+	constructor(
+		public type: ErrorType,
+		public severity: ErrorSeverity,
+		message: string,
+		public originalError?: Error,
+		public context?: Record<string, unknown>,
+		public recoveryAction?: string,
+	) {
+		super(message);
+		this.name = "MonologAppError";
+		this.timestamp = new Date();
+
+		// Set the prototype explicitly (important for custom errors in TS)
+		Object.setPrototypeOf(this, MonologAppError.prototype);
+	}
 }
 
 // Global error handler instance

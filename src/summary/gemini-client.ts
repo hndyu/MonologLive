@@ -1,3 +1,8 @@
+import {
+	ErrorSeverity,
+	ErrorType,
+	MonologAppError,
+} from "../error-handling/index.js";
 import type { SessionSummary } from "../types/core";
 
 /**
@@ -114,8 +119,12 @@ export class GeminiClientImpl {
 
 			if (!response.ok) {
 				const errorData = await response.json().catch(() => ({}));
-				throw new Error(
-					`Gemini API error: ${response.status} ${response.statusText}. ${JSON.stringify(errorData)}`,
+				throw new MonologAppError(
+					ErrorType.NETWORK,
+					ErrorSeverity.HIGH,
+					`Gemini API error: ${response.status} ${response.statusText}`,
+					new Error(JSON.stringify(errorData)),
+					{ status: response.status, statusText: response.statusText },
 				);
 			}
 
@@ -123,7 +132,11 @@ export class GeminiClientImpl {
 			const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
 			if (!resultText) {
-				throw new Error("Invalid response structure from Gemini API");
+				throw new MonologAppError(
+					ErrorType.COMMENT_GENERATION,
+					ErrorSeverity.HIGH,
+					"Invalid response structure from Gemini API",
+				);
 			}
 
 			const parsed = JSON.parse(resultText);
@@ -136,8 +149,15 @@ export class GeminiClientImpl {
 				generatedAt: new Date(),
 			};
 		} catch (error) {
-			console.error("Gemini API call failed:", error);
-			throw error;
+			if (error instanceof MonologAppError) {
+				throw error;
+			}
+			throw new MonologAppError(
+				ErrorType.COMMENT_GENERATION,
+				ErrorSeverity.HIGH,
+				`Gemini API call failed: ${error instanceof Error ? error.message : String(error)}`,
+				error instanceof Error ? error : new Error(String(error)),
+			);
 		}
 	}
 }

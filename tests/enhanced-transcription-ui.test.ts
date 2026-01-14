@@ -9,6 +9,7 @@ jest.mock("../src/session/session-manager");
 jest.mock("../src/session/topic-manager");
 jest.mock("../src/storage/indexeddb-wrapper");
 jest.mock("../src/summary/summary-generator");
+jest.mock("../src/ui/session-summary");
 jest.mock("../src/transcription/enhanced-transcription");
 jest.mock("../src/ui/preference-management");
 jest.mock("../src/ui/topic-field");
@@ -78,12 +79,24 @@ describe("MonologLiveApp - Enhanced Transcription UI", () => {
 		]);
 		// @ts-expect-error
 		app.sessionManager.getSessionById.mockResolvedValue({ transcript: [] });
+
+		// Trigger stopSession first to ensure summaryGenerator is initialized via lazy loading
 		// @ts-expect-error
-		app.summaryGenerator.enhanceTranscript.mockResolvedValue("Enhanced text");
+		app.audioRecorder.stopRecording.mockResolvedValue(new Blob(["test"]));
+		// @ts-expect-error
+		app.sessionManager.endSession.mockResolvedValue({
+			sessionId: "test-session",
+		});
 
 		// Stop session
 		// @ts-expect-error
 		await app.stopSession();
+
+		// Now summaryGenerator should be initialized
+		// @ts-expect-error
+		app.summaryGenerator.createSummary.mockResolvedValue({ topics: [] });
+		// @ts-expect-error
+		app.summaryGenerator.enhanceTranscript.mockResolvedValue("Enhanced text");
 
 		// Run enhanced transcription
 		// @ts-expect-error

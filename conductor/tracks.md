@@ -12,5 +12,15 @@
 
 ---
 
-## [~] Track: Summary Generation Integration & Persistence
+## [x] Track: Summary Generation Integration & Persistence
 *Link: [./conductor/tracks/summary_persistence_20260113/](./conductor/tracks/summary_persistence_20260113/)*
+
+---
+
+## [x] Track: Error Handling Integration
+*Link: [./conductor/tracks/error_handling_integration_20260114/](./conductor/tracks/error_handling_integration_20260114/)*
+
+---
+
+## [~] Track: Performance Monitoring Integration
+*Link: [./conductor/tracks/performance_monitoring_20260114/](./conductor/tracks/performance_monitoring_20260114/)*

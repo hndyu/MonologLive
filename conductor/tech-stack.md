@@ -10,6 +10,7 @@
 ## APIs
 - **Voice:** Web Speech API (SpeechRecognition)
 - **Audio:** MediaRecorder API
+- **AI Service:** Google Gemini API (Generative AI for summarization)
 
 ## Development & Quality Assurance
 - **Testing:** Jest, ts-jest, fast-check (Property-based testing)

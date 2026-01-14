@@ -1,5 +1,10 @@
 // Audio recording implementation using MediaRecorder API
 
+import {
+	ErrorSeverity,
+	ErrorType,
+	MonologAppError,
+} from "../error-handling/index.js";
 import type { AudioRecorder } from "../interfaces/audio-recording.js";
 import type {
 	AudioFile,
@@ -39,7 +44,11 @@ export class WebAudioRecorder implements AudioRecorder {
 
 	async startRecording(): Promise<void> {
 		if (!this.isSupported()) {
-			throw new Error("Audio recording not supported in this browser");
+			throw new MonologAppError(
+				ErrorType.BROWSER_COMPATIBILITY,
+				ErrorSeverity.CRITICAL,
+				"Audio recording not supported in this browser",
+			);
 		}
 
 		if (this.status === "recording") {
@@ -99,20 +108,33 @@ export class WebAudioRecorder implements AudioRecorder {
 		} catch (error) {
 			this.status = "error";
 			this.stopAudioStream();
-			throw new Error(
+			throw new MonologAppError(
+				ErrorType.AUDIO_RECORDING,
+				ErrorSeverity.HIGH,
 				`Failed to start recording: ${error instanceof Error ? error.message : "Unknown error"}`,
+				error instanceof Error ? error : new Error(String(error)),
 			);
 		}
 	}
 
 	async stopRecording(): Promise<AudioFile> {
 		if (!this.mediaRecorder || this.status !== "recording") {
-			throw new Error("No active recording to stop");
+			throw new MonologAppError(
+				ErrorType.AUDIO_RECORDING,
+				ErrorSeverity.MEDIUM,
+				"No active recording to stop",
+			);
 		}
 
 		return new Promise((resolve, reject) => {
 			if (!this.mediaRecorder) {
-				reject(new Error("MediaRecorder not available"));
+				reject(
+					new MonologAppError(
+						ErrorType.AUDIO_RECORDING,
+						ErrorSeverity.HIGH,
+						"MediaRecorder not available",
+					),
+				);
 				return;
 			}
 
@@ -142,7 +164,14 @@ export class WebAudioRecorder implements AudioRecorder {
 					this.stopAudioStream();
 					resolve(audioFile);
 				} catch (error) {
-					reject(error);
+					reject(
+						new MonologAppError(
+							ErrorType.AUDIO_RECORDING,
+							ErrorSeverity.HIGH,
+							`Error during recording stop: ${error instanceof Error ? error.message : String(error)}`,
+							error instanceof Error ? error : new Error(String(error)),
+						),
+					);
 				}
 			};
 

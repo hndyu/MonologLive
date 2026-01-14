@@ -1,5 +1,12 @@
 // Session lifecycle management implementation
 
+import {
+	createError,
+	ErrorSeverity,
+	ErrorType,
+	errorHandler,
+	MonologAppError,
+} from "../error-handling/index.js";
 import type { SessionManager } from "../interfaces/session-management.js";
 import type { SummaryGenerator } from "../interfaces/summary-generation.js";
 import type { IndexedDBWrapper } from "../storage/indexeddb-wrapper.js";
@@ -44,7 +51,14 @@ export class SessionManagerImpl implements SessionManager {
 
 		// Store session in IndexedDB immediately
 		this.storage.saveSession(session).catch((error) => {
-			console.error("Failed to save session to storage:", error);
+			errorHandler.handleError(
+				createError(
+					ErrorType.STORAGE,
+					ErrorSeverity.MEDIUM,
+					`Failed to save session to storage: ${error instanceof Error ? error.message : String(error)}`,
+					error instanceof Error ? error : new Error(String(error)),
+				),
+			);
 		});
 
 		return session;
@@ -56,7 +70,11 @@ export class SessionManagerImpl implements SessionManager {
 	): Promise<SessionSummary> {
 		const session = await this.getSessionById(sessionId);
 		if (!session) {
-			throw new Error(`Session ${sessionId} not found`);
+			throw new MonologAppError(
+				ErrorType.SESSION,
+				ErrorSeverity.HIGH,
+				`Session ${sessionId} not found`,
+			);
 		}
 
 		// Mark session as ended
@@ -74,12 +92,21 @@ export class SessionManagerImpl implements SessionManager {
 		this.activeSessions.delete(session.userId);
 
 		// Generate summary
-		const summary = await this.generateSummary(session, apiKey);
+		try {
+			const summary = await this.generateSummary(session, apiKey);
 
-		// Save summary to storage
-		await this.storage.saveSummary(summary);
+			// Save summary to storage
+			await this.storage.saveSummary(summary);
 
-		return summary;
+			return summary;
+		} catch (error) {
+			throw new MonologAppError(
+				ErrorType.SESSION,
+				ErrorSeverity.HIGH,
+				`Failed to end session cleanly: ${error instanceof Error ? error.message : String(error)}`,
+				error instanceof Error ? error : new Error(String(error)),
+			);
+		}
 	}
 
 	trackActivity(sessionId: string, activity: ActivityEvent): void {
@@ -110,7 +137,14 @@ export class SessionManagerImpl implements SessionManager {
 
 		// Persist session changes
 		this.storage.saveSession(session).catch((error) => {
-			console.error("Failed to save session activity:", error);
+			errorHandler.handleError(
+				createError(
+					ErrorType.STORAGE,
+					ErrorSeverity.LOW,
+					`Failed to save session activity: ${error instanceof Error ? error.message : String(error)}`,
+					error instanceof Error ? error : new Error(String(error)),
+				),
+			);
 		});
 	}
 
