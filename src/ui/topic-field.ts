@@ -117,6 +117,8 @@ export class TopicField {
 		// Create input element
 		this.inputElement = document.createElement("input");
 		this.inputElement.type = "text";
+		this.inputElement.name = "session-topic";
+		this.inputElement.autocomplete = "off";
 		this.inputElement.className = "topic-input";
 		this.inputElement.placeholder = this.config.placeholder;
 		this.inputElement.maxLength = this.config.maxLength;
