@@ -7,9 +7,9 @@ Based on `spec.md`, we will remove the redundant Refresh button, relocate the Re
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Preparation and Testing Setup' (Protocol in workflow.md) `[x]` (55f3371)
 
 ## Phase 2: UI Structure and Logic Refinement
-- [ ] Task: Update `initialize` method to remove Refresh button and move Reset button above AI Settings `[ ]`
-- [ ] Task: Update `attachEventListeners` to remove Refresh button logic `[ ]`
-- [ ] Task: Remove `preference-actions` container from HTML template `[ ]`
+- [x] Task: Update `initialize` method to remove Refresh button and move Reset button above AI Settings `[x]` (6aa3d56)
+- [x] Task: Update `attachEventListeners` to remove Refresh button logic `[x]` (a28053a)
+- [x] Task: Remove `preference-actions` container from HTML template `[x]` (6aa3d56)
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: UI Structure and Logic Refinement' (Protocol in workflow.md) `[ ]`
 
 ## Phase 3: Styling and Visual Polish
