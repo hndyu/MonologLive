@@ -19,5 +19,5 @@ Gemini API を使用して高品質なサマリーを生成する基盤を構築
 
 - [x] Task: `SessionSummary` を Markdown 形式に変換し、ブラウザでダウンロードさせる `MarkdownExporter` ユーティリティの実装。 [8791ca3]
 - [x] Task: `SessionSummaryUI` を更新。Gemini API のリッチな回答を表示し、「Markdown で保存」ボタンを追加。API 呼び出し中のローディング表示も実装。 [a3f7ff6]
-- [~] Task: Gemini API キーを安全に設定・保持する仕組み。
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: UI and Export' (Protocol in workflow.md)
+- [x] Task: Gemini API キーを安全に設定・保持する仕組み。 [4bc70f8]
+- [x] Task: Conductor - User Manual Verification 'Phase 3: UI and Export' (Protocol in workflow.md)
