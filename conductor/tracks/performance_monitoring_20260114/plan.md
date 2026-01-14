@@ -4,7 +4,7 @@
 - [x] Task: Create `tests/performance-integration.test.ts` to verify `PerformanceMonitor` and `LazyLoader` behavior. (58821c8)
     - Write tests ensuring components are NOT loaded initially.
     - Write tests ensuring components ARE loaded on demand.
-- [ ] Task: Initialize `PerformanceMonitor` in `MonologLiveApp.initialize()`.
+- [x] Task: Initialize `PerformanceMonitor` in `MonologLiveApp.initialize()`. (b8e577f)
     - Track app initialization time.
     - Start background monitoring of system health.
 - [ ] Task: Conductor - User Manual Verification 'Performance Foundation' (Protocol in workflow.md)
