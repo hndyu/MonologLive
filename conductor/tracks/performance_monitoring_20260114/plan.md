@@ -1,7 +1,7 @@
 # Implementation Plan - Performance Monitoring Integration
 
 ## Phase 1: Performance Foundation
-- [x] Task: Create `tests/performance-integration.test.ts` to verify `PerformanceMonitor` and `LazyLoader` behavior. (7608e01)
+- [x] Task: Create `tests/performance-integration.test.ts` to verify `PerformanceMonitor` and `LazyLoader` behavior. (58821c8)
     - Write tests ensuring components are NOT loaded initially.
     - Write tests ensuring components ARE loaded on demand.
 - [ ] Task: Initialize `PerformanceMonitor` in `MonologLiveApp.initialize()`.
