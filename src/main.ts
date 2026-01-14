@@ -14,11 +14,7 @@ import {
 	errorUI,
 } from "./error-handling/index.js";
 import type { SummaryGenerator } from "./interfaces/summary-generation.js";
-import {
-	adaptiveBehaviorManager,
-	lazyLoader,
-	performanceMonitor,
-} from "./performance/index.js";
+import { lazyLoader } from "./performance/index.js";
 import { SessionManagerImpl } from "./session/session-manager.js";
 import { TopicManager } from "./session/topic-manager.js";
 import { IndexedDBWrapper } from "./storage/indexeddb-wrapper.js";
@@ -97,10 +93,7 @@ export class MonologLiveApp {
 
 	async initialize(): Promise<void> {
 		try {
-			// Start performance monitoring
-			performanceMonitor.startMonitoring();
 			const startTime = performance.now();
-			this.setupPerformanceMonitoring();
 
 			// Set up global error handlers
 			this.setupGlobalErrorHandlers();
@@ -136,7 +129,6 @@ export class MonologLiveApp {
 
 			// Record initialization time
 			const initDuration = performance.now() - startTime;
-			performanceMonitor.recordResponseTime("initialization", initDuration);
 			console.log(
 				`MONOLOG LIVE initialized successfully in ${initDuration.toFixed(2)}ms`,
 			);
@@ -182,91 +174,6 @@ export class MonologLiveApp {
 					: new Error(String(event.reason)),
 			);
 			errorHandler.handleError(error);
-		});
-	}
-
-	private setupPerformanceMonitoring(): void {
-		const healthDisplay = document.getElementById("health-display");
-		const healthIndicator = document.getElementById("health-indicator");
-		const healthText = document.getElementById("health-text");
-
-		performanceMonitor.onPerformanceUpdate((metrics) => {
-			if (!healthIndicator || !healthText || !healthDisplay) return;
-
-			// Update health UI based on metrics
-			// Simple logic: High memory or response time -> Warning
-			let status: "Good" | "Warning" | "Critical" = "Good";
-			let color = "#22c55e";
-			let details = "System performance is optimal";
-
-			if (
-				metrics.memoryUsage.percentage > 85 ||
-				metrics.responseTime.voiceInput > 1000 ||
-				metrics.responseTime.commentGeneration > 2000
-			) {
-				status = "Critical";
-				color = "#ef4444";
-				details = `Critical: High resource usage detected (Memory: ${metrics.memoryUsage.percentage.toFixed(0)}%)`;
-			} else if (
-				metrics.memoryUsage.percentage > 70 ||
-				metrics.responseTime.voiceInput > 500 ||
-				metrics.responseTime.commentGeneration > 1000
-			) {
-				status = "Warning";
-				color = "#eab308";
-				details = "Warning: System under moderate load";
-			}
-
-			healthIndicator.style.backgroundColor = color;
-			healthText.textContent = status;
-			healthDisplay.title = details;
-		});
-
-		performanceMonitor.onPerformanceWarning((warning, metrics) => {
-			console.warn(`Performance Warning: ${warning}`, metrics);
-			this.updateStatus(`Optimizing: ${warning}`, "running");
-
-			// Revert status after 3 seconds
-			setTimeout(() => {
-				if (this.isRunning) {
-					this.updateStatus("Recording active - Speak naturally", "running");
-				} else {
-					this.updateStatus("Session ended", "ready");
-				}
-			}, 3000);
-		});
-
-		// Monitor adaptive behavior
-		adaptiveBehaviorManager.onConfigurationChange((_config) => {
-			const optimizationStatus =
-				adaptiveBehaviorManager.getOptimizationStatus();
-
-			if (optimizationStatus.level !== "none") {
-				console.log("Adaptive behavior triggered:", optimizationStatus);
-
-				// Briefly notify user through status bar
-				const adjustmentsCount = optimizationStatus.activeOptimizations.length;
-				if (adjustmentsCount > 0) {
-					const originalText =
-						document.getElementById("status-text")?.textContent;
-					this.updateStatus(
-						`Optimizing performance: ${adjustmentsCount} adjustments applied`,
-						"running",
-					);
-
-					// Revert status after 4 seconds
-					setTimeout(() => {
-						if (this.isRunning) {
-							this.updateStatus(
-								"Recording active - Speak naturally",
-								"running",
-							);
-						} else {
-							this.updateStatus(originalText || "System ready", "ready");
-						}
-					}, 4000);
-				}
-			}
 		});
 	}
 
