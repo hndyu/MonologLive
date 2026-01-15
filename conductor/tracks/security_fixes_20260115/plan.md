@@ -11,9 +11,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: XSS Remediation' (Protocol in workflow.md) [confirmed by user]
 
 ## Phase 2: Privacy and LLM Safety
-- [ ] Task: Prevent PII Leak in Logs (`src/error-handling/error-handler.ts`)
-    - [ ] Modify `logError()` to sanitize or mask `error.originalError` and `error.context` before calling `console.error/warn/info`.
-- [ ] Task: Mitigate Prompt Injection (`src/summary/gemini-client.ts`)
+- [x] Task: Prevent PII Leak in Logs (`src/error-handling/error-handler.ts`) a2bdc8b
+    - [x] Modify `logError()` to sanitize or mask `error.originalError` and `error.context` before calling `console.error/warn/info`.
+- [~] Task: Mitigate Prompt Injection (`src/summary/gemini-client.ts`)
     - [ ] Update `generateSummary()` prompt to use `"""` delimiters around the `${transcript}` variable.
 - [ ] Task: Verify Privacy and Safety Fixes
     - [ ] Verify that console logs do not contain raw transcripts or API keys.
