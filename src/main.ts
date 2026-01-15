@@ -207,11 +207,9 @@ export class MonologLiveApp {
 		if (topicMount) {
 			this.topicField = new TopicField(topicMount, {
 				onTopicChange: (topic) => {
-					console.log("Topic changed:", topic);
 					this.topicManager.setTopic(topic, "user_input");
 				},
 				onTopicSubmit: (topic) => {
-					console.log("Topic submitted:", topic);
 					this.topicManager.setTopic(topic, "user_input");
 
 					// If session is running, add interaction
@@ -431,7 +429,6 @@ export class MonologLiveApp {
 					this.currentSessionId,
 					apiKey as string | undefined, // cast to match signature but we know it's valid if provided
 				);
-				console.log("Session summary generated:", summary);
 
 				// Show summary UI
 				if (this.summaryUI) {

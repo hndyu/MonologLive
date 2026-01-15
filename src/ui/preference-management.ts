@@ -106,7 +106,6 @@ export class PreferenceManagementUI {
 	 * Sets the current user and starts updating the display
 	 */
 	setUser(userId: string): void {
-		console.log(`Setting user for PreferenceUI: ${userId}`);
 		this.currentUserId = userId;
 		this.startPeriodicUpdates();
 		this.updateDisplay();
