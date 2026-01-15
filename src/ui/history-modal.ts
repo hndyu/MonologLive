@@ -125,7 +125,7 @@ export class HistoryModal {
 
 			item.innerHTML = `
                 <div class="session-info">
-                    <div class="session-title">${session.title || "Untitled Session"}</div>
+                    <div class="session-title"></div>
                     <div class="session-meta">
                         <span>📅 ${dateStr}</span>
                         <span>⏱️ ${durationStr}</span>
@@ -141,6 +141,11 @@ export class HistoryModal {
 					</button>
 				</div>
 			`;
+
+			const titleEl = item.querySelector(".session-title");
+			if (titleEl) {
+				titleEl.textContent = session.title || "Untitled Session";
+			}
 
 			// Click handler for favorite
 			const favBtn = item.querySelector(".favorite");

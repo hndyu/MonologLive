@@ -161,3 +161,53 @@ describe("PreferenceManagementUI XSS Vulnerability", () => {
 		);
 	});
 });
+
+import { SessionHistoryManager } from "../src/session/session-history-manager";
+
+import { HistoryModal } from "../src/ui/history-modal";
+
+jest.mock("../src/session/session-history-manager");
+
+describe("HistoryModal XSS Vulnerability", () => {
+	let container: HTMLElement;
+	let storage: IndexedDBWrapper;
+	let mockHistoryManager: jest.Mocked<SessionHistoryManager>;
+	const XSS_PAYLOAD = '<img src="x" onerror="window.xssCaptured=true">';
+
+	beforeEach(() => {
+		container = document.createElement("div");
+		storage = new IndexedDBWrapper();
+		(window as unknown as { xssCaptured: boolean }).xssCaptured = false;
+
+		mockHistoryManager = {
+			getSessions: jest.fn().mockResolvedValue([
+				{
+					id: "session_1",
+					userId: "user_1",
+					title: XSS_PAYLOAD,
+					startTime: new Date(),
+					metrics: { totalDuration: 0, commentCount: 0 },
+					transcript: [],
+					comments: [],
+					interactions: [],
+				},
+			]),
+		} as any;
+		(SessionHistoryManager as jest.Mock).mockImplementation(
+			() => mockHistoryManager,
+		);
+
+		jest.clearAllMocks();
+	});
+
+	test("should not execute scripts in session list titles", async () => {
+		const modal = new HistoryModal(container, storage);
+		await modal.refresh();
+
+		const titleEl = container.querySelector(".session-title");
+		expect(titleEl?.innerHTML).not.toContain('<img src="x"');
+		expect((window as unknown as { xssCaptured: boolean }).xssCaptured).toBe(
+			false,
+		);
+	});
+});
