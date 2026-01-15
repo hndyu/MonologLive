@@ -1,6 +1,6 @@
 # Implementation Plan: Security Vulnerability Remediation
 
-## Phase 1: XSS Remediation
+## Phase 1: XSS Remediation [checkpoint: 76156d9]
 - [x] Task: Fix XSS in Session Detail View (`src/ui/session-detail.ts`) d383849
     - [ ] Update `render()` to set title via `textContent` instead of `innerHTML` interpolation.
     - [ ] Update `renderTranscript()` to set segment text via `textContent` instead of `innerHTML` interpolation.
