@@ -14,13 +14,13 @@
 - [x] Task: 設定UIの表示テスト 5bd28a7
 - [x] Task: Conductor - User Manual Verification '設定UIの拡張' (Protocol in workflow.md) 6cfa6cb
 
-## Phase 3: 厳密な遅延読み込みの実装と統合
+## Phase 3: 厳密な遅延読み込みの実装と統合 [checkpoint: f3bb03f]
 メインアプリケーションからの参照を動的化し、ロード中のUXを統合します。
 
 - [x] Task: `transcription-integration.ts` の動的ロード化 5b786c1
 - [x] Task: UI側でのロード状態の反映 5b786c1
 - [x] Task: ロード時ヒントの表示 5b786c1
-- [~] Task: Conductor - User Manual Verification '厳密な遅延読み込みの実装と統合' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification '厳密な遅延読み込みの実装と統合' (Protocol in workflow.md) f3bb03f
 
 ## Phase 4: バックグラウンド事前ロードと最終調整
 アイドル時間を利用した最適化と、全体のポリッシュを行います。
