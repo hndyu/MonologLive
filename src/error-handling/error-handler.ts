@@ -124,22 +124,126 @@ export class ErrorHandler {
 			this.errorLog.shift();
 		}
 
+		// Sanitize error for console logging to prevent PII leaks
+		const sanitizedError = this.sanitizeForLogging(error);
+
 		// Console logging based on severity
-		const logMessage = `[${error.type}] ${error.message}`;
-		switch (error.severity) {
+		const logMessage = `[${sanitizedError.type}] ${sanitizedError.message}`;
+		const context = sanitizedError.context
+			? ` | Context: ${JSON.stringify(sanitizedError.context)}`
+			: "";
+
+		switch (sanitizedError.severity) {
 			case ErrorSeverity.CRITICAL:
-				console.error(logMessage, error.originalError);
+				console.error(
+					logMessage + context,
+					this.sanitizeErrorObject(sanitizedError.originalError),
+				);
 				break;
 			case ErrorSeverity.HIGH:
-				console.error(logMessage, error.originalError);
+				console.error(
+					logMessage + context,
+					this.sanitizeErrorObject(sanitizedError.originalError),
+				);
 				break;
 			case ErrorSeverity.MEDIUM:
-				console.warn(logMessage, error.originalError);
+				console.warn(
+					logMessage + context,
+					this.sanitizeErrorObject(sanitizedError.originalError),
+				);
 				break;
 			case ErrorSeverity.LOW:
-				console.info(logMessage, error.originalError);
+				console.info(
+					logMessage + context,
+					this.sanitizeErrorObject(sanitizedError.originalError),
+				);
 				break;
 		}
+	}
+
+	/**
+	 * Creates a sanitized copy of the error for safe logging
+	 */
+	private sanitizeForLogging(error: MonologError): MonologError {
+		const sanitized = { ...error };
+
+		if (sanitized.context) {
+			sanitized.context = this.sanitizeObject(sanitized.context);
+		}
+
+		return sanitized;
+	}
+
+	/**
+	 * Masks sensitive fields in a plain object
+	 */
+	private sanitizeObject(
+		obj: Record<string, unknown>,
+	): Record<string, unknown> {
+		const sensitiveKeys = [
+			"apiKey",
+			"token",
+			"password",
+			"secret",
+			"transcript",
+			"text",
+		];
+		const sanitized: Record<string, unknown> = {};
+
+		for (const [key, value] of Object.entries(obj)) {
+			if (
+				sensitiveKeys.some((k) => key.toLowerCase().includes(k.toLowerCase()))
+			) {
+				sanitized[key] = "[MASKED]";
+			} else if (value && typeof value === "object" && !Array.isArray(value)) {
+				sanitized[key] = this.sanitizeObject(value as Record<string, unknown>);
+			} else {
+				sanitized[key] = value;
+			}
+		}
+
+		return sanitized;
+	}
+
+	/**
+	 * Creates a safe-to-log version of an Error object
+	 */
+	private sanitizeErrorObject(error?: Error): Error | undefined {
+		if (!error) return undefined;
+
+		// We create a new error to avoid modifying the original
+		// and to ensure sensitive info in the message is masked
+		const sensitivePatterns = [
+			/sk-[a-zA-Z0-9]{10,}/g, // Generic API key pattern
+			/AIzaSy[a-zA-Z0-9_-]{33}/g, // Google API key pattern
+			/'[^']{5,}'/g, // Potential sensitive content in single quotes
+			/"[^"]{5,}"/g, // Potential sensitive content in double quotes
+		];
+
+		let sanitizedMessage = error.message;
+		for (const pattern of sensitivePatterns) {
+			sanitizedMessage = sanitizedMessage.replace(
+				pattern,
+				"[MASKED_SENSITIVE]",
+			);
+		}
+
+		// Also mask content that looks like a transcript if it contains keywords
+		const sensitiveKeywords = ["password", "key", "secret"];
+		if (
+			sensitiveKeywords.some((k) =>
+				sanitizedMessage.toLowerCase().includes(k.toLowerCase()),
+			)
+		) {
+			sanitizedMessage = sanitizedMessage.replace(
+				/is\s+['"].*['"]/,
+				"is [MASKED]",
+			);
+		}
+
+		const newError = new Error(sanitizedMessage);
+		newError.stack = "[STACK_TRACE_MASKED_FOR_PRIVACY]";
+		return newError;
 	}
 
 	public getRecoveryStrategy(error: MonologError): ErrorRecoveryStrategy {
