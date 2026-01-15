@@ -234,3 +234,25 @@
     margin-bottom: 0.25rem;
     opacity: 0.7;
 }
+
+.segment-text {
+    outline: none;
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin: -2px -4px;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    white-space: pre-wrap;
+    word-break: break-word;
+    display: block;
+    min-height: 1.5em;
+}
+
+.segment-text:focus {
+    background-color: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 0 1px var(--primary-color);
+    color: var(--text-main);
+}
+
+.segment-text:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}

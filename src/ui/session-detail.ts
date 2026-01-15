@@ -146,8 +146,41 @@ export class SessionDetailView {
 
 			el.innerHTML = `
                 <div class="segment-time">${startTimeStr}</div>
-                <div>${segment.text}</div>
+                <div class="segment-text" contenteditable="true" spellcheck="true">${segment.text}</div>
             `;
+
+			const textEl = el.querySelector(".segment-text") as HTMLElement;
+
+			// Prevent seeking when clicking the text to edit, but still allow focus
+			textEl.addEventListener("click", (e) => {
+				e.stopPropagation();
+			});
+
+			// Save changes on blur
+			textEl.addEventListener("blur", () => {
+				const newText = textEl.innerText.trim();
+				if (newText !== segment.text) {
+					segment.text = newText;
+					this.storage
+						.updateSessionTranscript(this.session.id, this.session.transcript)
+						.catch((err) => {
+							console.error("Failed to update transcript", err);
+							// Optional: revert text or show error UI
+						});
+				}
+			});
+
+			// Handle Enter key to blur (finish editing)
+			textEl.addEventListener("keydown", (e) => {
+				if (e.key === "Enter" && !e.shiftKey) {
+					e.preventDefault();
+					textEl.blur();
+				}
+				if (e.key === "Escape") {
+					textEl.innerText = segment.text; // Revert
+					textEl.blur();
+				}
+			});
 
 			el.addEventListener("click", () => {
 				if (this.audio) {
@@ -391,8 +424,13 @@ export class SessionDetailView {
 		});
 	}
 
-	private ensureVisible(_el: HTMLElement) {
-		// Implementation pending
+	private ensureVisible(el: HTMLElement) {
+		if (document.activeElement?.classList.contains("segment-text")) return;
+
+		el.scrollIntoView({
+			behavior: "smooth",
+			block: "nearest",
+		});
 	}
 
 	private seek(e: MouseEvent) {

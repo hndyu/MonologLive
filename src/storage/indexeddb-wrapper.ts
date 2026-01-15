@@ -158,6 +158,31 @@ export class IndexedDBWrapper {
 		await tx.done;
 	}
 
+	async updateSessionTranscript(
+		sessionId: string,
+		transcript: Session["transcript"],
+	): Promise<void> {
+		await this.ensureInitialized();
+		if (!this.db) {
+			console.warn("Database not available, skipping transcript update");
+			return;
+		}
+
+		const tx = this.db.transaction("sessions", "readwrite");
+		const store = tx.objectStore("sessions");
+		const session = await store.get(sessionId);
+
+		if (!session) {
+			console.warn(`Session ${sessionId} not found`);
+			return;
+		}
+
+		session.transcript = transcript;
+
+		await store.put(session);
+		await tx.done;
+	}
+
 	async deleteSession(sessionId: string): Promise<void> {
 		await this.ensureInitialized();
 		if (!this.db) {
