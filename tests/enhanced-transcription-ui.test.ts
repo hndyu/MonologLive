@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import type { EnhancedTranscription } from "../src/interfaces/enhanced-transcription";
 import { MonologLiveApp } from "../src/main";
+import type { TranscriptionDisplay } from "../src/ui/transcription-display";
 
 // Mock everything needed for main.ts
 jest.mock("../src/audio/audio-manager");
@@ -72,7 +74,13 @@ describe("MonologLiveApp - Enhanced Transcription UI", () => {
 		// @ts-expect-error
 		app.currentSessionId = "test-session";
 		// @ts-expect-error
-		app.whisper.isAvailable.mockReturnValue(true);
+		app.whisper = {
+			isAvailable: jest.fn(() => true),
+		} as unknown as EnhancedTranscription;
+		// @ts-expect-error
+		app.transcriptionDisplay = {
+			addTranscript: jest.fn(),
+		} as unknown as TranscriptionDisplay;
 		// @ts-expect-error
 		app.audioManager.getAudioFilesBySession.mockResolvedValue([
 			{ id: "file1" },
