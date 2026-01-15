@@ -49,10 +49,10 @@ Adding interactivity to manage and extract data.
 ## Phase 5: Polishing & Final Integration
 Responsive design and performance optimization.
 
-- [ ] Task: Optimize for Mobile.
-    - [ ] Ensure touch-friendly playback controls and readable transcript layout.
-    - [ ] Adjust modal sizing for small screens.
-- [ ] Task: Final System Integration & Performance Check.
-    - [ ] Verify memory usage when loading large history.
-    - [ ] Run full test suite and ensure >80% coverage.
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Polishing & Final Integration' (Protocol in workflow.md)
+- [x] Task: Optimize for Mobile.
+    - [x] Ensure touch-friendly playback controls and readable transcript layout.
+    - [x] Adjust modal sizing for small screens.
+- [x] Task: Final System Integration & Performance Check.
+    - [x] Verify memory usage when loading large history.
+    - [x] Run full test suite and ensure >80% coverage.
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Polishing & Final Integration' (Protocol in workflow.md) [commit: pending]
