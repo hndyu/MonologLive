@@ -43,7 +43,7 @@ export class SessionDetailView {
                 <div class="detail-header">
                     <button id="detail-back-btn" class="back-btn">←</button>
                     <div class="detail-title">
-                        <h3 id="session-title-text" class="editable-title">${this.session.title || "Untitled Session"} ✎</h3>
+                        <h3 id="session-title-text" class="editable-title"></h3>
                         <div class="detail-date">${dateStr} • ${durationMin} min</div>
                     </div>
                     <div class="detail-actions">
@@ -79,6 +79,11 @@ export class SessionDetailView {
                 </div>
             </div>
         `;
+
+		const titleText = this.container.querySelector("#session-title-text");
+		if (titleText) {
+			titleText.textContent = `${this.session.title || "Untitled Session"} ✎`;
+		}
 
 		this.attachEventListeners();
 		this.renderTranscript();
@@ -146,10 +151,11 @@ export class SessionDetailView {
 
 			el.innerHTML = `
                 <div class="segment-time">${startTimeStr}</div>
-                <div class="segment-text" contenteditable="true" spellcheck="true">${segment.text}</div>
+                <div class="segment-text" contenteditable="true" spellcheck="true"></div>
             `;
 
 			const textEl = el.querySelector(".segment-text") as HTMLElement;
+			textEl.textContent = segment.text;
 
 			// Prevent seeking when clicking the text to edit, but still allow focus
 			textEl.addEventListener("click", (e) => {
@@ -273,7 +279,7 @@ export class SessionDetailView {
 			this.session.title = newTitle.trim();
 
 			const titleText = this.container.querySelector("#session-title-text");
-			if (titleText) titleText.innerHTML = `${this.session.title} ✎`;
+			if (titleText) titleText.textContent = `${this.session.title} ✎`;
 		}
 	}
 
