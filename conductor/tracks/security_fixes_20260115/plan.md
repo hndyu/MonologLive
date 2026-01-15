@@ -8,7 +8,7 @@
 - [x] Task: Fix XSS in Preference Management UI (`src/ui/preference-management.ts`) dbcfdce
 - [x] Task: Verify XSS Fixes [verification passed]
     - [x] Create/Update tests to inject HTML tags in titles and transcripts and verify they are rendered as plain text.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: XSS Remediation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: XSS Remediation' (Protocol in workflow.md) [confirmed by user]
 
 ## Phase 2: Privacy and LLM Safety
 - [ ] Task: Prevent PII Leak in Logs (`src/error-handling/error-handler.ts`)
