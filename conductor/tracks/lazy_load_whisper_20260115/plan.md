@@ -22,9 +22,9 @@
 - [x] Task: ロード時ヒントの表示 5b786c1
 - [x] Task: Conductor - User Manual Verification '厳密な遅延読み込みの実装と統合' (Protocol in workflow.md) f3bb03f
 
-## Phase 4: バックグラウンド事前ロードと最終調整 [checkpoint: f372042]
+## Phase 4: バックグラウンド事前ロードと最終調整 [checkpoint: b483132]
 アイドル時間を利用した最適化と、全体のポリッシュを行います。
 
 - [x] Task: バックグラウンド事前ロードロジックの実装 f372042
 - [x] Task: `main.ts` からの完全な静的参照削除と動作確認 f372042
-- [~] Task: Conductor - User Manual Verification 'バックグラウンド事前ロードと最終調整' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'バックグラウンド事前ロードと最終調整' (Protocol in workflow.md) b483132
