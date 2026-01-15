@@ -1,11 +1,11 @@
 # Implementation Plan: Whisper & Transformers.js Strict Lazy Loading
 
-## Phase 1: 基礎構造のリファクタリングとテスト準備
+## Phase 1: 基礎構造のリファクタリングとテスト準備 [checkpoint: bd5f25c]
 静的インポートを排除し、非同期ロードを許容する構造へ移行します。
 
-- [~] Task: `src/interfaces/enhanced-transcription.ts` の拡張（ロード状態、エラー状態の定義追加）
-- [ ] Task: `WhisperTranscription` の初期化フロー変更
-- [ ] Task: Conductor - User Manual Verification '基礎構造のリファクタリングとテスト準備' (Protocol in workflow.md)
+- [x] Task: `src/interfaces/enhanced-transcription.ts` の拡張（ロード状態、エラー状態の定義追加） e92c297
+- [x] Task: `WhisperTranscription` の初期化フロー変更 0431869
+- [x] Task: Conductor - User Manual Verification '基礎構造のリファクタリングとテスト準備' (Protocol in workflow.md) bd5f25c
 
 ## Phase 2: 設定UIの拡張（パフォーマンスセクション）
 新しい設定項目と、それらを保持するロジックを実装します。
