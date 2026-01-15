@@ -328,7 +328,12 @@ export class PreferenceManagementUI {
 	 * Applies CSS styles to the component
 	 */
 	private applyStyles(): void {
+		if (document.getElementById("preference-management-styles")) {
+			return;
+		}
+
 		const style = document.createElement("style");
+		style.id = "preference-management-styles";
 		style.textContent = `
       .preference-management {
         background: transparent;
