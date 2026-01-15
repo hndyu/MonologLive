@@ -127,19 +127,43 @@ export class SessionDetailView {
 			const el = document.createElement("div");
 			el.className = "transcript-segment";
 			el.dataset.index = index.toString();
-			el.dataset.start = segment.start.toString();
-			el.dataset.end = segment.end.toString();
 
-			const startTime = this.formatTime(segment.start / 1000);
+			// Handle legacy data where start time was stored as absolute UNIX timestamp
+			const sessionStartTime = new Date(this.session.startTime).getTime();
+			let relativeStart = segment.start;
+			if (segment.start > sessionStartTime) {
+				relativeStart = segment.start - sessionStartTime;
+			}
+
+			el.dataset.start = relativeStart.toString();
+			el.dataset.end = (
+				segment.end > sessionStartTime
+					? segment.end - sessionStartTime
+					: segment.end
+			).toString();
+
+			const startTimeStr = this.formatTime(relativeStart / 1000);
 
 			el.innerHTML = `
-                <div class="segment-time">${startTime}</div>
+                <div class="segment-time">${startTimeStr}</div>
                 <div>${segment.text}</div>
             `;
 
 			el.addEventListener("click", () => {
 				if (this.audio) {
-					this.audio.currentTime = segment.start / 1000;
+					let seekTime = relativeStart / 1000;
+
+					// Safety check against duration
+					let duration = this.audio.duration;
+					if (duration === Infinity || isNaN(duration)) {
+						duration = (this.session.metrics.totalDuration || 0) / 1000;
+					}
+
+					if (seekTime > duration) {
+						seekTime = duration;
+					}
+
+					this.audio.currentTime = Math.max(0, seekTime);
 					if (!this.isPlaying) this.togglePlay();
 				}
 			});

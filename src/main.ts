@@ -295,14 +295,17 @@ export class MonologLiveApp {
 			}
 
 			if (isFinal) {
-				// Save transcript segment to session manager
+				// Save transcript segment to session manager using trackActivity for proper timing
 				if (this.currentSessionId) {
-					this.sessionManager.addTranscriptSegment(this.currentSessionId, {
-						start: Date.now(), // Simplified timing for now
-						end: Date.now(),
-						text: text,
-						confidence: 1.0,
-						isFinal: true,
+					this.sessionManager.trackActivity(this.currentSessionId, {
+						type: "speech",
+						timestamp: new Date(),
+						data: {
+							transcript: text,
+							confidence: 1.0,
+							isFinal: true,
+						},
+						duration: 0,
 					});
 				}
 
