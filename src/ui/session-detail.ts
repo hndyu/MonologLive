@@ -309,11 +309,12 @@ export class SessionDetailView {
 
 		if (this.isPlaying) {
 			this.audio.pause();
+			this.isPlaying = false;
 		} else {
 			this.audio.play();
+			this.isPlaying = true;
 			this.startProgressLoop();
 		}
-		this.isPlaying = !this.isPlaying;
 		this.updatePlayButton();
 	}
 
