@@ -20,4 +20,7 @@
 
 ## System Maintenance & Optimization
 - **パフォーマンス監視:** `PerformanceMonitor` によるメモリおよび応答時間のリアルタイム監視
-- **最適化:** `LazyLoader` による重いUIコンポーネント（設定、サマリー等）のオンデマンド読み込み、および `AdaptiveBehaviorManager` による負荷に応じた動的設定変更
+- **最適化:** 
+  - `LazyLoader` による重いUIコンポーネント（設定、サマリー等）のオンデマンド読み込み
+  - `Whisper (Transformers.js)` の厳密な遅延読み込み: 拡張文字起こしが要求されるまでライブラリ全体をロードせず、初期ロードサイズを削減
+  - `AdaptiveBehaviorManager` による負荷に応じた動的設定変更
