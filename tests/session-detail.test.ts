@@ -133,4 +133,44 @@ describe("SessionDetailView", () => {
 		);
 		expect(global.URL.createObjectURL).toHaveBeenCalledWith(mockBlob);
 	});
+
+	test("should fallback to session metrics when audio duration is Infinity", async () => {
+		const mockBlob = new Blob(["test-audio"], { type: "audio/webm" });
+		const mockAudioFile = {
+			id: "audio_1",
+			sessionId: "session_1",
+			blob: mockBlob,
+			format: "webm",
+		};
+
+		mockAudioManager.getAudioFilesBySession.mockResolvedValue([
+			mockAudioFile,
+		] as any);
+
+		// Setup session with 125 seconds duration
+		session.metrics.totalDuration = 125000;
+
+		let metadataCallback: () => void = () => {};
+		(global.Audio as jest.Mock).mockImplementation(() => ({
+			play: jest.fn(),
+			pause: jest.fn(),
+			addEventListener: jest.fn((event, cb) => {
+				if (event === "loadedmetadata") metadataCallback = cb;
+			}),
+			removeEventListener: jest.fn(),
+			currentTime: 0,
+			duration: Infinity,
+		}));
+
+		new SessionDetailView(container, session, storage, onBack);
+
+		// Wait for loadAudio
+		await new Promise((resolve) => setTimeout(resolve, 0));
+
+		// Trigger metadata loaded
+		metadataCallback();
+
+		const totalTimeEl = container.querySelector("#total-time");
+		expect(totalTimeEl?.textContent).toBe("2:05");
+	});
 });

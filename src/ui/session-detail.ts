@@ -280,7 +280,11 @@ export class SessionDetailView {
 				this.audio.addEventListener("loadedmetadata", () => {
 					const totalTimeEl = this.container.querySelector("#total-time");
 					if (totalTimeEl && this.audio) {
-						totalTimeEl.textContent = this.formatTime(this.audio.duration);
+						let duration = this.audio.duration;
+						if (duration === Infinity || isNaN(duration)) {
+							duration = (this.session.metrics.totalDuration || 0) / 1000;
+						}
+						totalTimeEl.textContent = this.formatTime(duration);
 					}
 					const playBtn = this.container.querySelector(
 						"#play-pause-btn",
@@ -325,7 +329,12 @@ export class SessionDetailView {
 			if (!this.isPlaying || !this.audio) return;
 
 			const current = this.audio.currentTime;
-			const duration = this.audio.duration || 1;
+			let duration = this.audio.duration;
+			if (duration === Infinity || isNaN(duration)) {
+				duration = (this.session.metrics.totalDuration || 0) / 1000;
+			}
+			if (duration <= 0) duration = 1;
+
 			const percent = (current / duration) * 100;
 
 			const fill = this.container.querySelector(
@@ -370,7 +379,12 @@ export class SessionDetailView {
 		const width = rect.width;
 		const percent = Math.max(0, Math.min(1, x / width));
 
-		this.audio.currentTime = percent * this.audio.duration;
+		let duration = this.audio.duration;
+		if (duration === Infinity || isNaN(duration)) {
+			duration = (this.session.metrics.totalDuration || 0) / 1000;
+		}
+
+		this.audio.currentTime = percent * duration;
 
 		if (!this.isPlaying) {
 			const fill = this.container.querySelector(
@@ -384,8 +398,12 @@ export class SessionDetailView {
 	}
 
 	private formatTime(seconds: number): string {
-		const m = Math.floor(seconds / 60);
-		const s = Math.floor(seconds % 60);
+		if (isNaN(seconds) || seconds === Infinity) {
+			return "--:--";
+		}
+		const totalSeconds = Math.max(0, Math.floor(seconds));
+		const m = Math.floor(totalSeconds / 60);
+		const s = totalSeconds % 60;
 		return `${m}:${s.toString().padStart(2, "0")}`;
 	}
 
