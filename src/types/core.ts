@@ -62,6 +62,8 @@ export interface Session {
 	startTime: Date;
 	endTime?: Date;
 	topic?: string;
+	title?: string;
+	isFavorite?: boolean;
 	transcript: TranscriptSegment[];
 	comments: Comment[];
 	interactions: UserInteraction[];

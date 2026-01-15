@@ -127,6 +127,37 @@ export class IndexedDBWrapper {
 		return await this.db.getAllFromIndex("sessions", "by-user", userId);
 	}
 
+	async updateSessionMetadata(
+		sessionId: string,
+		metadata: { title?: string; isFavorite?: boolean },
+	): Promise<void> {
+		await this.ensureInitialized();
+		if (!this.db) {
+			console.warn("Database not available, skipping session metadata update");
+			return;
+		}
+
+		const tx = this.db.transaction("sessions", "readwrite");
+		const store = tx.objectStore("sessions");
+		const session = await store.get(sessionId);
+
+		if (!session) {
+			console.warn(`Session ${sessionId} not found`);
+			return;
+		}
+
+		if (metadata.title !== undefined) {
+			session.title = metadata.title;
+		}
+
+		if (metadata.isFavorite !== undefined) {
+			session.isFavorite = metadata.isFavorite;
+		}
+
+		await store.put(session);
+		await tx.done;
+	}
+
 	async deleteSession(sessionId: string): Promise<void> {
 		await this.ensureInitialized();
 		if (!this.db) {
