@@ -5,10 +5,9 @@
     - [ ] Update `render()` to set title via `textContent` instead of `innerHTML` interpolation.
     - [ ] Update `renderTranscript()` to set segment text via `textContent` instead of `innerHTML` interpolation.
     - [ ] Update `renameSession()` to set title text via `textContent`.
-- [~] Task: Fix XSS in Preference Management UI (`src/ui/preference-management.ts`)
-    - [ ] Update `initialize()` to set `geminiApiKey` input value programmatically after setting `innerHTML`.
-- [ ] Task: Verify XSS Fixes
-    - [ ] Create/Update tests to inject HTML tags in titles and transcripts and verify they are rendered as plain text.
+- [x] Task: Fix XSS in Preference Management UI (`src/ui/preference-management.ts`) dbcfdce
+- [x] Task: Verify XSS Fixes [verification passed]
+    - [x] Create/Update tests to inject HTML tags in titles and transcripts and verify they are rendered as plain text.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: XSS Remediation' (Protocol in workflow.md)
 
 ## Phase 2: Privacy and LLM Safety
