@@ -1,20 +1,24 @@
 import { SessionHistoryManager } from "../session/session-history-manager.js";
 import type { IndexedDBWrapper } from "../storage/indexeddb-wrapper.js";
 import type { Session } from "../types/core.js";
+import { SessionDetailView } from "./session-detail.js";
 import "./history-modal.css";
 
 export class HistoryModal {
 	private container: HTMLElement;
 	private historyManager: SessionHistoryManager;
+	private storage: IndexedDBWrapper;
 	private sessions: Session[] = [];
 	private currentUserId = "default_user";
 	private filter = {
 		onlyFavorites: false,
 		searchQuery: "",
 	};
+	private currentDetailView: SessionDetailView | null = null;
 
 	constructor(mountPoint: HTMLElement, storage: IndexedDBWrapper) {
 		this.container = mountPoint;
+		this.storage = storage;
 		this.historyManager = new SessionHistoryManager(storage);
 		this.renderStructure();
 		this.attachEventListeners();
@@ -48,7 +52,7 @@ export class HistoryModal {
 
 	private renderStructure() {
 		this.container.innerHTML = `
-            <div class="history-modal-content">
+            <div id="history-list-view" class="history-modal-content">
                 <div class="history-controls">
                     <input type="text" id="history-search" class="search-input" placeholder="Search sessions...">
                     <label class="filter-toggle">
@@ -60,6 +64,7 @@ export class HistoryModal {
                     <!-- Sessions will be injected here -->
                 </div>
             </div>
+            <div id="history-detail-view" style="display: none; height: 100%;"></div>
         `;
 	}
 
@@ -147,7 +152,39 @@ export class HistoryModal {
 	}
 
 	private onSessionClick(sessionId: string) {
-		console.log("Session clicked:", sessionId);
-		// Phase 3: Open detail view
+		const session = this.sessions.find((s) => s.id === sessionId);
+		if (!session) return;
+
+		const listView = this.container.querySelector(
+			"#history-list-view",
+		) as HTMLElement;
+		const detailViewContainer = this.container.querySelector(
+			"#history-detail-view",
+		) as HTMLElement;
+
+		if (listView && detailViewContainer) {
+			listView.style.display = "none";
+			detailViewContainer.style.display = "block";
+			detailViewContainer.innerHTML = "";
+
+			if (this.currentDetailView) {
+				this.currentDetailView.destroy();
+			}
+
+			this.currentDetailView = new SessionDetailView(
+				detailViewContainer,
+				session,
+				this.storage,
+				() => {
+					// On Back
+					if (this.currentDetailView) {
+						this.currentDetailView.destroy();
+						this.currentDetailView = null;
+					}
+					detailViewContainer.style.display = "none";
+					listView.style.display = "flex";
+				},
+			);
+		}
 	}
 }

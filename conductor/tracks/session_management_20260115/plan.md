@@ -27,13 +27,13 @@ Creating the base modal and the list interface for browsing sessions.
 ## Phase 3: Session Detail & Synchronized Playback
 The core "playback" experience linking audio and text.
 
-- [ ] Task: Create `SessionDetailView` component.
-    - [ ] Layout for displaying Transcript, Summary, and Topics.
-- [ ] Task: Implement Synchronized Audio Player.
-    - [ ] Build audio player UI with progress bar and controls.
-    - [ ] Implement transcript segment highlighting based on `currentTime`.
-    - [ ] Implement "Click to Seek" functionality in the transcript.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Session Detail & Synchronized Playback' (Protocol in workflow.md)
+- [x] Task: Create `SessionDetailView` component.
+    - [x] Layout for displaying Transcript, Summary, and Topics.
+- [x] Task: Implement Synchronized Audio Player.
+    - [x] Build audio player UI with progress bar and controls.
+    - [x] Implement transcript segment highlighting based on `currentTime`.
+    - [x] Implement "Click to Seek" functionality in the transcript.
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Session Detail & Synchronized Playback' (Protocol in workflow.md) [commit: pending]
 
 ## Phase 4: Management Actions & Export
 Adding interactivity to manage and extract data.
