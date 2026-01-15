@@ -164,7 +164,28 @@ export class IndexedDBWrapper {
 			console.warn("Database not available, skipping session delete");
 			return;
 		}
-		await this.db.delete("sessions", sessionId);
+
+		const tx = this.db.transaction(
+			["sessions", "audioFiles", "summaries"],
+			"readwrite",
+		);
+
+		// Delete session
+		await tx.objectStore("sessions").delete(sessionId);
+
+		// Delete associated audio files
+		const audioStore = tx.objectStore("audioFiles");
+		const audioFiles = await audioStore
+			.index("by-session")
+			.getAllKeys(sessionId);
+		for (const key of audioFiles) {
+			await audioStore.delete(key);
+		}
+
+		// Delete summary
+		await tx.objectStore("summaries").delete(sessionId);
+
+		await tx.done;
 	}
 
 	// User preferences operations

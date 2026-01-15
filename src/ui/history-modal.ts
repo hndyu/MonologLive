@@ -132,12 +132,40 @@ export class HistoryModal {
                         <span>💬 ${session.metrics.commentCount} comments</span>
                     </div>
                 </div>
-                <div class="session-actions">
-                    <span class="icon-btn favorite ${session.isFavorite ? "active" : ""}">
-                        ${session.isFavorite ? "★" : "☆"}
-                    </span>
-                </div>
-            `;
+				<div class="session-actions">
+					<button class="icon-btn favorite ${session.isFavorite ? "active" : ""}" title="Toggle favorite">
+						${session.isFavorite ? "★" : "☆"}
+					</button>
+					<button class="icon-btn delete" title="Delete session">
+						🗑️
+					</button>
+				</div>
+			`;
+
+			// Click handler for favorite
+			const favBtn = item.querySelector(".favorite");
+			favBtn?.addEventListener("click", async (e) => {
+				e.stopPropagation();
+				const newStatus = !session.isFavorite;
+				await this.storage.updateSessionMetadata(session.id, {
+					isFavorite: newStatus,
+				});
+				this.refresh();
+			});
+
+			// Click handler for delete
+			const deleteBtn = item.querySelector(".delete");
+			deleteBtn?.addEventListener("click", async (e) => {
+				e.stopPropagation();
+				if (
+					confirm(
+						"Are you sure you want to delete this session? This action cannot be undone.",
+					)
+				) {
+					await this.storage.deleteSession(session.id);
+					this.refresh();
+				}
+			});
 
 			// Click handler for the item (excluding actions)
 			item.addEventListener("click", (e) => {

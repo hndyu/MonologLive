@@ -38,13 +38,13 @@ The core "playback" experience linking audio and text.
 ## Phase 4: Management Actions & Export
 Adding interactivity to manage and extract data.
 
-- [ ] Task: Implement Rename, Delete, and Favorite actions.
-    - [ ] Add UI controls (icons/buttons) to the list and detail views.
-    - [ ] Implement confirmation dialog for deletion.
-- [ ] Task: Implement Export functionality.
-    - [ ] Create `MarkdownExporter` extension or utility for session packages.
-    - [ ] Implement audio file download logic (.webm).
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Management Actions & Export' (Protocol in workflow.md)
+- [x] Task: Implement Rename, Delete, and Favorite actions.
+    - [x] Add UI controls (icons/buttons) to the list and detail views.
+    - [x] Implement confirmation dialog for deletion.
+- [x] Task: Implement Export functionality.
+    - [x] Create `MarkdownExporter` extension or utility for session packages.
+    - [x] Implement audio file download logic (.webm).
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Management Actions & Export' (Protocol in workflow.md) [commit: pending]
 
 ## Phase 5: Polishing & Final Integration
 Responsive design and performance optimization.

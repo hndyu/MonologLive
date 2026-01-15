@@ -1,16 +1,20 @@
 import { LocalAudioManager } from "../audio/audio-manager.js";
 import type { IndexedDBWrapper } from "../storage/indexeddb-wrapper.js";
-import type { Session } from "../types/core.js";
+import { MarkdownExporter } from "../summary/markdown-exporter.js";
+import type { Session, SessionSummary } from "../types/core.js";
 import "./session-detail.css";
 
 export class SessionDetailView {
 	private container: HTMLElement;
 	private session: Session;
+	private storage: IndexedDBWrapper;
 	private audioManager: LocalAudioManager;
 	private onBack: () => void;
 	private audio: HTMLAudioElement | null = null;
 	private isPlaying = false;
 	private transcriptElements: HTMLElement[] = [];
+	private summary: SessionSummary | null = null;
+	private exporter: MarkdownExporter;
 
 	constructor(
 		container: HTMLElement,
@@ -20,10 +24,13 @@ export class SessionDetailView {
 	) {
 		this.container = container;
 		this.session = session;
+		this.storage = storage;
 		this.audioManager = new LocalAudioManager(storage);
 		this.onBack = onBack;
+		this.exporter = new MarkdownExporter();
 		this.render();
 		this.loadAudio();
+		this.loadSummary();
 	}
 
 	private render() {
@@ -36,8 +43,14 @@ export class SessionDetailView {
                 <div class="detail-header">
                     <button id="detail-back-btn" class="back-btn">←</button>
                     <div class="detail-title">
-                        <h3>${this.session.title || "Untitled Session"}</h3>
+                        <h3 id="session-title-text" class="editable-title">${this.session.title || "Untitled Session"} ✎</h3>
                         <div class="detail-date">${dateStr} • ${durationMin} min</div>
+                    </div>
+                    <div class="detail-actions">
+                        <button id="detail-fav-btn" class="icon-btn favorite ${this.session.isFavorite ? "active" : ""}">
+                            ${this.session.isFavorite ? "★" : "☆"}
+                        </button>
+                        <button id="detail-delete-btn" class="icon-btn delete">🗑️</button>
                     </div>
                 </div>
 
@@ -49,6 +62,10 @@ export class SessionDetailView {
                             <div id="progress-fill" class="progress-fill"></div>
                         </div>
                         <span id="total-time" class="time-display">--:--</span>
+                    </div>
+                    <div class="export-actions">
+                        <button id="export-audio-btn" class="btn btn-secondary btn-sm" title="Download Audio">🎵 Export</button>
+                        <button id="export-md-btn" class="btn btn-secondary btn-sm" title="Download Markdown">📄 Export</button>
                     </div>
                 </div>
 
@@ -65,15 +82,34 @@ export class SessionDetailView {
 
 		this.attachEventListeners();
 		this.renderTranscript();
-		this.loadSummary();
 	}
 
 	private async loadSummary() {
 		const summaryEl = this.container.querySelector("#session-summary-text");
+		const topicsEl = this.container.querySelector("#session-topics");
 
-		// Future implementation: Fetch summary from storage
-		if (summaryEl)
-			summaryEl.textContent = "Summary display not fully connected yet.";
+		try {
+			this.summary = (await this.storage.getSummary(this.session.id)) || null;
+
+			if (this.summary && summaryEl) {
+				summaryEl.textContent = this.summary.overallSummary;
+
+				if (topicsEl) {
+					topicsEl.innerHTML = "";
+					this.summary.topics.forEach((topic) => {
+						const tag = document.createElement("span");
+						tag.className = "topic-tag";
+						tag.textContent = topic.name;
+						topicsEl.appendChild(tag);
+					});
+				}
+			} else if (summaryEl) {
+				summaryEl.textContent = "No summary available for this session.";
+			}
+		} catch (e) {
+			console.error("Error loading summary", e);
+			if (summaryEl) summaryEl.textContent = "Error loading summary.";
+		}
 	}
 
 	private renderTranscript() {
@@ -83,7 +119,6 @@ export class SessionDetailView {
 		container.innerHTML = "";
 		this.transcriptElements = [];
 
-		// Sort transcript by start time
 		const sorted = [...this.session.transcript].sort(
 			(a, b) => a.start - b.start,
 		);
@@ -125,6 +160,113 @@ export class SessionDetailView {
 			"#progress-bar",
 		) as HTMLElement;
 		progressBar?.addEventListener("click", (e) => this.seek(e));
+
+		// Management Actions
+		const favBtn = this.container.querySelector("#detail-fav-btn");
+		favBtn?.addEventListener("click", () => this.toggleFavorite());
+
+		const deleteBtn = this.container.querySelector("#detail-delete-btn");
+		deleteBtn?.addEventListener("click", () => this.deleteSession());
+
+		const titleText = this.container.querySelector("#session-title-text");
+		titleText?.addEventListener("click", () => this.renameSession());
+
+		// Export Actions
+		const exportMdBtn = this.container.querySelector("#export-md-btn");
+		exportMdBtn?.addEventListener("click", () => this.exportMarkdown());
+
+		const exportAudioBtn = this.container.querySelector("#export-audio-btn");
+		exportAudioBtn?.addEventListener("click", () => this.exportAudio());
+	}
+
+	private async toggleFavorite() {
+		const newStatus = !this.session.isFavorite;
+		await this.storage.updateSessionMetadata(this.session.id, {
+			isFavorite: newStatus,
+		});
+		this.session.isFavorite = newStatus;
+
+		const favBtn = this.container.querySelector("#detail-fav-btn");
+		if (favBtn) {
+			favBtn.classList.toggle("active", newStatus);
+			favBtn.textContent = newStatus ? "★" : "☆";
+		}
+	}
+
+	private async deleteSession() {
+		if (
+			confirm(
+				"Are you sure you want to delete this session? This action cannot be undone.",
+			)
+		) {
+			await this.storage.deleteSession(this.session.id);
+			this.onBack();
+		}
+	}
+
+	private async renameSession() {
+		const newTitle = prompt(
+			"Enter new title for this session:",
+			this.session.title || "",
+		);
+		if (newTitle !== null && newTitle.trim() !== "") {
+			await this.storage.updateSessionMetadata(this.session.id, {
+				title: newTitle.trim(),
+			});
+			this.session.title = newTitle.trim();
+
+			const titleText = this.container.querySelector("#session-title-text");
+			if (titleText) titleText.innerHTML = `${this.session.title} ✎`;
+		}
+	}
+
+	private exportMarkdown() {
+		if (!this.summary) {
+			alert("No summary available to export. Full transcript will be used.");
+			// Fallback: create a dummy summary for the exporter
+			const fallbackSummary: SessionSummary = {
+				sessionId: this.session.id,
+				overallSummary: "Full transcript export.",
+				topics: [],
+				insights: [],
+				generatedAt: new Date(),
+			};
+			const fullTranscript = this.session.transcript
+				.map((s) => s.text)
+				.join("\n");
+			this.exporter.downloadAsFile(fallbackSummary, fullTranscript);
+			return;
+		}
+
+		const fullTranscript = this.session.transcript
+			.map((s) => s.text)
+			.join("\n");
+		this.exporter.downloadAsFile(this.summary, fullTranscript);
+	}
+
+	private async exportAudio() {
+		try {
+			const files = await this.audioManager.getAudioFilesBySession(
+				this.session.id,
+			);
+			if (files.length > 0) {
+				const blob = files[0] as unknown as Blob;
+				const url = URL.createObjectURL(blob);
+				const link = document.createElement("a");
+				link.href = url;
+				link.download = `session-${this.session.id}.webm`;
+				document.body.appendChild(link);
+				link.click();
+				setTimeout(() => {
+					document.body.removeChild(link);
+					URL.revokeObjectURL(url);
+				}, 100);
+			} else {
+				alert("No audio file found for this session.");
+			}
+		} catch (e) {
+			console.error("Export audio failed", e);
+		}
 	}
 
 	private async loadAudio() {
@@ -188,17 +330,14 @@ export class SessionDetailView {
 			const duration = this.audio.duration || 1;
 			const percent = (current / duration) * 100;
 
-			// Update progress bar
 			const fill = this.container.querySelector(
 				"#progress-fill",
 			) as HTMLElement;
 			if (fill) fill.style.width = `${percent}%`;
 
-			// Update time display
 			const timeDisplay = this.container.querySelector("#current-time");
 			if (timeDisplay) timeDisplay.textContent = this.formatTime(current);
 
-			// Highlight transcript
 			this.highlightTranscript(current * 1000); // ms
 
 			requestAnimationFrame(update);
@@ -220,10 +359,8 @@ export class SessionDetailView {
 		});
 	}
 
-	private ensureVisible(el: HTMLElement) {
+	private ensureVisible(_el: HTMLElement) {
 		// Implementation pending
-		// Keeping parameter for interface consistency
-		if (el) return;
 	}
 
 	private seek(e: MouseEvent) {
