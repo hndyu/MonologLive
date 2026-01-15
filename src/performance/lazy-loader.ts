@@ -241,9 +241,12 @@ export class LazyLoader {
 			localStorage.getItem("WHISPER_PRELOAD_ENABLED") === "true";
 
 		if (capabilities.canHandleEnhancedTranscription && preloadEnabled) {
-			await this.loadFeature("enhanced-transcription").catch((error) => {
-				console.warn("Enhanced transcription preload failed:", error);
-			});
+			// Use low priority (longer delay) for background preload
+			await this.preloadFeatures(["enhanced-transcription"], "low").catch(
+				(error) => {
+					console.warn("Enhanced transcription preload failed:", error);
+				},
+			);
 		}
 
 		// Always try to load summary generator
