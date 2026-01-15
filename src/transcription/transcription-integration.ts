@@ -5,60 +5,63 @@ import type {
 	TranscriptionResult,
 } from "../interfaces/enhanced-transcription";
 import type { AudioFile } from "../types/core";
-import {
-	detectCapabilities,
-	WhisperTranscription,
-} from "./enhanced-transcription";
 
 export class TranscriptionIntegration {
 	private enhancedTranscription: EnhancedTranscription | null = null;
 	private isInitialized = false;
+	private initializationPromise: Promise<boolean> | null = null;
 
 	async initialize(): Promise<boolean> {
 		if (this.isInitialized) {
 			return this.enhancedTranscription !== null;
 		}
 
-		try {
-			// Check device capabilities first
-			const capabilities = await detectCapabilities();
-
-			if (!capabilities.supportsWebAssembly) {
-				console.warn(
-					"WebAssembly not supported, enhanced transcription unavailable",
-				);
-				return false;
-			}
-
-			// Create Whisper transcription with recommended settings
-			const whisperTranscription = new WhisperTranscription({
-				modelSize: capabilities.recommendedModelSize,
-				// Language not set to allow multilingual support by default
-				temperature: 0.0,
-				beamSize: 1,
-			});
-
-			if (whisperTranscription.isAvailable()) {
-				this.enhancedTranscription = whisperTranscription;
-				console.log(
-					`Enhanced transcription initialized with ${capabilities.recommendedModelSize} model`,
-				);
-
-				// Pre-load the model for better user experience
-				await this.enhancedTranscription.loadModel();
-
-				this.isInitialized = true;
-				return true;
-			} else {
-				console.log("Enhanced transcription not available in this environment");
-				this.isInitialized = true;
-				return false;
-			}
-		} catch (error) {
-			console.error("Failed to initialize enhanced transcription:", error);
-			this.isInitialized = true;
-			return false;
+		if (this.initializationPromise) {
+			return this.initializationPromise;
 		}
+
+		this.initializationPromise = (async () => {
+			try {
+				// Dynamically import dependencies
+				const { WhisperTranscription, detectCapabilities } = await import(
+					"./enhanced-transcription"
+				);
+
+				// Check device capabilities first
+				const capabilities = await detectCapabilities();
+
+				// Create Whisper transcription with recommended settings
+				const whisperTranscription = new WhisperTranscription({
+					modelSize: capabilities.recommendedModelSize,
+					// Language not set to allow multilingual support by default
+					temperature: 0.0,
+					beamSize: 1,
+				});
+
+				if (whisperTranscription.isAvailable()) {
+					this.enhancedTranscription = whisperTranscription;
+					console.log(
+						`Enhanced transcription initialized with ${capabilities.recommendedModelSize} model (lazy loading enabled)`,
+					);
+
+					this.isInitialized = true;
+					return true;
+				} else {
+					console.log(
+						"Enhanced transcription not available in this environment",
+					);
+					this.isInitialized = true;
+					return false;
+				}
+			} catch (error) {
+				console.error("Failed to initialize enhanced transcription:", error);
+				this.isInitialized = true;
+				this.initializationPromise = null; // Clear on error
+				return false;
+			}
+		})();
+
+		return this.initializationPromise;
 	}
 
 	isAvailable(): boolean {

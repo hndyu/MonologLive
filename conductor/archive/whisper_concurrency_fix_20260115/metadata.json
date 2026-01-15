@@ -1,0 +1,8 @@
+{
+	"track_id": "whisper_concurrency_fix_20260115",
+	"type": "bug",
+	"status": "new",
+	"created_at": "2026-01-15T17:48:00Z",
+	"updated_at": "2026-01-15T17:48:00Z",
+	"description": "Fix Whisper Concurrency and Redundant Styles"
+}

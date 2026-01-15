@@ -20,6 +20,7 @@ export class LazyLoader {
 	private static instance: LazyLoader;
 	private features: Map<string, LazyLoadableFeature> = new Map();
 	private loadingPromises: Map<string, Promise<unknown>> = new Map();
+	private loadedValues: Map<string, unknown> = new Map();
 
 	private constructor() {
 		this.registerDefaultFeatures();
@@ -143,6 +144,7 @@ export class LazyLoader {
 			const result = await loadingPromise;
 			feature.isLoaded = true;
 			feature.isLoading = false;
+			this.loadedValues.set(featureName, result);
 			this.loadingPromises.delete(featureName);
 			console.log(`Feature '${featureName}' loaded successfully`);
 			return result;
@@ -187,9 +189,7 @@ export class LazyLoader {
 
 	// Get cached feature result
 	private getCachedFeature(featureName: string): unknown {
-		// This would typically return the cached module/class instance
-		// For now, we'll return a placeholder
-		return { name: featureName, loaded: true };
+		return this.loadedValues.get(featureName);
 	}
 
 	// Preload features based on priority
@@ -236,10 +236,17 @@ export class LazyLoader {
 			});
 		}
 
-		if (capabilities.canHandleEnhancedTranscription) {
-			await this.loadFeature("enhanced-transcription").catch((error) => {
-				console.warn("Enhanced transcription not available:", error);
-			});
+		// Only load enhanced transcription if capability exists AND user has preloading enabled
+		const preloadEnabled =
+			localStorage.getItem("WHISPER_PRELOAD_ENABLED") === "true";
+
+		if (capabilities.canHandleEnhancedTranscription && preloadEnabled) {
+			// Use low priority (longer delay) for background preload
+			await this.preloadFeatures(["enhanced-transcription"], "low").catch(
+				(error) => {
+					console.warn("Enhanced transcription preload failed:", error);
+				},
+			);
 		}
 
 		// Always try to load summary generator

@@ -18,12 +18,16 @@ export interface TranscriptionResult {
 	processingTime: number;
 }
 
+export type WhisperLoadStatus = "idle" | "loading" | "loaded" | "error";
+
 export interface WhisperModelInfo {
 	name: string;
 	size: string;
 	languages: string[];
-	isLoaded: boolean;
+	isLoaded: boolean; // Keep for backward compatibility
+	status: WhisperLoadStatus;
 	memoryUsage: number;
+	error?: string;
 }
 
 export interface WhisperSettings {

@@ -1,6 +1,7 @@
 // User preference management UI component
 
 import type { PreferenceLearningSystem } from "../learning/preference-learning.js";
+import { lazyLoader } from "../performance/index.js";
 import type { CommentRoleType } from "../types/core.js";
 
 /**
@@ -51,6 +52,8 @@ export class PreferenceManagementUI {
 	private initialize(): void {
 		console.log("Initializing PreferenceManagementUI...");
 		const existingKey = localStorage.getItem("GEMINI_API_KEY") || "";
+		const preloadEnabled =
+			localStorage.getItem("WHISPER_PRELOAD_ENABLED") === "true";
 
 		this.container.className = "preference-management";
 		this.container.innerHTML = `
@@ -76,6 +79,21 @@ export class PreferenceManagementUI {
             <p class="setting-hint">Required for high-quality session summaries. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a key here</a></p>
           </div>
         </div>
+
+        <div class="performance-settings">
+          <h4>Performance Settings</h4>
+          <div class="setting-item toggle-item">
+            <div class="setting-info">
+              <label for="whisperPreload">Background Pre-load</label>
+              <p class="setting-hint">Load Whisper AI library in the background for faster transcription activation.</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="whisperPreload" ${preloadEnabled ? "checked" : ""}>
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <p class="setting-hint warning-hint">Note: Loading AI libraries consumes approximately 40MB-100MB of memory.</p>
+        </div>
       </div>
     `;
 
@@ -88,7 +106,6 @@ export class PreferenceManagementUI {
 	 * Sets the current user and starts updating the display
 	 */
 	setUser(userId: string): void {
-		console.log(`Setting user for PreferenceUI: ${userId}`);
 		this.currentUserId = userId;
 		this.startPeriodicUpdates();
 		this.updateDisplay();
@@ -210,6 +227,9 @@ export class PreferenceManagementUI {
 		const apiKeyInput = this.container.querySelector(
 			"#geminiApiKey",
 		) as HTMLInputElement;
+		const preloadToggle = this.container.querySelector(
+			"#whisperPreload",
+		) as HTMLInputElement;
 
 		resetBtn?.addEventListener("click", () => this.handleReset());
 
@@ -217,6 +237,54 @@ export class PreferenceManagementUI {
 			const value = (e.target as HTMLInputElement).value;
 			localStorage.setItem("GEMINI_API_KEY", value.trim());
 		});
+
+		preloadToggle?.addEventListener("change", async (e) => {
+			const checked = (e.target as HTMLInputElement).checked;
+			localStorage.setItem("WHISPER_PRELOAD_ENABLED", String(checked));
+
+			if (checked) {
+				await this.handlePreloadActivation();
+			}
+		});
+	}
+
+	/**
+	 * Handles the activation of background preloading
+	 */
+	private async handlePreloadActivation(): Promise<void> {
+		const statusHint = this.container.querySelector(
+			".performance-settings .setting-hint",
+		);
+		const originalText = statusHint?.textContent || "";
+
+		try {
+			if (statusHint) {
+				statusHint.textContent = "Loading AI library (approx. 40MB)...";
+				statusHint.classList.add("loading");
+			}
+
+			await lazyLoader.loadFeature("enhanced-transcription");
+
+			if (statusHint) {
+				statusHint.textContent = "AI library loaded successfully.";
+				statusHint.classList.remove("loading");
+				statusHint.classList.add("success");
+
+				// Reset after a few seconds
+				setTimeout(() => {
+					statusHint.textContent = originalText;
+					statusHint.classList.remove("success");
+				}, 3000);
+			}
+		} catch (error) {
+			console.error("Manual preload failed:", error);
+			if (statusHint) {
+				statusHint.textContent =
+					"Failed to load AI library. Please check your connection.";
+				statusHint.classList.remove("loading");
+				statusHint.classList.add("error");
+			}
+		}
 	}
 
 	/**
@@ -260,7 +328,12 @@ export class PreferenceManagementUI {
 	 * Applies CSS styles to the component
 	 */
 	private applyStyles(): void {
+		if (document.getElementById("preference-management-styles")) {
+			return;
+		}
+
 		const style = document.createElement("style");
+		style.id = "preference-management-styles";
 		style.textContent = `
       .preference-management {
         background: transparent;
@@ -316,7 +389,7 @@ export class PreferenceManagementUI {
         transition: width 0.3s ease;
       }
       
-      .learning-stats h4, .ai-settings h4 {
+      .learning-stats h4, .ai-settings h4, .performance-settings h4 {
         margin: 24px 0 12px 0;
         color: var(--text-main);
         font-size: 16px;
@@ -389,6 +462,17 @@ export class PreferenceManagementUI {
         padding: 12px;
         border-radius: 8px;
         border: 1px solid var(--border-color);
+        margin-bottom: 12px;
+      }
+
+      .setting-item.toggle-item {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .setting-info {
+        flex: 1;
       }
 
       .setting-item label {
@@ -418,9 +502,91 @@ export class PreferenceManagementUI {
         line-height: 1.4;
       }
 
+      .setting-hint.warning-hint {
+        font-style: italic;
+        margin-top: -4px;
+        margin-bottom: 12px;
+      }
+
+      .setting-hint.loading {
+        color: var(--primary-color);
+        animation: pulse 1.5s infinite;
+      }
+
+      .setting-hint.success {
+        color: #4ade80;
+      }
+
+      .setting-hint.error {
+        color: #f87171;
+      }
+
+      @keyframes pulse {
+        0% { opacity: 0.6; }
+        50% { opacity: 1; }
+        100% { opacity: 0.6; }
+      }
+
       .setting-hint a {
         color: var(--primary-color);
         text-decoration: underline;
+      }
+
+      /* Toggle Switch Style */
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+        margin-left: 12px;
+      }
+
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #334155;
+        transition: .4s;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+      }
+
+      input:checked + .slider {
+        background-color: var(--primary-color);
+      }
+
+      input:focus + .slider {
+        box-shadow: 0 0 1px var(--primary-color);
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(20px);
+      }
+
+      .slider.round {
+        border-radius: 24px;
+      }
+
+      .slider.round:before {
+        border-radius: 50%;
       }
     `;
 

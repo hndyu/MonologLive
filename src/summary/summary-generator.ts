@@ -29,9 +29,6 @@ export class SummaryGeneratorImpl implements SummaryGenerator {
 		this.topicExtractor = topicExtractor;
 		this.insightGenerator = insightGenerator;
 		this.geminiClient = geminiClient;
-
-		// Initialize enhanced transcription
-		this.initializeEnhancedTranscription();
 	}
 
 	private async initializeEnhancedTranscription(): Promise<void> {
@@ -46,6 +43,9 @@ export class SummaryGeneratorImpl implements SummaryGenerator {
 		rawTranscript: string,
 		audioFile?: AudioFile,
 	): Promise<string> {
+		// Ensure enhanced transcription is initialized
+		await this.initializeEnhancedTranscription();
+
 		// If we have enhanced transcription available and an audio file, use it
 		if (transcriptionIntegration.isAvailable() && audioFile) {
 			try {
