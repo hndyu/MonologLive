@@ -20,6 +20,7 @@ export class LazyLoader {
 	private static instance: LazyLoader;
 	private features: Map<string, LazyLoadableFeature> = new Map();
 	private loadingPromises: Map<string, Promise<unknown>> = new Map();
+	private loadedValues: Map<string, unknown> = new Map();
 
 	private constructor() {
 		this.registerDefaultFeatures();
@@ -143,6 +144,7 @@ export class LazyLoader {
 			const result = await loadingPromise;
 			feature.isLoaded = true;
 			feature.isLoading = false;
+			this.loadedValues.set(featureName, result);
 			this.loadingPromises.delete(featureName);
 			console.log(`Feature '${featureName}' loaded successfully`);
 			return result;
@@ -187,9 +189,7 @@ export class LazyLoader {
 
 	// Get cached feature result
 	private getCachedFeature(featureName: string): unknown {
-		// This would typically return the cached module/class instance
-		// For now, we'll return a placeholder
-		return { name: featureName, loaded: true };
+		return this.loadedValues.get(featureName);
 	}
 
 	// Preload features based on priority

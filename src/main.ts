@@ -90,10 +90,12 @@ export class MonologLiveApp {
 
 	public async getWhisper(): Promise<EnhancedTranscription | null> {
 		if (!this.whisper) {
-			const { WhisperTranscription } = await import(
-				"./transcription/enhanced-transcription"
-			);
-			this.whisper = new WhisperTranscription();
+			const WhisperClass = (await lazyLoader.loadFeature(
+				"enhanced-transcription",
+			)) as { new (settings?: any): EnhancedTranscription };
+			if (WhisperClass && !this.whisper) {
+				this.whisper = new WhisperClass();
+			}
 		}
 		return this.whisper;
 	}

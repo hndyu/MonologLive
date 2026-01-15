@@ -34,7 +34,7 @@ export class WhisperTranscription implements EnhancedTranscription {
 	private transcriber: WhisperTranscriber | null = null;
 	private modelInfo: WhisperModelInfo;
 	private settings: WhisperSettings;
-	private isLoading = false;
+	private loadingPromise: Promise<boolean> | null = null;
 
 	constructor(settings: Partial<WhisperSettings> = {}) {
 		this.settings = {
@@ -60,53 +60,55 @@ export class WhisperTranscription implements EnhancedTranscription {
 	}
 
 	async loadModel(): Promise<boolean> {
-		if (this.isLoading) {
-			return false;
-		}
-
 		if (this.transcriber && this.modelInfo.isLoaded) {
 			return true;
 		}
 
-		try {
-			this.isLoading = true;
-			this.modelInfo.status = "loading";
-			this.modelInfo.error = undefined;
-			console.log(`Loading Whisper model: ${this.modelInfo.name}`);
-
-			// Dynamically import the transformers library
-			const { pipeline } = await import("@huggingface/transformers");
-
-			// Determine the model name based on size and language
-			const modelName = this.getModelName();
-
-			// Create the transcription pipeline
-			const pipelineResult = await pipeline(
-				"automatic-speech-recognition",
-				modelName,
-				{
-					dtype: "q8", // Use quantized model for better performance in browser
-					device: this.detectBestDevice(),
-				},
-			);
-			this.transcriber = pipelineResult as WhisperTranscriber;
-
-			this.modelInfo.isLoaded = true;
-			this.modelInfo.status = "loaded";
-			this.modelInfo.memoryUsage = this.estimateMemoryUsage();
-
-			console.log(`Whisper model loaded successfully: ${modelName}`);
-			return true;
-		} catch (error) {
-			console.error("Failed to load Whisper model:", error);
-			this.modelInfo.isLoaded = false;
-			this.modelInfo.status = "error";
-			this.modelInfo.error =
-				error instanceof Error ? error.message : String(error);
-			return false;
-		} finally {
-			this.isLoading = false;
+		if (this.loadingPromise) {
+			return this.loadingPromise;
 		}
+
+		this.loadingPromise = (async () => {
+			try {
+				this.modelInfo.status = "loading";
+				this.modelInfo.error = undefined;
+				console.log(`Loading Whisper model: ${this.modelInfo.name}`);
+
+				// Dynamically import the transformers library
+				const { pipeline } = await import("@huggingface/transformers");
+
+				// Determine the model name based on size and language
+				const modelName = this.getModelName();
+
+				// Create the transcription pipeline
+				const pipelineResult = await pipeline(
+					"automatic-speech-recognition",
+					modelName,
+					{
+						dtype: "q8", // Use quantized model for better performance in browser
+						device: this.detectBestDevice(),
+					},
+				);
+				this.transcriber = pipelineResult as WhisperTranscriber;
+
+				this.modelInfo.isLoaded = true;
+				this.modelInfo.status = "loaded";
+				this.modelInfo.memoryUsage = this.estimateMemoryUsage();
+
+				console.log(`Whisper model loaded successfully: ${modelName}`);
+				return true;
+			} catch (error) {
+				console.error("Failed to load Whisper model:", error);
+				this.modelInfo.isLoaded = false;
+				this.modelInfo.status = "error";
+				this.modelInfo.error =
+					error instanceof Error ? error.message : String(error);
+				this.loadingPromise = null; // Clear promise to allow retry on error
+				return false;
+			}
+		})();
+
+		return this.loadingPromise;
 	}
 
 	async transcribeAudio(audioFile: AudioFile): Promise<TranscriptionResult> {
