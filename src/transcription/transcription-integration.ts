@@ -5,10 +5,7 @@ import type {
 	TranscriptionResult,
 } from "../interfaces/enhanced-transcription";
 import type { AudioFile } from "../types/core";
-import {
-	detectCapabilities,
-	WhisperTranscription,
-} from "./enhanced-transcription";
+import { detectCapabilities } from "./enhanced-transcription";
 
 export class TranscriptionIntegration {
 	private enhancedTranscription: EnhancedTranscription | null = null;
@@ -30,6 +27,9 @@ export class TranscriptionIntegration {
 				return false;
 			}
 
+			// Dynamically import WhisperTranscription
+			const { WhisperTranscription } = await import("./enhanced-transcription");
+
 			// Create Whisper transcription with recommended settings
 			const whisperTranscription = new WhisperTranscription({
 				modelSize: capabilities.recommendedModelSize,
@@ -41,11 +41,8 @@ export class TranscriptionIntegration {
 			if (whisperTranscription.isAvailable()) {
 				this.enhancedTranscription = whisperTranscription;
 				console.log(
-					`Enhanced transcription initialized with ${capabilities.recommendedModelSize} model`,
+					`Enhanced transcription initialized with ${capabilities.recommendedModelSize} model (lazy loading enabled)`,
 				);
-
-				// Pre-load the model for better user experience
-				await this.enhancedTranscription.loadModel();
 
 				this.isInitialized = true;
 				return true;

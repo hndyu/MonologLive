@@ -13,6 +13,7 @@ import {
 	errorHandler,
 	errorUI,
 } from "./error-handling/index.js";
+import type { EnhancedTranscription } from "./interfaces/enhanced-transcription";
 import type { SummaryGenerator } from "./interfaces/summary-generation.js";
 import { lazyLoader } from "./performance/index.js";
 import { SessionManagerImpl } from "./session/session-manager.js";
@@ -24,7 +25,6 @@ import {
 	BasicTopicExtractor,
 	SummaryGeneratorImpl,
 } from "./summary/summary-generator.js";
-import { WhisperTranscription } from "./transcription/enhanced-transcription";
 import { HistoryModal } from "./ui/history-modal.js";
 import { PreferenceManagementUI } from "./ui/preference-management.js";
 import { SessionSummaryUI } from "./ui/session-summary.js";
@@ -46,7 +46,7 @@ export class MonologLiveApp {
 	private topicManager: TopicManager;
 	private audioManager: LocalAudioManager;
 	private audioRecorder: WebAudioRecorder;
-	private whisper: WhisperTranscription;
+	private whisper: EnhancedTranscription | null = null;
 	private isRunning = false;
 	private currentSessionId: string | null = null;
 	private lastSessionId: string | null = null;
@@ -56,7 +56,6 @@ export class MonologLiveApp {
 		this.voiceManager = new WebSpeechVoiceInputManager();
 		this.audioRecorder = new WebAudioRecorder();
 		this.audioManager = new LocalAudioManager(this.storage);
-		this.whisper = new WhisperTranscription();
 		this.summaryGenerator = new SummaryGeneratorImpl(
 			new BasicTopicExtractor(),
 			new BasicInsightGenerator(),
@@ -89,7 +88,13 @@ export class MonologLiveApp {
 		return this.audioRecorder;
 	}
 
-	public getWhisper(): WhisperTranscription {
+	public async getWhisper(): Promise<EnhancedTranscription | null> {
+		if (!this.whisper) {
+			const { WhisperTranscription } = await import(
+				"./transcription/enhanced-transcription"
+			);
+			this.whisper = new WhisperTranscription();
+		}
 		return this.whisper;
 	}
 
@@ -560,7 +565,9 @@ export class MonologLiveApp {
 
 	private async runEnhancedTranscription(): Promise<void> {
 		const sessionId = this.currentSessionId || this.lastSessionId;
-		if (!sessionId || !this.whisper.isAvailable()) {
+		const whisper = await this.getWhisper();
+
+		if (!sessionId || !whisper || !whisper.isAvailable()) {
 			return;
 		}
 

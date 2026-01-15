@@ -1,7 +1,7 @@
 import type { LocalAudioManager } from "../src/audio/audio-manager";
 import type { WebAudioRecorder } from "../src/audio/audio-recorder";
+import type { EnhancedTranscription } from "../src/interfaces/enhanced-transcription";
 import { MonologLiveApp } from "../src/main";
-import type { WhisperTranscription } from "../src/transcription/enhanced-transcription";
 import type { AudioFile } from "../src/types/core";
 import type { TranscriptionDisplay } from "../src/ui/transcription-display";
 
@@ -12,7 +12,7 @@ interface PrivateMonologLiveApp {
 	runEnhancedTranscription(): Promise<void>;
 	audioRecorder: WebAudioRecorder;
 	audioManager: LocalAudioManager;
-	whisper: WhisperTranscription;
+	whisper: EnhancedTranscription | null;
 	transcriptionDisplay: TranscriptionDisplay;
 	currentSessionId: string | null;
 }
@@ -47,7 +47,7 @@ describe("MonologLiveApp Audio Integration", () => {
 		// Use public getters
 		const audioManager = app.getAudioManager();
 		const audioRecorder = app.getAudioRecorder();
-		const whisper = app.getWhisper();
+		const whisper = await app.getWhisper();
 
 		expect(audioManager).toBeDefined();
 		expect(audioRecorder).toBeDefined();
@@ -56,7 +56,7 @@ describe("MonologLiveApp Audio Integration", () => {
 		// but verifying they are objects with expected methods is good.
 		expect(typeof audioManager.saveAudioFile).toBe("function");
 		expect(typeof audioRecorder.startRecording).toBe("function");
-		expect(typeof whisper.transcribeAudio).toBe("function");
+		expect(typeof whisper?.transcribeAudio).toBe("function");
 	});
 
 	it("should start recording when session starts", async () => {
@@ -169,7 +169,12 @@ describe("MonologLiveApp Audio Integration", () => {
 		jest
 			.spyOn(privateApp.audioManager, "getAudioFilesBySession")
 			.mockResolvedValue([mockAudioFile]);
-		jest.spyOn(privateApp.whisper, "isAvailable").mockReturnValue(true);
+
+		// Ensure whisper is loaded for mocking
+		const whisper = await app.getWhisper();
+		if (whisper) {
+			jest.spyOn(whisper, "isAvailable").mockReturnValue(true);
+		}
 
 		const summaryGenerator = app.getSummaryGenerator();
 		const transcribeSpy = jest
