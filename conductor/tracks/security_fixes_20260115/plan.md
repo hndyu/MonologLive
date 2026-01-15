@@ -10,7 +10,7 @@
     - [x] Create/Update tests to inject HTML tags in titles and transcripts and verify they are rendered as plain text.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: XSS Remediation' (Protocol in workflow.md) [confirmed by user]
 
-## Phase 2: Privacy and LLM Safety
+## Phase 2: Privacy and LLM Safety [checkpoint: fd747f9]
 - [x] Task: Prevent PII Leak in Logs (`src/error-handling/error-handler.ts`) a2bdc8b
     - [x] Modify `logError()` to sanitize or mask `error.originalError` and `error.context` before calling `console.error/warn/info`.
 - [x] Task: Mitigate Prompt Injection (`src/summary/gemini-client.ts`) 88bda40
