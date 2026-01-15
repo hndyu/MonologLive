@@ -16,13 +16,13 @@ Infrastructure updates to support management features and efficient searching.
 ## Phase 2: History List UI
 Creating the base modal and the list interface for browsing sessions.
 
-- [ ] Task: Create `HistoryModal` component.
-    - [ ] Implement base modal overlay logic and trigger from main UI.
-    - [ ] Style according to "Reflection Mode" guidelines (minimalist/calm).
-- [ ] Task: Implement `SessionList` component.
-    - [ ] Render session items with date, title, and duration.
-    - [ ] Add search bar and filter toggles (All/Favorites).
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: History List UI' (Protocol in workflow.md)
+- [x] Task: Create `HistoryModal` component.
+    - [x] Implement base modal overlay logic and trigger from main UI.
+    - [x] Style according to "Reflection Mode" guidelines (minimalist/calm).
+- [x] Task: Implement `SessionList` component.
+    - [x] Render session items with date, title, and duration.
+    - [x] Add search bar and filter toggles (All/Favorites).
+- [x] Task: Conductor - User Manual Verification 'Phase 2: History List UI' (Protocol in workflow.md) [commit: pending]
 
 ## Phase 3: Session Detail & Synchronized Playback
 The core "playback" experience linking audio and text.

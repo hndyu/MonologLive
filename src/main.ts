@@ -25,6 +25,7 @@ import {
 	SummaryGeneratorImpl,
 } from "./summary/summary-generator.js";
 import { WhisperTranscription } from "./transcription/enhanced-transcription";
+import { HistoryModal } from "./ui/history-modal.js";
 import { PreferenceManagementUI } from "./ui/preference-management.js";
 import { SessionSummaryUI } from "./ui/session-summary.js";
 import { TopicField } from "./ui/topic-field.js";
@@ -38,6 +39,7 @@ export class MonologLiveApp {
 	private commentSystem!: CommentSystem;
 	private topicField!: TopicField;
 	private preferenceUI!: PreferenceManagementUI;
+	private historyUI!: HistoryModal;
 	private summaryUI!: SessionSummaryUI;
 	private summaryGenerator: SummaryGenerator;
 	private sessionManager: SessionManagerImpl;
@@ -258,6 +260,10 @@ export class MonologLiveApp {
 		const closePreferencesBtn = document.getElementById("close-preferences");
 		const modalOverlay = document.getElementById("preferences-modal");
 
+		const historyBtn = document.getElementById("history-btn");
+		const closeHistoryBtn = document.getElementById("close-history");
+		const historyOverlay = document.getElementById("history-modal");
+
 		startBtn?.addEventListener("click", () => this.startSession());
 		stopBtn?.addEventListener("click", () => this.stopSession());
 		enhancedBtn?.addEventListener("click", () =>
@@ -273,6 +279,13 @@ export class MonologLiveApp {
 		);
 		modalOverlay?.addEventListener("click", (e) => {
 			if (e.target === modalOverlay) this.togglePreferences(false);
+		});
+
+		// History Modal Handlers
+		historyBtn?.addEventListener("click", () => this.toggleHistory(true));
+		closeHistoryBtn?.addEventListener("click", () => this.toggleHistory(false));
+		historyOverlay?.addEventListener("click", (e) => {
+			if (e.target === historyOverlay) this.toggleHistory(false);
 		});
 
 		// Voice transcript handling
@@ -501,6 +514,31 @@ export class MonologLiveApp {
 				error instanceof Error ? error : new Error(String(error)),
 			);
 			await errorHandler.handleError(monologError);
+		}
+	}
+
+	private toggleHistory(show: boolean): void {
+		const modal = document.getElementById("history-modal");
+		if (modal) {
+			if (show) {
+				this.initializeHistoryUI().then(() => {
+					this.historyUI.refresh();
+					modal.classList.add("active");
+				});
+			} else {
+				modal.classList.remove("active");
+			}
+		}
+	}
+
+	private async initializeHistoryUI(): Promise<void> {
+		if (this.historyUI) return;
+
+		const mount = document.getElementById("history-mount");
+		if (mount) {
+			this.historyUI = new HistoryModal(mount, this.storage);
+			this.historyUI.setUserId("default_user");
+			console.log("History UI initialized on demand");
 		}
 	}
 

@@ -298,6 +298,9 @@
         <button id="preferences-btn" class="btn btn-secondary">
             <span>⚙️</span> Preferences
         </button>
+        <button id="history-btn" class="btn btn-secondary">
+            <span>📜</span> History
+        </button>
     </footer>
 
     <!-- Preferences Modal -->
@@ -309,6 +312,19 @@
             </div>
             <div class="modal-body">
                 <div id="preferences-mount"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="history-modal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>📜 Session History</h2>
+                <button id="close-history" class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="history-mount"></div>
             </div>
         </div>
     </div>
