@@ -13,11 +13,11 @@
 ## Phase 2: Privacy and LLM Safety
 - [x] Task: Prevent PII Leak in Logs (`src/error-handling/error-handler.ts`) a2bdc8b
     - [x] Modify `logError()` to sanitize or mask `error.originalError` and `error.context` before calling `console.error/warn/info`.
-- [~] Task: Mitigate Prompt Injection (`src/summary/gemini-client.ts`)
-    - [ ] Update `generateSummary()` prompt to use `"""` delimiters around the `${transcript}` variable.
-- [ ] Task: Verify Privacy and Safety Fixes
-    - [ ] Verify that console logs do not contain raw transcripts or API keys.
-    - [ ] Verify that summary generation still works as expected.
+- [x] Task: Mitigate Prompt Injection (`src/summary/gemini-client.ts`) 88bda40
+    - [x] Update `generateSummary()` prompt to use `"""` delimiters around the `${transcript}` variable.
+- [x] Task: Verify Privacy and Safety Fixes [verification passed]
+    - [x] Verify that console logs do not contain raw transcripts or API keys.
+    - [x] Verify that summary generation still works as expected.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Privacy and LLM Safety' (Protocol in workflow.md)
 
 ## Phase 3: Final Verification
