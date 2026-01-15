@@ -8,7 +8,7 @@ Infrastructure updates to support management features and efficient searching.
 - [x] Task: Update `IndexedDBWrapper` and types to support session `title` (editable) and `isFavorite` status. [commit: 8aa3b2c]
     - [ ] Add `title` and `isFavorite` to session interface and database schema.
     - [ ] Implement `updateSessionMetadata` method in `IndexedDBWrapper`.
-- [ ] Task: Implement `SessionHistoryManager` for advanced retrieval.
+- [x] Task: Implement `SessionHistoryManager` for advanced retrieval. [commit: 5f55491]
     - [ ] Create logic for filtering by date range and favorited status.
     - [ ] Implement keyword search across transcripts and titles.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Database & Data Logic Enhancement' (Protocol in workflow.md)
