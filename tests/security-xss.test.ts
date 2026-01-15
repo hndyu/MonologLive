@@ -111,3 +111,53 @@ describe("SessionDetailView XSS Vulnerability", () => {
 		window.prompt = originalPrompt;
 	});
 });
+
+import type { PreferenceLearningSystem } from "../src/learning/preference-learning";
+import { PreferenceManagementUI } from "../src/ui/preference-management";
+
+jest.mock("../src/learning/preference-learning");
+
+describe("PreferenceManagementUI XSS Vulnerability", () => {
+	let container: HTMLElement;
+	let mockPreferenceLearning: jest.Mocked<PreferenceLearningSystem>;
+	const XSS_PAYLOAD = '"><img src="x" onerror="window.xssCaptured=true">';
+
+	beforeEach(() => {
+		container = document.createElement("div");
+		(window as unknown as { xssCaptured: boolean }).xssCaptured = false;
+
+		mockPreferenceLearning = {
+			getPersonalizedWeights: jest.fn().mockResolvedValue(new Map()),
+			getLearningStats: jest.fn().mockReturnValue({
+				totalFeedbackEvents: 0,
+				roleAdjustments: new Map(),
+				averageWeight: 1.0,
+				mostPreferredRole: "reaction",
+				leastPreferredRole: "reaction",
+			}),
+			getPreferenceRanking: jest.fn().mockReturnValue({
+				most: "reaction",
+				least: "reaction",
+			}),
+		} as any;
+
+		localStorage.clear();
+		jest.clearAllMocks();
+	});
+
+	test("should not execute scripts from localStorage API key", () => {
+		localStorage.setItem("GEMINI_API_KEY", XSS_PAYLOAD);
+
+		new PreferenceManagementUI(container, mockPreferenceLearning);
+
+		const apiKeyInput = container.querySelector(
+			"#geminiApiKey",
+		) as HTMLInputElement;
+		// If vulnerable, the innerHTML assignment will execute the script
+		// and the input value might be mangled or the script already run.
+		expect(apiKeyInput.value).toBe(XSS_PAYLOAD);
+		expect((window as unknown as { xssCaptured: boolean }).xssCaptured).toBe(
+			false,
+		);
+	});
+});
