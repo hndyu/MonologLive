@@ -1,6 +1,5 @@
 // Enhanced transcription implementation using Transformers.js Whisper models
 
-import { pipeline } from "@huggingface/transformers";
 import type {
 	EnhancedTranscription,
 	TranscriptionResult,
@@ -74,6 +73,9 @@ export class WhisperTranscription implements EnhancedTranscription {
 			this.modelInfo.status = "loading";
 			this.modelInfo.error = undefined;
 			console.log(`Loading Whisper model: ${this.modelInfo.name}`);
+
+			// Dynamically import the transformers library
+			const { pipeline } = await import("@huggingface/transformers");
 
 			// Determine the model name based on size and language
 			const modelName = this.getModelName();
