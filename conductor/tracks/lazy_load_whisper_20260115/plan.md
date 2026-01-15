@@ -10,9 +10,9 @@
 ## Phase 2: 設定UIの拡張（パフォーマンスセクション）
 新しい設定項目と、それらを保持するロジックを実装します。
 
-- [ ] Task: 設定画面の「パフォーマンス」セクションの実装
-- [ ] Task: 設定UIの表示テスト
-- [ ] Task: Conductor - User Manual Verification '設定UIの拡張' (Protocol in workflow.md)
+- [x] Task: 設定画面の「パフォーマンス」セクションの実装 5bd28a7
+- [x] Task: 設定UIの表示テスト 5bd28a7
+- [~] Task: Conductor - User Manual Verification '設定UIの拡張' (Protocol in workflow.md)
 
 ## Phase 3: 厳密な遅延読み込みの実装と統合
 メインアプリケーションからの参照を動的化し、ロード中のUXを統合します。
