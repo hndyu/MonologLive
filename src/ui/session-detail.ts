@@ -249,9 +249,8 @@ export class SessionDetailView {
 			const files = await this.audioManager.getAudioFilesBySession(
 				this.session.id,
 			);
-			if (files.length > 0) {
-				const blob = files[0] as unknown as Blob;
-				const url = URL.createObjectURL(blob);
+			if (files.length > 0 && files[0].blob) {
+				const url = URL.createObjectURL(files[0].blob);
 				const link = document.createElement("a");
 				link.href = url;
 				link.download = `session-${this.session.id}.webm`;
@@ -274,9 +273,8 @@ export class SessionDetailView {
 			const files = await this.audioManager.getAudioFilesBySession(
 				this.session.id,
 			);
-			if (files.length > 0) {
-				const blob = files[0] as unknown as Blob;
-				const url = URL.createObjectURL(blob);
+			if (files.length > 0 && files[0].blob) {
+				const url = URL.createObjectURL(files[0].blob);
 				this.audio = new Audio(url);
 
 				this.audio.addEventListener("loadedmetadata", () => {
