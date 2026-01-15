@@ -51,6 +51,8 @@ export class PreferenceManagementUI {
 	private initialize(): void {
 		console.log("Initializing PreferenceManagementUI...");
 		const existingKey = localStorage.getItem("GEMINI_API_KEY") || "";
+		const preloadEnabled =
+			localStorage.getItem("WHISPER_PRELOAD_ENABLED") === "true";
 
 		this.container.className = "preference-management";
 		this.container.innerHTML = `
@@ -75,6 +77,21 @@ export class PreferenceManagementUI {
             <input type="password" id="geminiApiKey" value="${existingKey}" placeholder="Enter your Gemini API key" autocomplete="new-password">
             <p class="setting-hint">Required for high-quality session summaries. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a key here</a></p>
           </div>
+        </div>
+
+        <div class="performance-settings">
+          <h4>Performance Settings</h4>
+          <div class="setting-item toggle-item">
+            <div class="setting-info">
+              <label for="whisperPreload">Background Pre-load</label>
+              <p class="setting-hint">Load Whisper AI library in the background for faster transcription activation.</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="whisperPreload" ${preloadEnabled ? "checked" : ""}>
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <p class="setting-hint warning-hint">Note: Loading AI libraries consumes approximately 40MB-100MB of memory.</p>
         </div>
       </div>
     `;
@@ -210,12 +227,20 @@ export class PreferenceManagementUI {
 		const apiKeyInput = this.container.querySelector(
 			"#geminiApiKey",
 		) as HTMLInputElement;
+		const preloadToggle = this.container.querySelector(
+			"#whisperPreload",
+		) as HTMLInputElement;
 
 		resetBtn?.addEventListener("click", () => this.handleReset());
 
 		apiKeyInput?.addEventListener("change", (e) => {
 			const value = (e.target as HTMLInputElement).value;
 			localStorage.setItem("GEMINI_API_KEY", value.trim());
+		});
+
+		preloadToggle?.addEventListener("change", (e) => {
+			const checked = (e.target as HTMLInputElement).checked;
+			localStorage.setItem("WHISPER_PRELOAD_ENABLED", String(checked));
 		});
 	}
 
@@ -316,7 +341,7 @@ export class PreferenceManagementUI {
         transition: width 0.3s ease;
       }
       
-      .learning-stats h4, .ai-settings h4 {
+      .learning-stats h4, .ai-settings h4, .performance-settings h4 {
         margin: 24px 0 12px 0;
         color: var(--text-main);
         font-size: 16px;
@@ -389,6 +414,17 @@ export class PreferenceManagementUI {
         padding: 12px;
         border-radius: 8px;
         border: 1px solid var(--border-color);
+        margin-bottom: 12px;
+      }
+
+      .setting-item.toggle-item {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .setting-info {
+        flex: 1;
       }
 
       .setting-item label {
@@ -418,9 +454,72 @@ export class PreferenceManagementUI {
         line-height: 1.4;
       }
 
+      .setting-hint.warning-hint {
+        font-style: italic;
+        margin-top: -4px;
+        margin-bottom: 12px;
+      }
+
       .setting-hint a {
         color: var(--primary-color);
         text-decoration: underline;
+      }
+
+      /* Toggle Switch Style */
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+        margin-left: 12px;
+      }
+
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #334155;
+        transition: .4s;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+      }
+
+      input:checked + .slider {
+        background-color: var(--primary-color);
+      }
+
+      input:focus + .slider {
+        box-shadow: 0 0 1px var(--primary-color);
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(20px);
+      }
+
+      .slider.round {
+        border-radius: 24px;
+      }
+
+      .slider.round:before {
+        border-radius: 50%;
       }
     `;
 
