@@ -3,7 +3,11 @@ import {
 	ErrorSeverity,
 	ErrorType,
 	errorHandler,
+	MonologAppError,
 } from "../src/error-handling/error-handler";
+import { GeminiClientImpl } from "../src/summary/gemini-client";
+import { SummaryGeneratorImpl } from "../src/summary/summary-generator";
+import type { Session, TranscriptSegment } from "../src/types/core";
 
 describe("ErrorHandler PII Leak Protection", () => {
 	let consoleErrorSpy: jest.SpyInstance;
@@ -62,5 +66,73 @@ describe("ErrorHandler PII Leak Protection", () => {
 		const loggedError = lastCall[1];
 
 		expect(loggedError.message).not.toContain(SENSITIVE_TRANSCRIPT);
+	});
+});
+
+jest.mock("../src/summary/gemini-client");
+
+describe("SummaryGenerator PII Leak Protection", () => {
+	let consoleWarnSpy: jest.SpyInstance;
+
+	beforeEach(() => {
+		consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
+		errorHandler.clearErrorLog();
+	});
+
+	afterEach(() => {
+		consoleWarnSpy.mockRestore();
+	});
+
+	test("should not log raw error with sensitive info in SummaryGenerator", async () => {
+		const mockGeminiClient =
+			new GeminiClientImpl() as jest.Mocked<GeminiClientImpl>;
+		const SENSITIVE_INFO = "PRIVATE_TRANSCRIPT_12345";
+
+		const sensitiveError = new MonologAppError(
+			ErrorType.COMMENT_GENERATION,
+			ErrorSeverity.HIGH,
+			"Failed",
+			new Error(`Message containing ${SENSITIVE_INFO}`),
+			{ transcript: SENSITIVE_INFO },
+		);
+
+		mockGeminiClient.generateSummary.mockRejectedValue(sensitiveError);
+
+		const generator = new SummaryGeneratorImpl(
+			{ extractTopics: jest.fn().mockResolvedValue([]) } as any,
+			{ generateInsights: jest.fn().mockResolvedValue([]) } as any,
+			mockGeminiClient,
+		);
+
+		const session: Session = {
+			id: "session_1",
+			userId: "user_1",
+			startTime: new Date(),
+			metrics: {
+				totalDuration: 1000,
+				commentCount: 0,
+				interactionCount: 0,
+				averageEngagement: 0,
+			},
+			transcript: [
+				{
+					text: "test",
+					isFinal: true,
+					start: 0,
+					end: 1000,
+					confidence: 1.0,
+				} as TranscriptSegment,
+			],
+			comments: [],
+			interactions: [],
+		};
+
+		await generator.createSummary(session, "fake-key");
+
+		// Check all calls to console.warn
+		for (const call of consoleWarnSpy.mock.calls) {
+			const loggedContent = JSON.stringify(call);
+			expect(loggedContent).not.toContain(SENSITIVE_INFO);
+		}
 	});
 });

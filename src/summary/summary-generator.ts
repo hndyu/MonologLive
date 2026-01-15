@@ -1,5 +1,11 @@
 // Basic summary generation implementation with enhanced transcription support
 
+import type { MonologError } from "../error-handling/error-handler.js";
+import {
+	ErrorSeverity,
+	ErrorType,
+	errorHandler,
+} from "../error-handling/index.js";
 import type {
 	InsightGenerator,
 	SummaryGenerator,
@@ -120,9 +126,19 @@ export class SummaryGeneratorImpl implements SummaryGenerator {
 					apiKey,
 				);
 			} catch (error) {
-				console.warn(
-					"Gemini summary generation failed, falling back to basic implementation:",
-					error,
+				await errorHandler.handleError(
+					error instanceof Error && "type" in error
+						? (error as unknown as MonologError)
+						: {
+								type: ErrorType.COMMENT_GENERATION,
+								severity: ErrorSeverity.HIGH,
+								message:
+									error instanceof Error
+										? error.message
+										: "Gemini summary generation failed",
+								originalError: error instanceof Error ? error : undefined,
+								timestamp: new Date(),
+							},
 				);
 			}
 		}

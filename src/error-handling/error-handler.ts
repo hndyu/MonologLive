@@ -165,11 +165,15 @@ export class ErrorHandler {
 	 * Creates a sanitized copy of the error for safe logging
 	 */
 	private sanitizeForLogging(error: MonologError): MonologError {
-		const sanitized = { ...error };
-
-		if (sanitized.context) {
-			sanitized.context = this.sanitizeObject(sanitized.context);
-		}
+		const sanitized = {
+			type: error.type,
+			severity: error.severity,
+			message: error.message,
+			timestamp: error.timestamp,
+			context: error.context ? this.sanitizeObject(error.context) : undefined,
+			originalError: error.originalError,
+			recoveryAction: error.recoveryAction,
+		};
 
 		return sanitized;
 	}
