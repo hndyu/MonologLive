@@ -5,7 +5,6 @@ import type {
 	TranscriptionResult,
 } from "../interfaces/enhanced-transcription";
 import type { AudioFile } from "../types/core";
-import { detectCapabilities } from "./enhanced-transcription";
 
 export class TranscriptionIntegration {
 	private enhancedTranscription: EnhancedTranscription | null = null;
@@ -17,18 +16,13 @@ export class TranscriptionIntegration {
 		}
 
 		try {
+			// Dynamically import dependencies
+			const { WhisperTranscription, detectCapabilities } = await import(
+				"./enhanced-transcription"
+			);
+
 			// Check device capabilities first
 			const capabilities = await detectCapabilities();
-
-			if (!capabilities.supportsWebAssembly) {
-				console.warn(
-					"WebAssembly not supported, enhanced transcription unavailable",
-				);
-				return false;
-			}
-
-			// Dynamically import WhisperTranscription
-			const { WhisperTranscription } = await import("./enhanced-transcription");
 
 			// Create Whisper transcription with recommended settings
 			const whisperTranscription = new WhisperTranscription({

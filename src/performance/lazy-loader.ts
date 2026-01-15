@@ -236,9 +236,13 @@ export class LazyLoader {
 			});
 		}
 
-		if (capabilities.canHandleEnhancedTranscription) {
+		// Only load enhanced transcription if capability exists AND user has preloading enabled
+		const preloadEnabled =
+			localStorage.getItem("WHISPER_PRELOAD_ENABLED") === "true";
+
+		if (capabilities.canHandleEnhancedTranscription && preloadEnabled) {
 			await this.loadFeature("enhanced-transcription").catch((error) => {
-				console.warn("Enhanced transcription not available:", error);
+				console.warn("Enhanced transcription preload failed:", error);
 			});
 		}
 

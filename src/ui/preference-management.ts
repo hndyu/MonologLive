@@ -1,6 +1,7 @@
 // User preference management UI component
 
 import type { PreferenceLearningSystem } from "../learning/preference-learning.js";
+import { lazyLoader } from "../performance/index.js";
 import type { CommentRoleType } from "../types/core.js";
 
 /**
@@ -238,10 +239,53 @@ export class PreferenceManagementUI {
 			localStorage.setItem("GEMINI_API_KEY", value.trim());
 		});
 
-		preloadToggle?.addEventListener("change", (e) => {
+		preloadToggle?.addEventListener("change", async (e) => {
 			const checked = (e.target as HTMLInputElement).checked;
 			localStorage.setItem("WHISPER_PRELOAD_ENABLED", String(checked));
+
+			if (checked) {
+				await this.handlePreloadActivation();
+			}
 		});
+	}
+
+	/**
+	 * Handles the activation of background preloading
+	 */
+	private async handlePreloadActivation(): Promise<void> {
+		const statusHint = this.container.querySelector(
+			".performance-settings .setting-hint",
+		);
+		const originalText = statusHint?.textContent || "";
+
+		try {
+			if (statusHint) {
+				statusHint.textContent = "Loading AI library (approx. 40MB)...";
+				statusHint.classList.add("loading");
+			}
+
+			await lazyLoader.loadFeature("enhanced-transcription");
+
+			if (statusHint) {
+				statusHint.textContent = "AI library loaded successfully.";
+				statusHint.classList.remove("loading");
+				statusHint.classList.add("success");
+
+				// Reset after a few seconds
+				setTimeout(() => {
+					statusHint.textContent = originalText;
+					statusHint.classList.remove("success");
+				}, 3000);
+			}
+		} catch (error) {
+			console.error("Manual preload failed:", error);
+			if (statusHint) {
+				statusHint.textContent =
+					"Failed to load AI library. Please check your connection.";
+				statusHint.classList.remove("loading");
+				statusHint.classList.add("error");
+			}
+		}
 	}
 
 	/**
@@ -458,6 +502,25 @@ export class PreferenceManagementUI {
         font-style: italic;
         margin-top: -4px;
         margin-bottom: 12px;
+      }
+
+      .setting-hint.loading {
+        color: var(--primary-color);
+        animation: pulse 1.5s infinite;
+      }
+
+      .setting-hint.success {
+        color: #4ade80;
+      }
+
+      .setting-hint.error {
+        color: #f87171;
+      }
+
+      @keyframes pulse {
+        0% { opacity: 0.6; }
+        50% { opacity: 1; }
+        100% { opacity: 0.6; }
       }
 
       .setting-hint a {

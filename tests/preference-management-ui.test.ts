@@ -7,7 +7,15 @@ import {
 	jest,
 } from "@jest/globals";
 import type { PreferenceLearningSystem } from "../src/learning/preference-learning";
+import { lazyLoader } from "../src/performance/index";
 import { PreferenceManagementUI } from "../src/ui/preference-management";
+
+// Mock lazyLoader
+jest.mock("../src/performance/index", () => ({
+	lazyLoader: {
+		loadFeature: jest.fn().mockImplementation(() => Promise.resolve()),
+	},
+}));
 
 describe("PreferenceManagementUI Performance Settings", () => {
 	let container: HTMLElement;
@@ -38,6 +46,7 @@ describe("PreferenceManagementUI Performance Settings", () => {
 
 		// Clear localStorage before each test
 		localStorage.clear();
+		jest.clearAllMocks();
 	});
 
 	afterEach(() => {
@@ -64,7 +73,7 @@ describe("PreferenceManagementUI Performance Settings", () => {
 		expect(preloadToggle.type).toBe("checkbox");
 	});
 
-	it("should save preload setting to localStorage when changed", () => {
+	it("should save preload setting and trigger lazy load when toggled on", async () => {
 		new PreferenceManagementUI(
 			container,
 			mockLearningSystem as unknown as PreferenceLearningSystem,
@@ -75,13 +84,37 @@ describe("PreferenceManagementUI Performance Settings", () => {
 
 		// Set to true
 		preloadToggle.checked = true;
-		preloadToggle.dispatchEvent(new Event("change"));
-		expect(localStorage.getItem("WHISPER_PRELOAD_ENABLED")).toBe("true");
+		const changeEvent = new Event("change");
+		preloadToggle.dispatchEvent(changeEvent);
 
-		// Set to false
-		preloadToggle.checked = false;
+		expect(localStorage.getItem("WHISPER_PRELOAD_ENABLED")).toBe("true");
+		expect(lazyLoader.loadFeature).toHaveBeenCalledWith(
+			"enhanced-transcription",
+		);
+	});
+
+	it("should display loading status when preload starts", async () => {
+		// Mock a slow load
+		(lazyLoader.loadFeature as jest.Mock).mockImplementation(
+			() => new Promise((resolve) => setTimeout(resolve, 100)),
+		);
+
+		new PreferenceManagementUI(
+			container,
+			mockLearningSystem as unknown as PreferenceLearningSystem,
+		);
+		const preloadToggle = container.querySelector(
+			"#whisperPreload",
+		) as HTMLInputElement;
+		const statusHint = container.querySelector(
+			".performance-settings .setting-hint",
+		) as HTMLElement;
+
+		preloadToggle.checked = true;
 		preloadToggle.dispatchEvent(new Event("change"));
-		expect(localStorage.getItem("WHISPER_PRELOAD_ENABLED")).toBe("false");
+
+		expect(statusHint.textContent).toContain("Loading AI library");
+		expect(statusHint.classList.contains("loading")).toBe(true);
 	});
 
 	it("should load existing preload setting from localStorage on initialization", () => {
