@@ -19,10 +19,10 @@ Whisperの初期化およびモデルロードにおけるレースコンディ�
 ## Phase 2: UI Style Management & Cleanup
 UIコンポーネントにおけるスタイルの重複追加を修正します。
 
-- [ ] Task: Write Test for Redundant Styles
-    - [ ] `PreferenceManagement` を複数回初期化した際にスタイルタグが重複しないことを検証するテストを作成
-- [ ] Task: Fix Style Appending Logic in PreferenceManagement
-    - [ ] `applyStyles` に ID チェックを追加
+- [x] Task: Write Test for Redundant Styles ede49a1
+    - [x] `PreferenceManagement` を複数回初期化した際にスタイルタグが重複しないことを検証するテストを作成 ede49a1
+- [x] Task: Fix Style Appending Logic in PreferenceManagement ede49a1
+    - [x] `applyStyles` に ID チェックを追加 ede49a1
 - [ ] Task: Conductor - User Manual Verification 'UI Style Management & Cleanup' (Protocol in workflow.md)
 
 ## Phase 3: Final Integration & Regression Testing
