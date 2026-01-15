@@ -2,7 +2,7 @@
 
 Implement a modal-based history view for browsing past sessions, managing them (rename, delete, favorite, export), and playing back audio synchronized with the transcript.
 
-## Phase 1: Database & Data Logic Enhancement
+## Phase 1: Database & Data Logic Enhancement [checkpoint: cafad10]
 Infrastructure updates to support management features and efficient searching.
 
 - [x] Task: Update `IndexedDBWrapper` and types to support session `title` (editable) and `isFavorite` status. [commit: 8aa3b2c]
@@ -11,7 +11,7 @@ Infrastructure updates to support management features and efficient searching.
 - [x] Task: Implement `SessionHistoryManager` for advanced retrieval. [commit: 5f55491]
     - [ ] Create logic for filtering by date range and favorited status.
     - [ ] Implement keyword search across transcripts and titles.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Database & Data Logic Enhancement' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Database & Data Logic Enhancement' (Protocol in workflow.md) [commit: cafad10]
 
 ## Phase 2: History List UI
 Creating the base modal and the list interface for browsing sessions.
