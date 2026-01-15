@@ -7,12 +7,12 @@
 - [x] Task: `WhisperTranscription` の初期化フロー変更 0431869
 - [x] Task: Conductor - User Manual Verification '基礎構造のリファクタリングとテスト準備' (Protocol in workflow.md) bd5f25c
 
-## Phase 2: 設定UIの拡張（パフォーマンスセクション）
+## Phase 2: 設定UIの拡張（パフォーマンスセクション） [checkpoint: 6cfa6cb]
 新しい設定項目と、それらを保持するロジックを実装します。
 
 - [x] Task: 設定画面の「パフォーマンス」セクションの実装 5bd28a7
 - [x] Task: 設定UIの表示テスト 5bd28a7
-- [~] Task: Conductor - User Manual Verification '設定UIの拡張' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification '設定UIの拡張' (Protocol in workflow.md) 6cfa6cb
 
 ## Phase 3: 厳密な遅延読み込みの実装と統合
 メインアプリケーションからの参照を動的化し、ロード中のUXを統合します。
