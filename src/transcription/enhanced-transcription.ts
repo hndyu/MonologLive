@@ -50,6 +50,7 @@ export class WhisperTranscription implements EnhancedTranscription {
 			size: this.settings.modelSize,
 			languages: ["en", "ja", "es", "fr", "de", "it", "pt", "ru", "ko", "zh"],
 			isLoaded: false,
+			status: "idle",
 			memoryUsage: 0,
 		};
 	}
@@ -70,6 +71,8 @@ export class WhisperTranscription implements EnhancedTranscription {
 
 		try {
 			this.isLoading = true;
+			this.modelInfo.status = "loading";
+			this.modelInfo.error = undefined;
 			console.log(`Loading Whisper model: ${this.modelInfo.name}`);
 
 			// Determine the model name based on size and language
@@ -87,6 +90,7 @@ export class WhisperTranscription implements EnhancedTranscription {
 			this.transcriber = pipelineResult as WhisperTranscriber;
 
 			this.modelInfo.isLoaded = true;
+			this.modelInfo.status = "loaded";
 			this.modelInfo.memoryUsage = this.estimateMemoryUsage();
 
 			console.log(`Whisper model loaded successfully: ${modelName}`);
@@ -94,6 +98,9 @@ export class WhisperTranscription implements EnhancedTranscription {
 		} catch (error) {
 			console.error("Failed to load Whisper model:", error);
 			this.modelInfo.isLoaded = false;
+			this.modelInfo.status = "error";
+			this.modelInfo.error =
+				error instanceof Error ? error.message : String(error);
 			return false;
 		} finally {
 			this.isLoading = false;
