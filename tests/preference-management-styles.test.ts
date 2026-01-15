@@ -1,3 +1,4 @@
+import type { PreferenceLearningSystem } from "../src/learning/preference-learning";
 import { PreferenceManagementUI } from "../src/ui/preference-management";
 
 // Mock dependencies
@@ -24,11 +25,14 @@ describe("PreferenceManagementUI Style Management", () => {
 
 	test("should append style tag only once even if initialized multiple times", () => {
 		const mockLearning = {
-			getWeights: jest.fn().mockReturnValue({}),
-			getStats: jest.fn().mockReturnValue({}),
-			onInteraction: jest.fn(),
-			reset: jest.fn(),
-		} as any;
+			getPersonalizedWeights: jest.fn().mockResolvedValue(new Map()),
+			getLearningStats: jest.fn().mockReturnValue({
+				totalFeedbackEvents: 0,
+				averageWeight: 0,
+			}),
+			getPreferenceRanking: jest.fn().mockReturnValue(null),
+			resetPreferences: jest.fn().mockResolvedValue(undefined),
+		} as unknown as PreferenceLearningSystem;
 
 		// First initialization
 		new PreferenceManagementUI(container, mockLearning);

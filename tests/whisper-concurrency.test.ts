@@ -54,10 +54,10 @@ describe("Whisper Concurrency Tests", () => {
 
 			// Mock pipeline to be slow
 
-			let resolvePipeline: (value: unknown) => void;
+			let resolvePipeline: (value: unknown) => void = () => {};
 
 			const pipelinePromise = new Promise((resolve) => {
-				resolvePipeline = resolve as any;
+				resolvePipeline = resolve;
 			});
 
 			(pipeline as jest.Mock).mockReturnValue(pipelinePromise);
@@ -70,7 +70,7 @@ describe("Whisper Concurrency Tests", () => {
 
 			// Resolve the pipeline
 
-			if (resolvePipeline!)
+			if (resolvePipeline)
 				resolvePipeline(() => Promise.resolve({ text: "test" }));
 
 			const results = await Promise.all(loadPromises);

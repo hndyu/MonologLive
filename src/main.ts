@@ -13,7 +13,10 @@ import {
 	errorHandler,
 	errorUI,
 } from "./error-handling/index.js";
-import type { EnhancedTranscription } from "./interfaces/enhanced-transcription";
+import type {
+	EnhancedTranscription,
+	WhisperSettings,
+} from "./interfaces/enhanced-transcription";
 import type { SummaryGenerator } from "./interfaces/summary-generation.js";
 import { lazyLoader } from "./performance/index.js";
 import { SessionManagerImpl } from "./session/session-manager.js";
@@ -92,7 +95,9 @@ export class MonologLiveApp {
 		if (!this.whisper) {
 			const WhisperClass = (await lazyLoader.loadFeature(
 				"enhanced-transcription",
-			)) as { new (settings?: any): EnhancedTranscription };
+			)) as {
+				new (settings?: Partial<WhisperSettings>): EnhancedTranscription;
+			};
 			if (WhisperClass && !this.whisper) {
 				this.whisper = new WhisperClass();
 			}

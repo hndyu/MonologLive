@@ -23,7 +23,7 @@ export class WebLLMProcessor {
 
 	static async generateComment(
 		_context: unknown,
-		_engine: unknown
+		_engine: unknown,
 	): Promise<string> {
 		return "Mock generated comment";
 	}
