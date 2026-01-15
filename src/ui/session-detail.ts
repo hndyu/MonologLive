@@ -188,7 +188,7 @@ export class SessionDetailView {
 
 					// Safety check against duration
 					let duration = this.audio.duration;
-					if (duration === Infinity || isNaN(duration)) {
+					if (duration === Infinity || Number.isNaN(duration)) {
 						duration = (this.session.metrics.totalDuration || 0) / 1000;
 					}
 
@@ -338,7 +338,7 @@ export class SessionDetailView {
 					const totalTimeEl = this.container.querySelector("#total-time");
 					if (totalTimeEl && this.audio) {
 						let duration = this.audio.duration;
-						if (duration === Infinity || isNaN(duration)) {
+						if (duration === Infinity || Number.isNaN(duration)) {
 							duration = (this.session.metrics.totalDuration || 0) / 1000;
 						}
 						totalTimeEl.textContent = this.formatTime(duration);
@@ -388,7 +388,7 @@ export class SessionDetailView {
 
 			const current = this.audio.currentTime;
 			let duration = this.audio.duration;
-			if (duration === Infinity || isNaN(duration)) {
+			if (duration === Infinity || Number.isNaN(duration)) {
 				duration = (this.session.metrics.totalDuration || 0) / 1000;
 			}
 			if (duration <= 0) duration = 1;
@@ -443,7 +443,7 @@ export class SessionDetailView {
 		const percent = Math.max(0, Math.min(1, x / width));
 
 		let duration = this.audio.duration;
-		if (duration === Infinity || isNaN(duration)) {
+		if (duration === Infinity || Number.isNaN(duration)) {
 			duration = (this.session.metrics.totalDuration || 0) / 1000;
 		}
 
@@ -461,7 +461,7 @@ export class SessionDetailView {
 	}
 
 	private formatTime(seconds: number): string {
-		if (isNaN(seconds) || seconds === Infinity) {
+		if (Number.isNaN(seconds) || seconds === Infinity) {
 			return "--:--";
 		}
 		const totalSeconds = Math.max(0, Math.floor(seconds));

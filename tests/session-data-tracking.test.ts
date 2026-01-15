@@ -78,17 +78,9 @@ describe("Session Data Tracking - Integration Tests", () => {
 
 	test("Should save transcript segments to SessionManager when onTranscript is called with isFinal=true", async () => {
 		const sessionManager = app.getSessionManager();
-		const addTranscriptSegmentSpy = jest.spyOn(
-			sessionManager,
-			"addTranscriptSegment",
-		);
+		const trackActivitySpy = jest.spyOn(sessionManager, "trackActivity");
 
-		// Start session
-		const startBtn = document.getElementById("start-btn");
-		startBtn?.click();
-
-		// Wait for async startSession to complete (it's async but called from event listener)
-		// We need to wait a bit or call it directly
+		// Start session and await its completion
 		// biome-ignore lint/suspicious/noExplicitAny: Accessing private startSession for testing
 		await (app as any).startSession();
 
@@ -105,17 +97,21 @@ describe("Session Data Tracking - Integration Tests", () => {
 		const voiceManager = (app as any).voiceManager;
 
 		// Simulate a final transcript result
+		// The callback is registered during initialize() in setupEventHandlers
 		const onTranscriptCallback = (voiceManager.onTranscript as jest.Mock).mock
 			.calls[0][0];
 
 		await onTranscriptCallback(testText, true);
 
-		// Verify addTranscriptSegment was called
-		expect(addTranscriptSegmentSpy).toHaveBeenCalledWith(
+		// Verify trackActivity was called
+		expect(trackActivitySpy).toHaveBeenCalledWith(
 			sessionId,
 			expect.objectContaining({
-				text: testText,
-				isFinal: true,
+				type: "speech",
+				data: expect.objectContaining({
+					transcript: testText,
+					isFinal: true,
+				}),
 			}),
 		);
 	});
@@ -124,10 +120,7 @@ describe("Session Data Tracking - Integration Tests", () => {
 		const sessionManager = app.getSessionManager();
 		const addCommentSpy = jest.spyOn(sessionManager, "addComment");
 
-		// Start session
-		const startBtn = document.getElementById("start-btn");
-		startBtn?.click();
-
+		// Start session and await its completion
 		// biome-ignore lint/suspicious/noExplicitAny: Accessing private startSession for testing
 		await (app as any).startSession();
 
@@ -146,7 +139,7 @@ describe("Session Data Tracking - Integration Tests", () => {
 		await onTranscriptCallback(testText, true);
 
 		// Wait for any pending async operations (like comment generation)
-		await new Promise((resolve) => setTimeout(resolve, 100));
+		await new Promise((resolve) => setTimeout(resolve, 200));
 
 		// Verify addComment was called
 		expect(addCommentSpy).toHaveBeenCalledWith(

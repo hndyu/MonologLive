@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
 	afterEach,
 	beforeEach,
@@ -7,31 +6,37 @@ import {
 	it,
 	jest,
 } from "@jest/globals";
+import type { PreferenceLearningSystem } from "../src/learning/preference-learning";
 import { PreferenceManagementUI } from "../src/ui/preference-management";
 
 describe("PreferenceManagementUI Actions Refinement", () => {
 	let container: HTMLElement;
-	let mockLearningSystem: {
-		getPersonalizedWeights: jest.Mock<any>;
-		getLearningStats: jest.Mock<any>;
-		getPreferenceRanking: jest.Mock<any>;
-		resetPreferences: jest.Mock<any>;
-	};
+	let mockLearningSystem: jest.Mocked<PreferenceLearningSystem>;
 
 	beforeEach(() => {
 		container = document.createElement("div");
 		document.body.appendChild(container);
 
 		mockLearningSystem = {
-			getPersonalizedWeights: jest.fn().mockResolvedValue(new Map()),
+			getPersonalizedWeights: jest
+				.fn<PreferenceLearningSystem["getPersonalizedWeights"]>()
+				.mockResolvedValue(new Map()),
 			getLearningStats: jest
-				.fn()
-				.mockReturnValue({ totalFeedbackEvents: 0, averageWeight: 1.0 }),
+				.fn<PreferenceLearningSystem["getLearningStats"]>()
+				.mockReturnValue({
+					totalFeedbackEvents: 0,
+					averageWeight: 1.0,
+					roleAdjustments: new Map(),
+					mostPreferredRole: "reaction",
+					leastPreferredRole: "reaction",
+				}),
 			getPreferenceRanking: jest
-				.fn()
+				.fn<PreferenceLearningSystem["getPreferenceRanking"]>()
 				.mockReturnValue({ most: "greeting", least: "departure" }),
-			resetPreferences: jest.fn().mockResolvedValue(undefined),
-		};
+			resetPreferences: jest
+				.fn<PreferenceLearningSystem["resetPreferences"]>()
+				.mockResolvedValue(undefined),
+		} as unknown as jest.Mocked<PreferenceLearningSystem>;
 
 		new PreferenceManagementUI(container, mockLearningSystem);
 	});
@@ -47,8 +52,10 @@ describe("PreferenceManagementUI Actions Refinement", () => {
 	});
 
 	it("should position Reset button before AI Settings heading", () => {
-		const resetBtn = container.querySelector("#resetPreferences");
-		const aiSettings = container.querySelector(".ai-settings");
+		const resetBtn = container.querySelector(
+			"#resetPreferences",
+		) as HTMLElement;
+		const aiSettings = container.querySelector(".ai-settings") as HTMLElement;
 
 		expect(resetBtn).not.toBeNull();
 		expect(aiSettings).not.toBeNull();
@@ -67,7 +74,10 @@ describe("PreferenceManagementUI Actions Refinement", () => {
 		expect(aiSettingsIdx).not.toBe(-1);
 	});
 	it("should have a subtle style for Reset button (not reset-btn)", () => {
-		const resetBtn = container.querySelector("#resetPreferences");
+		const resetBtn = container.querySelector(
+			"#resetPreferences",
+		) as HTMLElement;
+		expect(resetBtn).not.toBeNull();
 		expect(resetBtn.classList.contains("reset-btn")).toBe(false);
 		expect(resetBtn.classList.contains("subtle-reset-btn")).toBe(true);
 	});
@@ -79,7 +89,10 @@ describe("PreferenceManagementUI Actions Refinement", () => {
 		const ui = new PreferenceManagementUI(container, mockLearningSystem);
 		ui.setUser("test-user");
 
-		const resetBtn = container.querySelector("#resetPreferences");
+		const resetBtn = container.querySelector(
+			"#resetPreferences",
+		) as HTMLElement;
+		expect(resetBtn).not.toBeNull();
 		resetBtn.click();
 
 		// Need to wait for async handleReset

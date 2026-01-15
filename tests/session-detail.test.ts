@@ -1,6 +1,6 @@
 import { LocalAudioManager } from "../src/audio/audio-manager";
 import { IndexedDBWrapper } from "../src/storage/indexeddb-wrapper";
-import type { Session } from "../src/types/core";
+import type { AudioFile, Session } from "../src/types/core";
 import { SessionDetailView } from "../src/ui/session-detail";
 
 // Mock dependencies
@@ -15,8 +15,7 @@ global.Audio = jest.fn().mockImplementation(() => ({
 	removeEventListener: jest.fn(),
 	currentTime: 0,
 	duration: 100,
-	// biome-ignore lint/suspicious/noExplicitAny: Mocking HTML5 Audio
-})) as unknown as any;
+})) as unknown as typeof Audio;
 
 global.URL.createObjectURL = jest.fn();
 
@@ -39,13 +38,17 @@ describe("SessionDetailView", () => {
 			transcript: [],
 			comments: [],
 			interactions: [],
-			metrics: { totalDuration: 0, commentCount: 0 },
-			// biome-ignore lint/suspicious/noExplicitAny: Mocking session object
-		} as unknown as any;
+			metrics: {
+				totalDuration: 0,
+				commentCount: 0,
+				interactionCount: 0,
+				averageEngagement: 0,
+			},
+		} as Session;
 
 		mockAudioManager = {
 			getAudioFilesBySession: jest.fn().mockResolvedValue([]),
-		} as any;
+		} as unknown as jest.Mocked<LocalAudioManager>;
 		(LocalAudioManager as jest.Mock).mockImplementation(() => mockAudioManager);
 
 		jest.clearAllMocks();
@@ -74,12 +77,15 @@ describe("SessionDetailView", () => {
 			id: "audio_1",
 			sessionId: "session_1",
 			blob: mockBlob,
-			format: "webm",
-		};
+			format: "webm" as const,
+			filename: "test.webm",
+			duration: 100,
+			size: 1000,
+			createdAt: new Date(),
+			quality: { bitrate: 128000, sampleRate: 44100, channels: 1 },
+		} as AudioFile;
 
-		mockAudioManager.getAudioFilesBySession.mockResolvedValue([
-			mockAudioFile,
-		] as any);
+		mockAudioManager.getAudioFilesBySession.mockResolvedValue([mockAudioFile]);
 
 		new SessionDetailView(container, session, storage, onBack);
 
@@ -112,12 +118,15 @@ describe("SessionDetailView", () => {
 			id: "audio_1",
 			sessionId: "session_1",
 			blob: mockBlob,
-			format: "webm",
-		};
+			format: "webm" as const,
+			filename: "test.webm",
+			duration: 100,
+			size: 1000,
+			createdAt: new Date(),
+			quality: { bitrate: 128000, sampleRate: 44100, channels: 1 },
+		} as AudioFile;
 
-		mockAudioManager.getAudioFilesBySession.mockResolvedValue([
-			mockAudioFile,
-		] as any);
+		mockAudioManager.getAudioFilesBySession.mockResolvedValue([mockAudioFile]);
 
 		const view = new SessionDetailView(container, session, storage, onBack);
 
@@ -125,8 +134,9 @@ describe("SessionDetailView", () => {
 		await new Promise((resolve) => setTimeout(resolve, 0));
 
 		// Call private method directly for testing
-		// biome-ignore lint/suspicious/noExplicitAny: Testing private method
-		await (view as any).exportAudio();
+		await (
+			view as unknown as { exportAudio: () => Promise<void> }
+		).exportAudio();
 
 		expect(mockAudioManager.getAudioFilesBySession).toHaveBeenCalledWith(
 			"session_1",
@@ -140,12 +150,15 @@ describe("SessionDetailView", () => {
 			id: "audio_1",
 			sessionId: "session_1",
 			blob: mockBlob,
-			format: "webm",
-		};
+			format: "webm" as const,
+			filename: "test.webm",
+			duration: 100,
+			size: 1000,
+			createdAt: new Date(),
+			quality: { bitrate: 128000, sampleRate: 44100, channels: 1 },
+		} as AudioFile;
 
-		mockAudioManager.getAudioFilesBySession.mockResolvedValue([
-			mockAudioFile,
-		] as any);
+		mockAudioManager.getAudioFilesBySession.mockResolvedValue([mockAudioFile]);
 
 		// Setup session with 125 seconds duration
 		session.metrics.totalDuration = 125000;
@@ -155,7 +168,7 @@ describe("SessionDetailView", () => {
 			play: jest.fn(),
 			pause: jest.fn(),
 			addEventListener: jest.fn((event, cb) => {
-				if (event === "loadedmetadata") metadataCallback = cb;
+				if (event === "loadedmetadata") metadataCallback = cb as () => void;
 			}),
 			removeEventListener: jest.fn(),
 			currentTime: 0,

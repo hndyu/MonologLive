@@ -1,27 +1,63 @@
-// @ts-nocheck
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	jest,
+} from "@jest/globals";
+import type {
+	LearningStats,
+	PreferenceLearningSystem,
+} from "../src/learning/preference-learning";
+import type { CommentRoleType } from "../src/types/core";
 import { PreferenceManagementUI } from "../src/ui/preference-management";
 
 describe("PreferenceManagementUI Gemini Integration", () => {
 	let container: HTMLElement;
-	let mockLearningSystem: PreferenceLearningSystem;
+	let mockLearningSystem: {
+		getPersonalizedWeights: jest.Mock<
+			(userId: string) => Promise<Map<CommentRoleType, number>>
+		>;
+		getLearningStats: jest.Mock<() => LearningStats>;
+		getPreferenceRanking: jest.Mock<
+			() => { most: CommentRoleType; least: CommentRoleType } | null
+		>;
+		resetPreferences: jest.Mock<(userId: string) => Promise<void>>;
+	};
 
 	beforeEach(() => {
 		container = document.createElement("div");
 		document.body.appendChild(container);
 
 		mockLearningSystem = {
-			getPersonalizedWeights: jest.fn().mockResolvedValue(new Map()),
+			getPersonalizedWeights: jest
+				.fn<(userId: string) => Promise<Map<CommentRoleType, number>>>()
+				.mockImplementation(() => Promise.resolve(new Map())),
 			getLearningStats: jest
-				.fn()
-				.mockReturnValue({ totalFeedbackEvents: 0, averageWeight: 1.0 }),
+				.fn<() => LearningStats>()
+				.mockImplementation(() => ({
+					totalFeedbackEvents: 0,
+					averageWeight: 1.0,
+					roleAdjustments: new Map(),
+					mostPreferredRole: "reaction",
+					leastPreferredRole: "reaction",
+				})),
 			getPreferenceRanking: jest
-				.fn()
-				.mockReturnValue({ most: "greeting", least: "departure" }),
-			resetPreferences: jest.fn().mockResolvedValue(undefined),
+				.fn<() => { most: CommentRoleType; least: CommentRoleType } | null>()
+				.mockImplementation(() => ({
+					most: "greeting",
+					least: "departure",
+				})),
+			resetPreferences: jest
+				.fn<(userId: string) => Promise<void>>()
+				.mockImplementation(() => Promise.resolve()),
 		};
 
-		new PreferenceManagementUI(container, mockLearningSystem);
+		new PreferenceManagementUI(
+			container,
+			mockLearningSystem as unknown as PreferenceLearningSystem,
+		);
 
 		// Clear localStorage before each test
 		localStorage.clear();
@@ -53,7 +89,10 @@ describe("PreferenceManagementUI Gemini Integration", () => {
 
 		// Create new UI to trigger initialization
 		const newContainer = document.createElement("div");
-		new PreferenceManagementUI(newContainer, mockLearningSystem);
+		new PreferenceManagementUI(
+			newContainer,
+			mockLearningSystem as unknown as PreferenceLearningSystem,
+		);
 
 		const input = newContainer.querySelector(
 			"#geminiApiKey",
