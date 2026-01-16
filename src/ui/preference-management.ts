@@ -75,7 +75,7 @@ export class PreferenceManagementUI {
           <h4>AI Settings</h4>
           <div class="setting-item">
             <label for="geminiApiKey">Gemini API Key</label>
-            <input type="password" id="geminiApiKey" value="${existingKey}" placeholder="Enter your Gemini API key" autocomplete="new-password">
+            <input type="password" id="geminiApiKey" placeholder="Enter your Gemini API key" autocomplete="new-password">
             <p class="setting-hint">Required for high-quality session summaries. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a key here</a></p>
           </div>
         </div>
@@ -96,6 +96,13 @@ export class PreferenceManagementUI {
         </div>
       </div>
     `;
+
+		const apiKeyInput = this.container.querySelector(
+			"#geminiApiKey",
+		) as HTMLInputElement;
+		if (apiKeyInput) {
+			apiKeyInput.value = existingKey;
+		}
 
 		this.attachEventListeners();
 		this.applyStyles();
