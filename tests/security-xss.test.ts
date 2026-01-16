@@ -139,7 +139,7 @@ describe("PreferenceManagementUI XSS Vulnerability", () => {
 				most: "reaction",
 				least: "reaction",
 			}),
-		} as any;
+		} as unknown as jest.Mocked<PreferenceLearningSystem>;
 
 		localStorage.clear();
 		jest.clearAllMocks();
@@ -192,7 +192,7 @@ describe("HistoryModal XSS Vulnerability", () => {
 					interactions: [],
 				},
 			]),
-		} as any;
+		} as unknown as jest.Mocked<SessionHistoryManager>;
 		(SessionHistoryManager as jest.Mock).mockImplementation(
 			() => mockHistoryManager,
 		);

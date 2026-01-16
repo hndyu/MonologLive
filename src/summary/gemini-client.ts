@@ -24,6 +24,9 @@ export class GeminiClientImpl {
 		transcript: string,
 		apiKey: string,
 	): Promise<SessionSummary> {
+		// プロンプトインジェクション対策: トランスクリプト内のダブルクォートをエスケープ
+		const sanitizedTranscript = transcript.replace(/"/g, () => '\\"');
+
 		const prompt = `
       あなたは、ユーザーの「セカンドブレイン」構築を支援する、熟練したAIアシスタントです。
       以下のモノローグ/会話セッションのトランスクリプトを分析し、JSON形式で構造化された要約を作成してください。
@@ -33,7 +36,7 @@ export class GeminiClientImpl {
 
       トランスクリプト:
       """
-      ${transcript}
+      ${sanitizedTranscript}
       """
 
       ユーザーの「セカンドブレイン」として、個人的な価値観、興味、そして重要なポイントを抽出することに重点を置いてください。

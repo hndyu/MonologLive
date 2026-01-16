@@ -5,6 +5,10 @@ import {
 	errorHandler,
 	MonologAppError,
 } from "../src/error-handling/error-handler";
+import type {
+	InsightGenerator,
+	TopicExtractor,
+} from "../src/interfaces/summary-generation";
 import { GeminiClientImpl } from "../src/summary/gemini-client";
 import { SummaryGeneratorImpl } from "../src/summary/summary-generator";
 import type { Session, TranscriptSegment } from "../src/types/core";
@@ -98,9 +102,20 @@ describe("SummaryGenerator PII Leak Protection", () => {
 
 		mockGeminiClient.generateSummary.mockRejectedValue(sensitiveError);
 
+		const mockTopicExtractor: jest.Mocked<TopicExtractor> = {
+			extractTopics: jest.fn().mockResolvedValue([]),
+			getTopicRelevance: jest.fn().mockReturnValue(0),
+		};
+
+		const mockInsightGenerator: jest.Mocked<InsightGenerator> = {
+			generateInsights: jest.fn().mockResolvedValue([]),
+			analyzeEmotionalTone: jest.fn().mockResolvedValue(0),
+			identifyConversationPatterns: jest.fn().mockResolvedValue([]),
+		};
+
 		const generator = new SummaryGeneratorImpl(
-			{ extractTopics: jest.fn().mockResolvedValue([]) } as any,
-			{ generateInsights: jest.fn().mockResolvedValue([]) } as any,
+			mockTopicExtractor,
+			mockInsightGenerator,
 			mockGeminiClient,
 		);
 

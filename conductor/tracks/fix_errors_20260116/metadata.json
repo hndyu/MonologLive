@@ -1,0 +1,8 @@
+{
+	"track_id": "fix_errors_20260116",
+	"type": "bug",
+	"status": "new",
+	"created_at": "2026-01-16T11:07:00Z",
+	"updated_at": "2026-01-16T11:07:00Z",
+	"description": "現在、test、biome、tscで多数のエラーが発生しています。これらをゼロになるよう修正してください。"
+}

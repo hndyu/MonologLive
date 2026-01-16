@@ -7,6 +7,7 @@ import type {
 	ModelInfo,
 } from "../interfaces/comment-generation";
 import type { ConversationContext } from "../types/core";
+import { createWebLLMWorker } from "./worker-factory";
 
 // Type for MLCEngine from @mlc-ai/web-llm
 interface WebLLMEngineWrapper {
@@ -59,9 +60,7 @@ async function createWebLLMEngine(
 			};
 		}
 
-		const worker = new Worker(new URL("./webworker.ts", import.meta.url), {
-			type: "module",
-		});
+		const worker = createWebLLMWorker();
 
 		const engine = await CreateWebWorkerMLCEngine(worker, modelId);
 
@@ -201,9 +200,7 @@ export class WebLLMProcessor implements LocalLLMProcessor {
 				throw new Error("WebLLM not available in test environment");
 			}
 
-			const worker = new Worker(new URL("./webworker.ts", import.meta.url), {
-				type: "module",
-			});
+			const worker = createWebLLMWorker();
 
 			this.rawEngine = await CreateWebWorkerMLCEngine(worker, selectedModel);
 			this.engine = await createWebLLMEngine(selectedModel);
@@ -299,14 +296,22 @@ export class WebLLMProcessor implements LocalLLMProcessor {
 	): string {
 		const { recentTranscript, currentTopic } = context;
 
+		// プロンプトインジェクション対策: 入力をサニタイズ（ダブルクォートをエスケープ）
+		const sanitizedTopic = currentTopic
+			? currentTopic.replace(/"/g, '\\"')
+			: "";
+		const sanitizedTranscript = recentTranscript
+			? recentTranscript.slice(-200).replace(/"/g, '\\"')
+			: "";
+
 		let prompt = `Generate a ${role.type} comment for this live stream context:\n`;
 
-		if (currentTopic) {
-			prompt += `Topic: ${currentTopic}\n`;
+		if (sanitizedTopic) {
+			prompt += `Topic: ${sanitizedTopic}\n`;
 		}
 
-		if (recentTranscript) {
-			prompt += `Recent speech: "${recentTranscript.slice(-200)}"\n`;
+		if (sanitizedTranscript) {
+			prompt += `Recent speech: "${sanitizedTranscript}"\n`;
 		}
 
 		// Add role-specific guidance
